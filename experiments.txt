@@ -1,0 +1,33 @@
+* Exploration: what happens when you turn up exploration parameters?
+  * Story: Terminal learning reward surfaces over exploration
+* Changes in PPO parameters: how do these parameters smooth learning surfaces?
+* Changes in network size/architecture (i.e. resnet)
+* General morphology while learning:
+  * How do surfaces change during learning? What do they look like when learning is fast? When learning is slow or negative (and then speeds up again before it is done)?
+* Changes between environments
+  * hard exploration problems vs easy ones
+* Changes with reward decay
+* Average Temporal difference error
+  * single vs double q learning error(during training)
+  * Distributional learning
+  * Optimization method (adam, etc) include parameter changes
+  * Network size
+  * Batch size
+  * learning rate schedule changes (does the loss landscape sharpen as learning rate decreases?)
+
+Training tools needed are:
+
+1. Takes in hyper-parameters/network architecture/environment, sets seed for training and environment
+2. Trains on parameters
+3. During training, logs test rewards and saves parameters on a regular basis (storing hyper-parameters/architecture/environment info)
+
+Analysis tools are:
+
+* Takes in specific configuration and network parameters, outputs directions
+* Takes in specific configuration, directions, window sizes, outputs reward value grid, td_error grid, expected value grid, actual value grid
+* Plots specific grid
+
+Possible cool extensions are:
+
+* Batch job tool to add tasks to run
+* Takes in configuration, directory of parameter files, generates list of directions (which are the same except different normalizations), and produces list of reward maps for slideshow video of change

@@ -46,7 +46,7 @@ def mean(vals):
 
 def test_env_true_reward(load_file, env_name, algo_name, num_episodes, max_frames):
     #env =
-    load_env, test_env = create_env(env_name, algo_name, n_envs=1, max_frames=max_frames)
+    load_env, test_env = create_env(env_name, algo_name, n_envs=4, max_frames=max_frames)
     num_envs = test_env.num_envs
     env = test_env
     model_pred = ALGOS[algo_name].load(load_file,env=load_env,n_cpu_tf_sess=1)

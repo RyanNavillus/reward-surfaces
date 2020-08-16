@@ -7,6 +7,7 @@ import os
 import multiprocessing as mp
 import numpy as np
 import shutil
+import json
 import tempfile
 
 def get_data_path(source_file):
@@ -118,7 +119,7 @@ if __name__ == "__main__":
         # "trained_agents/ppo2/SpaceInvadersNoFrameskip-v4.pkl"
     ]
     print(json.dumps(data_of_interest,indent=4))
-    exit(0)
+    #exit(0)
     #[
         #"trained_agents/trpo/LunarLander-v2.pkl",
         #"trained_agents/ppo2/LunarLander-v2.pkl",

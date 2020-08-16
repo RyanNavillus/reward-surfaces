@@ -29,7 +29,7 @@ sys.modules['stable_baselines.ddpg.memory'] = stable_baselines.common.buffers
 stable_baselines.common.buffers.Memory = stable_baselines.common.buffers.ReplayBuffer
 
 
-def create_env(env_id, algo, max_frames=None, n_envs=1, seed=0, folder="trained_agents"):
+def create_env(env_id, algo, max_frames=None, n_envs=1, seed=None, folder="trained_agents"):
     # Going through custom gym packages to let them register in the global registory
     # for env_module in args.gym_packages:
     #     importlib.import_module(env_module)

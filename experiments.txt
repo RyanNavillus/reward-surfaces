@@ -8,8 +8,6 @@
   * hard exploration problems vs easy ones
 * Changes with reward decay
 * Average Temporal difference error
-  * single vs double q learning error(during training)
-  * Distributional learning
   * Optimization method (adam, etc) include parameter changes
   * Network size
   * Batch size
@@ -30,4 +28,5 @@ Analysis tools are:
 Possible cool extensions are:
 
 * Batch job tool to add tasks to run
+* GCP batch jobs?
 * Takes in configuration, directory of parameter files, generates list of directions (which are the same except different normalizations), and produces list of reward maps for slideshow video of change

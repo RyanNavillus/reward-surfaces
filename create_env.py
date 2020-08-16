@@ -9,7 +9,6 @@ warnings.filterwarnings("ignore", category=FutureWarning, module='tensorflow')
 warnings.filterwarnings("ignore", category=UserWarning, module='gym')
 
 import gym
-import utils.import_envs  # pytype: disable=import-error
 import numpy as np
 import stable_baselines
 from stable_baselines.common import set_global_seeds
@@ -25,17 +24,18 @@ from stable_baselines.common import set_global_seeds
 sys.modules['stable_baselines.ddpg.memory'] = stable_baselines.common.buffers
 stable_baselines.common.buffers.Memory = stable_baselines.common.buffers.ReplayBuffer
 
+seed_counter = 0
 
 def create_env(env_id, algo, max_frames=None, n_envs=1, seed=None, folder="trained_agents"):
+    global seed_counter
     # Going through custom gym packages to let them register in the global registory
     # for env_module in args.gym_packages:
     #     importlib.import_module(env_module)
+    if seed is None:
+        seed = seed_counter
+        seed_counter += 1
 
     # Sanity checks
-    log_path = os.path.join(folder, algo)
-
-    assert os.path.isdir(log_path), "The {} folder was not found".format(log_path)
-
     if algo in ['dqn', 'ddpg', 'sac', 'td3']:
         n_envs = 1
 
@@ -43,9 +43,9 @@ def create_env(env_id, algo, max_frames=None, n_envs=1, seed=None, folder="train
 
     is_atari = 'NoFrameskip' in env_id
 
-    stats_path = os.path.join(log_path, env_id)
-
     log_dir = None
+    stats_path = None
+    hyperparams = None
 
     if is_atari and max_frames is not None:
         env_kwargs = {"max_episode_steps": max_frames}

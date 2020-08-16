@@ -1,6 +1,6 @@
 from ppo import PPO2
 import json
-from eval_ppo import test_env_true_reward
+from eval_ppo import test_env_true_reward_loaded
 from create_env import create_env
 import os
 from stable_baselines.common.callbacks import EventCallback
@@ -18,17 +18,18 @@ class EvalCallback(EventCallback):
 
     def _on_step(self):
         if self.learn_step % self.eval_freq == 0:
+            print("eval callback started!")
             self.eval_fn(self.save_step)
             self.save_step += 1
-            print("eval callback called!")
+            print("eval callback finished!")
 
         self.learn_step += 1
 
-def train_ppo(env_name, eval_freq, hyperparams, save_dir):
+def train_ppo(env_name, eval_freq, hyperparams, save_dir, eval_num_done=16, n_timesteps=60000):
     os.mkdir(save_dir)
     model_saves = os.path.join(save_dir, "models")
     os.mkdir(model_saves)
-    n_train_envs = hyperparams.pop("n_train_envs", 4)
+    n_train_envs = hyperparams.pop("n_train_envs", 16)
     network = hyperparams.pop("network", "default")
     max_frames = hyperparams.pop("max_frames", 10000)
     if network == "default":
@@ -40,15 +41,13 @@ def train_ppo(env_name, eval_freq, hyperparams, save_dir):
     eval_results_file.flush()
     with open(os.path.join(save_dir, "hyperparams.json"),'w') as file:
         file.write(json.dumps(hyperparams, indent=4))
-    eval_num_done = 4
-    eval_num_steps = None
-    n_timesteps = 60000
+
     log_interval = eval_freq
     algo_name = "ppo2"
 
     tensorboard_log = "tb_log"
-    load_env, train_env  = create_env(env_name, algo_name, n_envs=n_train_envs, max_frames=max_frames)
-    load_env, test_env  = create_env(env_name, algo_name, n_envs=4, max_frames=max_frames)
+    train_env  = create_env(env_name, algo_name, n_envs=n_train_envs, max_frames=max_frames, multiproc=True)
+    test_env  = create_env(env_name, algo_name, n_envs=4, max_frames=max_frames, multiproc=True)
     model = PPO2(policy="CnnPolicy",env=train_env, tensorboard_log=tensorboard_log, verbose=False, **hyperparams)
 
     if log_interval > -1:
@@ -60,7 +59,7 @@ def train_ppo(env_name, eval_freq, hyperparams, save_dir):
     def eval_fn(save_step):
         model_save = os.path.join(model_saves, f"{save_step}.pkl")
         model.save(model_save)
-        eval_results = test_env_true_reward(model_save, model_save, env_name, eval_num_done, max_frames)
+        eval_results = test_env_true_reward_loaded(model, model, test_env, eval_num_done)
         result_str = ", ".join([str(r) for r in eval_results])+"\n"
         eval_results_file.write(result_str)
         eval_results_file.flush()
@@ -76,4 +75,5 @@ def train_ppo(env_name, eval_freq, hyperparams, save_dir):
 
 if __name__ == "__main__":
     env_name = "BeamRiderNoFrameskip-v4"
-    train_ppo(env_name, 16, hyperparams={}, save_dir="test_save")
+    eval_freq = 50000
+    train_ppo(env_name, eval_freq, hyperparams={}, save_dir="test_save")

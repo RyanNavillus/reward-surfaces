@@ -31,14 +31,16 @@ def mean(vals):
     return sum(vals)/len(vals)
 
 def test_env_true_reward(pred_file, eval_file, env_name, num_episodes, max_frames, single_threaded=False):
-    #env =
     n_cpu_sess = 1 if single_threaded else 4
     algo_name = "ppo2"
-    load_env, test_env = create_env(env_name, algo_name, n_envs=4, max_frames=max_frames)
-    num_envs = test_env.num_envs
+    test_env = create_env(env_name, algo_name, n_envs=4, max_frames=max_frames)
     env = test_env
-    model_pred = PPO2.load(pred_file,env=load_env,n_cpu_tf_sess=n_cpu_sess)
-    model_val = PPO2.load(eval_file,env=load_env,n_cpu_tf_sess=n_cpu_sess)
+    model_pred = PPO2.load(pred_file,env=test_env,n_cpu_tf_sess=n_cpu_sess)
+    model_val = PPO2.load(eval_file,env=test_env,n_cpu_tf_sess=n_cpu_sess)
+    return test_env_true_reward_loaded(model_pred, model_val, env, num_episodes)
+
+def test_env_true_reward_loaded(model_pred, model_val, env, num_episodes):
+    num_envs = env.num_envs
     gamma = model_val.gamma
     for key,value in model_val.__dict__.items():
         if isinstance(value, BasePolicy):

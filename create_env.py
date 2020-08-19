@@ -20,6 +20,7 @@ from stable_baselines.common.cmd_util import make_atari_env
 from stable_baselines.common.atari_wrappers import wrap_deepmind, make_atari, NoopResetEnv, MaxAndSkipEnv
 from stable_baselines.common import set_global_seeds
 from vector import MakeCPUAsyncConstructor
+from allinoneatari import AtariWrapper
 
 
 # Fix for breaking change in v2.6.0
@@ -70,15 +71,21 @@ def create_env(env_id, algo, max_frames=None, n_envs=1, seed=None, folder="train
 
     def make_env(rank):
         def _thunk():
-            env = make_atari(env_id, **env_kwargs)
-            env.seed(seed + rank)
-            return wrap_deepmind(env)
+            env = gym.make(env_id)
+            env._max_episode_steps = max_frames
+            # default env creation
+            env = AtariWrapper(env)
+            return env
+            # env = make_atari(env_id, **env_kwargs)
+            # env.seed(seed + rank)
+            # return wrap_deepmind(env)
         return _thunk
 
     env_fns = [make_env(i) for i in range(n_envs)]
     if not multiproc:
         vec_env = DummyVecEnv(env_fns)
     else:
-        vec_env = MakeCPUAsyncConstructor(4)(env_fns)
-    vec_env = VecFrameStack(vec_env, n_stack=4)
+        vec_env = MakeCPUAsyncConstructor(24)(env_fns)
+        vec_env.metadata = {}
+    #vec_env = VecFrameStack(vec_env, n_stack=4)
     return vec_env

@@ -3,6 +3,7 @@ import json
 from eval_ppo import test_env_true_reward_loaded
 from create_env import create_env
 import os
+import sys
 from stable_baselines.common.callbacks import EventCallback
 
 class EvalCallback(EventCallback):
@@ -25,17 +26,15 @@ class EvalCallback(EventCallback):
 
         self.learn_step += 1
 
-def train_ppo(env_name, eval_freq, hyperparams, save_dir, eval_num_done=16, n_timesteps=60000):
+def train_ppo(env_name, eval_freq, hyperparams, save_dir, eval_num_done=4, n_timesteps=100000000):
     os.mkdir(save_dir)
     model_saves = os.path.join(save_dir, "models")
     os.mkdir(model_saves)
     n_train_envs = hyperparams.pop("n_train_envs", 16)
     network = hyperparams.pop("network", "default")
     max_frames = hyperparams.pop("max_frames", 10000)
-    if network == "default":
-        policy = "CnnPolicy"
-    else:
-        raise ValueError("bad network value")
+    max_frames = hyperparams.pop("n_timesteps", 10000000)
+    policy = network
     eval_results_file = open(os.path.join(save_dir, "results.csv"),'w')
     eval_results_file.write("rew, value_ests, values, td_err\n")
     eval_results_file.flush()
@@ -47,7 +46,7 @@ def train_ppo(env_name, eval_freq, hyperparams, save_dir, eval_num_done=16, n_ti
 
     tensorboard_log = "tb_log"
     train_env  = create_env(env_name, algo_name, n_envs=n_train_envs, max_frames=max_frames, multiproc=True)
-    test_env  = create_env(env_name, algo_name, n_envs=4, max_frames=max_frames, multiproc=True)
+    test_env  = create_env(env_name, algo_name, n_envs=8, max_frames=max_frames, multiproc=True)
     model = PPO2(policy="CnnPolicy",env=train_env, tensorboard_log=tensorboard_log, verbose=False, **hyperparams)
 
     if log_interval > -1:
@@ -75,5 +74,20 @@ def train_ppo(env_name, eval_freq, hyperparams, save_dir, eval_num_done=16, n_ti
 
 if __name__ == "__main__":
     env_name = "BeamRiderNoFrameskip-v4"
-    eval_freq = 50000
-    train_ppo(env_name, eval_freq, hyperparams={}, save_dir="test_save")
+    eval_freq = 100000
+    hyperparams = {
+      'network': 'CnnPolicy',
+      'n_train_envs': 48*2,
+      'n_steps': 128,
+      'noptepochs': 4,
+      'nminibatches': 4,
+      'n_timesteps': 1e7,
+      'learning_rate': 2.5e-4,
+      'cliprange': 0.1,
+      'vf_coef': 0.5,
+      'ent_coef': 0.01,
+      'cliprange_vf': -1,
+    }
+    num = sys.argv[1]
+
+    train_ppo(env_name, eval_freq, hyperparams=hyperparams, save_dir=f"train_results/test_save{num}/")

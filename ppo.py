@@ -11,6 +11,7 @@ from stable_baselines.common.policies import ActorCriticPolicy, RecurrentActorCr
 from stable_baselines.common.schedules import get_schedule_fn
 from stable_baselines.common.tf_util import total_episode_reward_logger
 from stable_baselines.common.math_util import safe_mean
+import time
 
 class PPO2(ActorCriticRLModel):
     """
@@ -449,6 +450,8 @@ class Runner(AbstractEnvRunner):
         super().__init__(env=env, model=model, n_steps=n_steps)
         self.lam = lam
         self.gamma = gamma
+        self.start_time = time.time()
+        self.tot_time = 0
 
     def _run(self):
         """
@@ -479,7 +482,9 @@ class Runner(AbstractEnvRunner):
             # Clip the actions to avoid out of bound error
             if isinstance(self.env.action_space, gym.spaces.Box):
                 clipped_actions = np.clip(actions, self.env.action_space.low, self.env.action_space.high)
+            start_time = time.time()
             self.obs[:], rewards, self.dones, infos = self.env.step(clipped_actions)
+            self.tot_time += time.time() - start_time
 
             self.model.num_timesteps += self.n_envs
 
@@ -521,6 +526,8 @@ class Runner(AbstractEnvRunner):
         mb_obs, mb_returns, mb_dones, mb_actions, mb_values, mb_neglogpacs, true_reward = \
             map(swap_and_flatten, (mb_obs, mb_returns, mb_dones, mb_actions, mb_values, mb_neglogpacs, true_reward))
 
+        time_elapsed = time.time() - self.start_time
+        print(self.tot_time/time_elapsed)
         return mb_obs, mb_returns, mb_dones, mb_actions, mb_values, mb_neglogpacs, mb_states, ep_infos, true_reward
 
 

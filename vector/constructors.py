@@ -1,5 +1,6 @@
 from .concat_vec_env import ConcatVecEnv
 from .multiproc_vec import ProcConcatVec
+from .sb_vector_wrapper import VecEnvWrapper
 
 class call_wrap:
     def __init__(self, fn, data):
@@ -30,5 +31,7 @@ def MakeCPUAsyncConstructor(max_num_cpus):
             assert alloced_num_cpus == len(env_cpu_div)
 
             cat_env_fns = [call_wrap(ConcatVecEnv, env_fns) for env_fns in env_cpu_div]
-            return ProcConcatVec(cat_env_fns, example_env.observation_space, example_env.action_space, num_fns*envs_per_env)
+            proccat = ProcConcatVec(cat_env_fns, example_env.observation_space, example_env.action_space, num_fns*envs_per_env)
+            sb_cat = VecEnvWrapper(proccat)
+            return sb_cat
         return constructor

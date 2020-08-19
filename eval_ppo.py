@@ -30,6 +30,28 @@ def calc_mean_td(est_vals, rewards, gamma):
 def mean(vals):
     return sum(vals)/len(vals)
 
+def get_frames(obs):
+    obs = obs[0]
+    frames = [obs[:,:,i*3:(i+1)*3] for i in range(4)]
+    return frames
+
+def generate_video(pred_file, out_file, env_name):
+    algo_name = "ppo2"
+    test_env = create_env(env_name, algo_name, n_envs=1, max_frames=1000)
+    model_pred = PPO2.load(pred_file,env=test_env,n_cpu_tf_sess=1)
+
+    video = []
+    obs = test_env.reset()
+    video += get_frames(obs)
+    print(obs.shape)
+    state = None
+    for i in range(1000):
+        action, state = model_pred.predict(obs, state=state)#
+        obs, rew, done, info = test_env.step(action)
+        video += get_frames(obs)
+        if done:
+            break
+    return video
 
 def test_env_true_reward(pred_file, eval_file, env_name, num_episodes, max_frames, single_threaded=False):
     n_cpu_sess = 1 if single_threaded else 4

@@ -50,6 +50,7 @@ def run_on_data(data_folder, hyperparams, num_episodes, x_window, y_window):
     #results = [sing_src_rew_eval(arg) for arg in all_args]
     pool = mp.Pool(24)
     results = list(pool.map(get_rewards, all_args))
+    pool.terminate()
     print("fetched results")
     true_rewards = [true_rew for true_rew, est_val, true_val, td_err in results]
     est_vals = [est_val for true_rew, est_val, true_val, td_err in results]

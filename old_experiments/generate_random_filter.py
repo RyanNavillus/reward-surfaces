@@ -1,8 +1,8 @@
 import numpy as np
-from extract_params import ParamLoader
+from .extract_params import ParamLoader
 import os
-from utils import ALGOS
-from test_env import create_env
+#from utils import ALGOS
+#from test_env import create_env
 
 def gen_rand_dir(param):
     ndims = len(param.shape)

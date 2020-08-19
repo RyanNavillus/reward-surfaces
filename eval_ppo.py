@@ -30,6 +30,7 @@ def calc_mean_td(est_vals, rewards, gamma):
 def mean(vals):
     return sum(vals)/len(vals)
 
+
 def test_env_true_reward(pred_file, eval_file, env_name, num_episodes, max_frames, single_threaded=False):
     n_cpu_sess = 1 if single_threaded else 4
     algo_name = "ppo2"

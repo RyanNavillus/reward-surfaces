@@ -1,5 +1,5 @@
-from extract_params import ParamLoader
-from generate_random_filter import generate_random_directions
+from .extract_params import ParamLoader
+from .generate_random_filter import generate_random_directions
 import os
 
 def generate_test_file(base_folder, outfile, x_window, y_window, xpos, ypos):

@@ -26,10 +26,13 @@ class EvalCallback(EventCallback):
 
         self.learn_step += 1
 
-def train_ppo(env_name, eval_freq, hyperparams, save_dir, eval_num_done=4, n_timesteps=100000000):
+def train_ppo(eval_freq, hyperparams, save_dir, eval_num_done=4, n_timesteps=100000000):
     os.mkdir(save_dir)
+    with open(os.path.join(save_dir, "hyperparams.json"),'w') as file:
+        file.write(json.dumps(hyperparams, indent=4))
     model_saves = os.path.join(save_dir, "models")
     os.mkdir(model_saves)
+    env_name = hyperparams.pop("env_name")
     n_train_envs = hyperparams.pop("n_train_envs", 16)
     network = hyperparams.pop("network", "default")
     max_frames = hyperparams.pop("max_frames", 10000)
@@ -38,8 +41,6 @@ def train_ppo(env_name, eval_freq, hyperparams, save_dir, eval_num_done=4, n_tim
     eval_results_file = open(os.path.join(save_dir, "results.csv"),'w')
     eval_results_file.write("rew, value_ests, values, td_err\n")
     eval_results_file.flush()
-    with open(os.path.join(save_dir, "hyperparams.json"),'w') as file:
-        file.write(json.dumps(hyperparams, indent=4))
 
     log_interval = eval_freq
     algo_name = "ppo2"
@@ -56,7 +57,7 @@ def train_ppo(env_name, eval_freq, hyperparams, save_dir, eval_num_done=4, n_tim
     eval_freq = max(eval_freq // n_train_envs, 1)
 
     def eval_fn(save_step):
-        model_save = os.path.join(model_saves, f"{save_step}.pkl")
+        model_save = os.path.join(model_saves, f"{save_step}.zip")
         model.save(model_save)
         eval_results = test_env_true_reward_loaded(model, model, test_env, eval_num_done)
         result_str = ", ".join([str(r) for r in eval_results])+"\n"
@@ -76,6 +77,7 @@ if __name__ == "__main__":
     env_name = "BeamRiderNoFrameskip-v4"
     eval_freq = 100000
     hyperparams = {
+      'env_name': env_name,
       'network': 'CnnPolicy',
       'n_train_envs': 48*2,
       'n_steps': 128,
@@ -90,4 +92,4 @@ if __name__ == "__main__":
     }
     num = sys.argv[1]
 
-    train_ppo(env_name, eval_freq, hyperparams=hyperparams, save_dir=f"train_results/test_save{num}/")
+    train_ppo(eval_freq, hyperparams=hyperparams, save_dir=f"train_results/test_save{num}/")

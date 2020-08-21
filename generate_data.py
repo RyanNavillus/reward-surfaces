@@ -88,7 +88,7 @@ def run_on_train_run(max_step, folder, num_episodes, x_window, y_window):
 if __name__ == "__main__":
     x_window = 17
     y_window = 17
-    num_episodes = 15
+    num_episodes = 128
 
     model_path = "train_results/test_save3/models/0.zip"
     hyperparam_path = "train_results/test_save3/hyperparams.json"

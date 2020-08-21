@@ -281,8 +281,16 @@ if __name__ == "__main__":
     assert len(sys.argv) >= 3, "need 2 parameters, outname, fname"
     outname = sys.argv[1]
     datafname = sys.argv[2]
+    if len(sys.argv) >= 4:
+        type = sys.argv[3]
+    else:
+        type = "all"
     #"output_files/trpo/LunarLander-v2/true_values_<12,12>_100.npy"
     data = np.load(datafname)
-    size=data.shape[0]
-    plot_2d_contour(np.arange(size),np.arange(size),data,outname)
-    generate_vtp(np.arange(size),np.arange(size),data, outname+".vtp")
+    size = data.shape[0]
+    vmin = np.min(data)
+    vmax = np.max(data)
+    vlevel = (vmax-vmin)/15
+    plot_2d_contour(np.arange(size),np.arange(size),data,outname,vmin=vmin,vmax=vmax,vlevel=vlevel)
+    if type == "all" or type == "vtp":
+        generate_vtp(np.arange(size),np.arange(size),data, outname+".vtp")

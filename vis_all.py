@@ -3,8 +3,9 @@ import sys
 import os
 
 for fname in sys.argv[1:]:
-    _, algo, env_name, bname = fname.split("/")
-    basename = "vis/"+env_name+algo+bname[:-4]
+    parts = fname.split("/")[-5:]
+    bname = "_".join(parts)[:-4]
+    basename = "vis/"+bname
     arglist = ["python","visualize.py",basename,fname]
     print(" ".join(arglist))
     subprocess.Popen(arglist)

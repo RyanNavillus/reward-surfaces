@@ -13,3 +13,5 @@ vis
 loss-landscape
 generated_dirs
 hyperparams
+*.th
+*.zip

@@ -1,5 +1,6 @@
 from ppo import PPO2
 import gym
+import time
 import stable_baselines
 #from stable_baselines.common.vec_env import VecFrameStack, SubprocVecEnv, VecNormalize, DummyVecEnv, VecEnv
 from stable_baselines.common.vec_env import DummyVecEnv
@@ -80,6 +81,7 @@ def test_env_true_reward_loaded(model_pred, model_val, env, num_episodes):
     episode_values = []
     episode_td_err = []
     state = None
+    start_t = time.time()
     while len(episode_rewards) < num_episodes:
         action, state = model_pred.predict(obs, state=state)#, deterministic=True)
         # if hasattr(policy, "values"):
@@ -109,7 +111,8 @@ def test_env_true_reward_loaded(model_pred, model_val, env, num_episodes):
                 episode_td_err.append(calc_mean_td(ep_vals[i], ep_rews[i], gamma))#TODO make this real
                 ep_rews[i] = []
                 ep_vals[i] = []
-                print("done!")
+                end_t = time.time()
+                print("done! ",(end_t-start_t)/len(episode_rewards))
     #print(episode_rewards)
     return mean(episode_rewards),mean(episode_value_ests),mean(episode_values),mean(episode_td_err)
 

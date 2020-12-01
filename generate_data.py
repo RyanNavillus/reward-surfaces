@@ -48,7 +48,7 @@ def run_on_data(data_folder, hyperparams, num_episodes, x_window, y_window):
             all_args.append(args)
 
     #results = [sing_src_rew_eval(arg) for arg in all_args]
-    pool = mp.Pool(24)
+    pool = mp.Pool(64)
     results = list(pool.map(get_rewards, all_args))
     pool.terminate()
     print("fetched results")
@@ -86,12 +86,12 @@ def run_on_train_run(max_step, folder, num_episodes, x_window, y_window):
 
 
 if __name__ == "__main__":
-    x_window = 17
-    y_window = 17
-    num_episodes = 128
+    x_window = 5
+    y_window = 5
+    num_episodes = 50
 
-    model_path = "train_results/test_save3/models/0.zip"
-    hyperparam_path = "train_results/test_save3/hyperparams.json"
-    output_path = "generated_dirs/test3/"
+    model_path = "train_results/test_save4/models/0.zip"
+    hyperparam_path = "train_results/test_save4/hyperparams.json"
+    output_path = "generated_dirs/test4/"
 
-    run_on_train_run(10, "train_results/test_save3/", num_episodes, x_window, y_window )
+    run_on_train_run(1, "train_results/test_save4/", num_episodes, x_window, y_window )

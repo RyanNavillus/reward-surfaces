@@ -75,12 +75,12 @@ def train_ppo(eval_freq, hyperparams, save_dir, eval_num_done=4, n_timesteps=100
 
 if __name__ == "__main__":
     env_name = "BeamRiderNoFrameskip-v4"
-    eval_freq = 100000
+    eval_freq = 10000
     hyperparams = {
       'env_name': env_name,
       'network': 'CnnPolicy',
-      'n_train_envs': 48*2,
-      'n_steps': 128,
+      'n_train_envs': 8,
+      'n_steps': 16,
       'noptepochs': 4,
       'nminibatches': 4,
       'n_timesteps': 1e7,

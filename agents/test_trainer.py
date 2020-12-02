@@ -3,6 +3,8 @@ import numpy as np
 from stable_baselines3.a2c import A2C
 from stable_baselines3.ppo import PPO
 from stable_baselines3.ddpg import DDPG
+from stable_baselines3.td3 import TD3
+from stable_baselines3.sac import SAC
 import tempfile
 from sb3_on_policy_train import SB3OnPolicyTrainer,SB3OffPolicyTrainer
 
@@ -26,6 +28,10 @@ def continious_env_fn():
     return gym.make("Pendulum-v0")
 
 if __name__ == "__main__":
+    print("testing SB3 TD3")
+    test_trainer(continious_env_fn, SB3OffPolicyTrainer(continious_env_fn,TD3("MlpPolicy",continious_env_fn(),device="cpu")))
+    print("testing SB3 SAC")
+    test_trainer(continious_env_fn, SB3OffPolicyTrainer(continious_env_fn,SAC("MlpPolicy",continious_env_fn(),device="cpu")))
     print("testing SB3 DDPG")
     test_trainer(continious_env_fn, SB3OffPolicyTrainer(continious_env_fn,DDPG("MlpPolicy",continious_env_fn(),device="cpu")))
     print("testing SB3 PPO")

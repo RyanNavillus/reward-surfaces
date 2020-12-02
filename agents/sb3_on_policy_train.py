@@ -35,7 +35,7 @@ class CheckpointCallback(BaseCallback):
         if self.n_calls % self.save_freq == 0 and self.old_params is not None:
             print("saved")
             path = os.path.join(self.save_path, f"{self.name_prefix}_{self.num_timesteps}_steps")
-            os.makedirs(path)
+            os.makedirs(path, exist_ok=True)
             self.model.save(os.path.join(path,"checkpoint"))
             model_parameters = self.model.policy.state_dict()
             grads = OrderedDict([(name, param.grad) for name, param in model_parameters.items()])

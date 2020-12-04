@@ -10,12 +10,12 @@ import tempfile
 import gym  # open ai gym
 from stable_baselines3.common.bit_flipping_env import BitFlippingEnv
 from sb3_on_policy_train import SB3OnPolicyTrainer,SB3OffPolicyTrainer,SB3HerPolicyTrainer
-from sb3_extended_algos import ExtA2C
+from sb3_extended_algos import ExtA2C, ExtPPO, ExtSAC
 
 def test_curvature(env_fn, trainer):
     # test trainer learning
     saved_files = trainer.train(100,"test_results",save_freq=1000)
-    maxeig, mineig = trainer.calculate_eigenvalues(20000,1.e-5)
+    maxeig, mineig = trainer.calculate_eigenvalues(200,1.e-5)
     print(maxeig, mineig)
 
 def discrete_env_fn():
@@ -25,5 +25,9 @@ def continious_env_fn():
     return gym.make("Pendulum-v0")
 
 if __name__ == "__main__":
-    print("testing SB3 A2C")
-    test_curvature(discrete_env_fn, SB3OnPolicyTrainer(discrete_env_fn,ExtA2C("MlpPolicy",discrete_env_fn(),device="cuda")))
+    print("testing SB3 SAC curvature")
+    test_curvature(continious_env_fn, SB3OffPolicyTrainer(continious_env_fn,ExtSAC("MlpPolicy",continious_env_fn(),device="cpu")))
+    print("testing SB3 A2C curvature")
+    test_curvature(discrete_env_fn, SB3OnPolicyTrainer(discrete_env_fn,ExtA2C("MlpPolicy",discrete_env_fn(),device="cpu")))
+    print("testing SB3 PPO curvature")
+    test_curvature(discrete_env_fn, SB3OnPolicyTrainer(discrete_env_fn,ExtPPO("MlpPolicy",discrete_env_fn(),device="cpu")))

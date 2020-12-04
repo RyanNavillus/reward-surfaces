@@ -9,7 +9,7 @@ import torch as th
 from torch.nn import functional as F
 from gym import spaces
 from scipy.sparse.linalg import LinearOperator, eigsh
-from stable_baselines3.common.buffers import RolloutBuffer
+from stable_baselines3.common.buffers import RolloutBuffer, ReplayBuffer
 from stable_baselines3.common.callbacks import BaseCallback
 
 class DoNothingCallback(BaseCallback):
@@ -65,8 +65,113 @@ def npvec_to_tensorlist(vec, params, device):
     assert loc == vec.size, 'The vector has more elements than the net has parameters'
     return rval
 
+class HeshCalcOnlineMixin:
+    def calculate_hesh_vec_prod(self, vec, num_samples):
+        '''
+        stores hessian vector dot product in params.grad
+        '''
+        self.policy.zero_grad()
+        max_batch_size = 2048
+        # start = 0
+        for rollout_data in self.generate_samples(batch_size=max_batch_size, max_samples=num_samples):
+            #batch_size = min(num_samples-start, max_batch_size)
+            grad = self.calulate_grad_from_buffer(rollout_data)
+            loss = 0
+            for g, p in zip(grad, vec):
+                loss += (g*p).sum()
+            #accumulates grad inside sb3_algo.policy.parameters().grad
+            loss.backward()
 
-class ExtA2C(A2C):
+    def generate_samples(self, batch_size):
+        return self.rollout_buffer.get(batch_size=batch_size)
+
+    def setup_buffer(self, num_samples):
+        rollout_steps = num_samples//self.n_envs
+        self._old_buffer = self.rollout_buffer
+        self.rollout_buffer = RolloutBuffer(
+            num_samples,
+            self.observation_space,
+            self.action_space,
+            self.device,
+            gamma=self.gamma,
+            gae_lambda=self.gae_lambda,
+            n_envs=self.n_envs,
+        )
+        cb = DoNothingCallback(self)
+        self.collect_rollouts(self.env, cb, self.rollout_buffer, n_rollout_steps=rollout_steps)
+
+    def cleanup_buffer(self):
+        self.rollout_buffer = self._old_buffer
+
+    def calculate_hesh_eigenvalues(self, num_samples, tol):
+        self.setup_buffer(num_samples)
+
+        self.dot_prod_calcs = 0
+
+        def hess_vec_prod(vec):
+            self.dot_prod_calcs += 1
+            vec = npvec_to_tensorlist(vec, self.policy.parameters(), self.device)
+            self.calculate_hesh_vec_prod(vec, num_samples)
+            return gradtensor_to_npvec(self.policy)
+
+
+        N = sum(np.prod(param.shape) for param in self.policy.parameters())
+        A = LinearOperator((N, N), matvec=hess_vec_prod)
+        eigvals, eigvecs = eigsh(A, k=1, tol=tol)
+        maxeig = eigvals[0]
+        print(f"max eignvalue = {maxeig}")
+        print(eigvecs[0])
+        # If the largest eigenvalue is positive, shift matrix so that any negative eigenvalue is now the largest
+        # We assume the smallest eigenvalue is zero or less, and so this shift is more than what we need
+        shift = maxeig*.51
+        def shifted_hess_vec_prod(vec):
+            return hess_vec_prod(vec) - shift*vec
+
+        A = LinearOperator((N, N), matvec=shifted_hess_vec_prod)
+        eigvals, eigvecs = eigsh(A, k=1, tol=tol)
+        eigvals = eigvals + shift
+        mineig = eigvals[0]
+        print(f"min eignvalue = {mineig}")
+
+        assert maxeig >= 0 or mineig < 0, "something weird is going on but this case is handled by the loss landscapes paper, so duplicating that here"
+
+        print("number of evaluations required: ", self.dot_prod_calcs)
+
+        self.cleanup_buffer()
+
+        return maxeig, mineig
+
+class HeshCalcOfflineMixin(HeshCalcOnlineMixin):
+    def generate_samples(self, max_samples, batch_size):
+        for i in range(0, max_samples+batch_size-1, batch_size):
+            yield self.replay_buffer.sample(batch_size=batch_size)
+
+    def cleanup_buffer(self):
+        self.replay_buffer = self._old_buffer
+
+    def setup_buffer(self, num_samples):
+        assert self.n_envs == 1, "I don't think multiple envs works for offline policies, but you can check and make suitable updates"
+        self._old_buffer = self.replay_buffer
+        callback = DoNothingCallback(self)
+        self.replay_buffer = ReplayBuffer(
+            num_samples,
+            self.observation_space,
+            self.action_space,
+            self.device,
+        )
+        self.collect_rollouts(
+            self.env,
+            n_episodes=num_samples,
+            n_steps=num_samples,
+            action_noise=self.action_noise,
+            callback=callback,
+            learning_starts=0,
+            replay_buffer=self.replay_buffer,
+            log_interval=10,
+        )
+
+
+class ExtA2C(A2C, HeshCalcOnlineMixin):
     def calulate_grad_from_buffer(self, rollout_data):
         actions = rollout_data.actions
         if isinstance(self.action_space, spaces.Discrete):
@@ -106,68 +211,124 @@ class ExtA2C(A2C):
         return grad_f
 
 
-    def calculate_hesh_vec_prod(self, vec, num_samples):
-        '''
-        stores hessian vector dot product in params.grad
-        '''
-        self.policy.zero_grad()
-        max_batch_size = 2048
-        # start = 0
-        for rollout_data in self.rollout_buffer.get(batch_size=max_batch_size):
-            #batch_size = min(num_samples-start, max_batch_size)
-            grad = self.calulate_grad_from_buffer(rollout_data)
-            loss = 0
-            for g, p in zip(grad, vec):
-                loss += (g*p).sum()
-            #accumulates grad inside sb3_algo.policy.parameters().grad
-            loss.backward()
+class ExtPPO(PPO, HeshCalcOnlineMixin):
+    def calulate_grad_from_buffer(self, rollout_data):
+        clip_range = self.clip_range(self._current_progress_remaining)
+        # Optional: clip range for the value function
+        if self.clip_range_vf is not None:
+            clip_range_vf = self.clip_range_vf(self._current_progress_remaining)
 
-    def calculate_hesh_eigenvalues(self, num_samples, tol):
-        rollout_steps = num_samples//self.n_envs
-        old_buffer = self.rollout_buffer
-        self.rollout_buffer = RolloutBuffer(
-            num_samples,
-            self.observation_space,
-            self.action_space,
-            self.device,
-            gamma=self.gamma,
-            gae_lambda=self.gae_lambda,
-            n_envs=self.n_envs,
-        )
-        cb = DoNothingCallback(self)
-        self.collect_rollouts(self.env, cb, self.rollout_buffer, n_rollout_steps=rollout_steps)
+        actions = rollout_data.actions
+        if isinstance(self.action_space, spaces.Discrete):
+            # Convert discrete action from float to long
+            actions = rollout_data.actions.long().flatten()
 
-        self.dot_prod_calcs = 0
+        # Re-sample the noise matrix because the log_std has changed
+        # TODO: investigate why there is no issue with the gradient
+        # if that line is commented (as in SAC)
+        if self.use_sde:
+            self.policy.reset_noise(self.batch_size)
 
-        def hess_vec_prod(vec):
-            self.dot_prod_calcs += 1
-            vec = npvec_to_tensorlist(vec, self.policy.parameters(), self.device)
-            self.calculate_hesh_vec_prod(vec, num_samples)
-            return gradtensor_to_npvec(self.policy)
+        values, log_prob, entropy = self.policy.evaluate_actions(rollout_data.observations, actions)
+        values = values.flatten()
+        # Normalize advantage
+        advantages = rollout_data.advantages
+        advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
+
+        # ratio between old and new policy, should be one at the first iteration
+        ratio = th.exp(log_prob - rollout_data.old_log_prob)
+
+        # clipped surrogate loss
+        policy_loss_1 = advantages * ratio
+        policy_loss_2 = advantages * th.clamp(ratio, 1 - clip_range, 1 + clip_range)
+        policy_loss = -th.min(policy_loss_1, policy_loss_2).mean()
+
+        # Logging
+        clip_fraction = th.mean((th.abs(ratio - 1) > clip_range).float()).item()
+
+        if self.clip_range_vf is None:
+            # No clipping
+            values_pred = values
+        else:
+            # Clip the different between old and new value
+            # NOTE: this depends on the reward scaling
+            values_pred = rollout_data.old_values + th.clamp(
+                values - rollout_data.old_values, -clip_range_vf, clip_range_vf
+            )
+        # Value loss using the TD(gae_lambda) target
+        value_loss = F.mse_loss(rollout_data.returns, values_pred)
+
+        # Entropy loss favor exploration
+        if entropy is None:
+            # Approximate entropy when no analytical form
+            entropy_loss = -th.mean(-log_prob)
+        else:
+            entropy_loss = -th.mean(entropy)
+
+        loss = policy_loss + self.ent_coef * entropy_loss + self.vf_coef * value_loss
+        params = self.policy.parameters()
+        grad_f = torch.autograd.grad(loss, inputs=params, create_graph=True)
+        # Optimization step
+
+        # TODO: check this--grad clipping!!!
+        clip_norm_(grad_f, self.max_grad_norm)
+
+        return grad_f
 
 
-        N = sum(np.prod(param.shape) for param in self.policy.parameters())
-        A = LinearOperator((N, N), matvec=hess_vec_prod)
-        eigvals, eigvecs = eigsh(A, k=1, tol=tol)
-        maxeig = eigvals[0]
-        print(f"max eignvalue = {maxeig}")
-        print(eigvecs[0])
-        # If the largest eigenvalue is positive, shift matrix so that any negative eigenvalue is now the largest
-        # We assume the smallest eigenvalue is zero or less, and so this shift is more than what we need
-        shift = maxeig*.51
-        def shifted_hess_vec_prod(vec):
-            return hess_vec_prod(vec) - shift*vec
+class ExtSAC(SAC, HeshCalcOfflineMixin):
+    def calulate_grad_from_buffer(self, replay_data):
+        # We need to sample because `log_std` may have changed between two gradient steps
+        if self.use_sde:
+            self.actor.reset_noise()
 
-        A = LinearOperator((N, N), matvec=shifted_hess_vec_prod)
-        eigvals, eigvecs = eigsh(A, k=1, tol=tol)
-        eigvals = eigvals + shift
-        mineig = eigvals[0]
-        print(f"min eignvalue = {mineig}")
+        # Action by the current actor for the sampled state
+        actions_pi, log_prob = self.actor.action_log_prob(replay_data.observations)
+        log_prob = log_prob.reshape(-1, 1)
 
-        assert maxeig >= 0 or mineig < 0, "something weird is going on but this case is handled by the loss landscapes paper, so duplicating that here"
-        # cleanup
-        self.rollout_buffer = old_buffer
+        ent_coef_loss = None
+        if self.ent_coef_optimizer is not None:
+            # Important: detach the variable from the graph
+            # so we don't change it with other losses
+            # see https://github.com/rail-berkeley/softlearning/issues/60
+            ent_coef = th.exp(self.log_ent_coef.detach())
+            ent_coef_loss = -(self.log_ent_coef * (log_prob + self.target_entropy).detach()).mean()
+        else:
+            ent_coef = self.ent_coef_tensor
 
-        print("number of evaluations required: ", self.dot_prod_calcs)
+        with th.no_grad():
+            # Select action according to policy
+            next_actions, next_log_prob = self.actor.action_log_prob(replay_data.next_observations)
+            # Compute the target Q value: min over all critics targets
+            targets = th.cat(self.critic_target(replay_data.next_observations, next_actions), dim=1)
+            target_q, _ = th.min(targets, dim=1, keepdim=True)
+            # add entropy term
+            target_q = target_q - ent_coef * next_log_prob.reshape(-1, 1)
+            # td error + entropy term
+            q_backup = replay_data.rewards + (1 - replay_data.dones) * self.gamma * target_q
 
-        return maxeig, mineig
+        # Get current Q estimates for each critic network
+        # using action from the replay buffer
+        current_q_estimates = self.critic(replay_data.observations, replay_data.actions)
+
+        # Compute critic loss
+        critic_loss = 0.5 * sum([F.mse_loss(current_q, q_backup) for current_q in current_q_estimates])
+
+        # Compute actor loss
+        # Alternative: actor_loss = th.mean(log_prob - qf1_pi)
+        # Mean over all critic networks
+        q_values_pi = th.cat(self.critic.forward(replay_data.observations, actions_pi), dim=1)
+        min_qf_pi, _ = th.min(q_values_pi, dim=1, keepdim=True)
+        actor_loss = (ent_coef * log_prob - min_qf_pi).mean()
+
+        loss = actor_loss + critic_loss
+
+        params = self.policy.parameters()
+        print(self.policy.state_dict())
+        grad_f = torch.autograd.grad(loss, inputs=params, create_graph=True)
+        # Optimization step
+
+        # TODO: check this--grad clipping!!!
+        clip_norm_(grad_f, self.max_grad_norm)
+
+        return grad_f

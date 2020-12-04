@@ -5,6 +5,7 @@ import time
 import torch
 from collections import OrderedDict
 from stable_baselines3.common.vec_env import DummyVecEnv
+from stable_baselines3.common.vec_env.obs_dict_wrapper import ObsDictWrapper
 import os
 
 class CheckpointCallback(BaseCallback):
@@ -86,7 +87,7 @@ class SB3OnPolicyTrainer:
     def save_weights(self, save_file):
         self.algorithm.save(save_file)
 
-    def evaluate(self, num_episodes, get_convexity=False, num_envs=1, eval_trainer=None):
+    def evaluate(self, num_episodes, get_convexity=False, num_envs=2, eval_trainer=None):
         env = DummyVecEnv([self.env_fn]*num_envs)
         policy_policy = self.algorithm.policy
         gamma = self.algorithm.gamma
@@ -157,6 +158,9 @@ def calc_mean_td(est_vals, rewards, gamma):
 
 
 class SB3OffPolicyTrainer(SB3OnPolicyTrainer):
+    def to_agent_obs(self, obs):
+        return torch.as_tensor(obs)
+
     def evaluate(self, num_episodes, get_convexity=False, num_envs=1, eval_trainer=None):
         env = DummyVecEnv([self.env_fn]*num_envs)
         policy_policy = self.algorithm.policy
@@ -164,7 +168,7 @@ class SB3OffPolicyTrainer(SB3OnPolicyTrainer):
         eval_policy = policy_policy if eval_trainer is None else eval_trainer.policy
 
         obs = env.reset()
-        obs = torch.as_tensor(obs)
+        obs = self.to_agent_obs(obs)
 
         ep_rews = [[] for i in range(num_envs)]
         ep_vals = [[] for i in range(num_envs)]
@@ -175,12 +179,11 @@ class SB3OffPolicyTrainer(SB3OnPolicyTrainer):
         start_t = time.time()
         while len(episode_rewards) < num_episodes:
             action = policy_policy.forward(obs)#, deterministic=True)
-
             value = eval_policy.critic.forward(obs, action)
 
             action = action.detach().numpy()
             obs, rew, done, info = env.step(action)
-            obs = torch.as_tensor(obs)
+            obs = self.to_agent_obs(obs)
 
             for i in range(num_envs):
                 ep_vals[i].append(value[i])
@@ -199,3 +202,19 @@ class SB3OffPolicyTrainer(SB3OnPolicyTrainer):
                     print("done!", (end_t - start_t)/len(episode_rewards))
 
         return mean(episode_rewards),mean(episode_value_ests),mean(episode_values),mean(episode_td_err)
+
+
+class SB3HerPolicyTrainer(SB3OffPolicyTrainer):
+    def __init__(self, env_fn, sb3_algorithm):
+        super().__init__(env_fn, sb3_algorithm.model)
+        self.her_algo = sb3_algorithm
+        self._base_model = sb3_algorithm.model
+
+    def to_agent_obs(self, obs):
+        return torch.as_tensor(ObsDictWrapper.convert_dict(obs))
+
+    def train(self, num_steps, save_dir, save_freq=1000):
+        self.algorithm = self.her_algo
+        values = super().train(num_steps, save_dir, save_freq)
+        self.algorithm = self._base_model
+        return values

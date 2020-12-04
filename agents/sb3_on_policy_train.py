@@ -87,7 +87,10 @@ class SB3OnPolicyTrainer:
     def save_weights(self, save_file):
         self.algorithm.save(save_file)
 
-    def evaluate(self, num_episodes, get_convexity=False, num_envs=2, eval_trainer=None):
+    def calculate_eigenvalues(self, num_steps, tol=1e-2):
+        return self.algorithm.calculate_hesh_eigenvalues(num_steps,tol)
+
+    def evaluate(self, num_episodes, num_envs=2, eval_trainer=None):
         env = DummyVecEnv([self.env_fn]*num_envs)
         policy_policy = self.algorithm.policy
         gamma = self.algorithm.gamma
@@ -161,7 +164,7 @@ class SB3OffPolicyTrainer(SB3OnPolicyTrainer):
     def to_agent_obs(self, obs):
         return torch.as_tensor(obs)
 
-    def evaluate(self, num_episodes, get_convexity=False, num_envs=1, eval_trainer=None):
+    def evaluate(self, num_episodes, num_envs=1, eval_trainer=None):
         env = DummyVecEnv([self.env_fn]*num_envs)
         policy_policy = self.algorithm.policy
         gamma = self.algorithm.gamma

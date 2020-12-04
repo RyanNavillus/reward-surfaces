@@ -36,7 +36,6 @@ def robo_env_fn():
 if __name__ == "__main__":
     print("testing SB3 HER")
     test_trainer(robo_env_fn, SB3HerPolicyTrainer(robo_env_fn,HER("MlpPolicy",robo_env_fn(),model_class=TD3,device="cpu",max_episode_length=100)))
-    exit(0)
     print("testing SB3 TD3")
     test_trainer(continious_env_fn, SB3OffPolicyTrainer(continious_env_fn,TD3("MlpPolicy",continious_env_fn(),device="cpu")))
     print("testing SB3 SAC")

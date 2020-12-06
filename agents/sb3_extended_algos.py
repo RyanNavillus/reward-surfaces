@@ -31,7 +31,7 @@ def clip_norm_(values, max_norm):
         for g in values:
             g.data *= clip_v
 
-def gradtensor_to_npvec(net, include_bn=True):
+def gradtensor_to_npvec(params, include_bn=True):
     """ Extract gradients from net, and return a concatenated numpy vector.
 
         Args:
@@ -43,7 +43,7 @@ def gradtensor_to_npvec(net, include_bn=True):
             a concatenated numpy vector containing all gradients
     """
     filter = lambda p: include_bn or len(p.data.size()) > 1
-    return np.concatenate([p.grad.data.cpu().numpy().ravel() for p in net.parameters() if filter(p)])
+    return np.concatenate([p.grad.data.cpu().numpy().ravel() for p in params if filter(p)])
 
 
 def npvec_to_tensorlist(vec, params, device):
@@ -79,10 +79,10 @@ class HeshCalcOnlineMixin:
             loss = 0
             for g, p in zip(grad, vec):
                 loss += (g*p).sum()
-            #accumulates grad inside sb3_algo.policy.parameters().grad
+            #accumulates grad inside sb3_algo.parameters().grad
             loss.backward()
 
-    def generate_samples(self, batch_size):
+    def generate_samples(self, batch_size, max_samples):
         return self.rollout_buffer.get(batch_size=batch_size)
 
     def setup_buffer(self, num_samples):
@@ -110,12 +110,12 @@ class HeshCalcOnlineMixin:
 
         def hess_vec_prod(vec):
             self.dot_prod_calcs += 1
-            vec = npvec_to_tensorlist(vec, self.policy.parameters(), self.device)
+            vec = npvec_to_tensorlist(vec, self.parameters(), self.device)
             self.calculate_hesh_vec_prod(vec, num_samples)
-            return gradtensor_to_npvec(self.policy)
+            return gradtensor_to_npvec(self.parameters())
 
 
-        N = sum(np.prod(param.shape) for param in self.policy.parameters())
+        N = sum(np.prod(param.shape) for param in self.parameters())
         A = LinearOperator((N, N), matvec=hess_vec_prod)
         eigvals, eigvecs = eigsh(A, k=1, tol=tol)
         maxeig = eigvals[0]
@@ -172,6 +172,9 @@ class HeshCalcOfflineMixin(HeshCalcOnlineMixin):
 
 
 class ExtA2C(A2C, HeshCalcOnlineMixin):
+    def parameters(self):
+        return list(self.policy.parameters())
+
     def calulate_grad_from_buffer(self, rollout_data):
         actions = rollout_data.actions
         if isinstance(self.action_space, spaces.Discrete):
@@ -201,7 +204,7 @@ class ExtA2C(A2C, HeshCalcOnlineMixin):
             entropy_loss = -th.mean(entropy)
 
         loss = policy_loss + self.ent_coef * entropy_loss + self.vf_coef * value_loss
-        params = self.policy.parameters()
+        params = self.parameters()
         grad_f = torch.autograd.grad(loss, inputs=params, create_graph=True)
         # Optimization step
 
@@ -212,6 +215,9 @@ class ExtA2C(A2C, HeshCalcOnlineMixin):
 
 
 class ExtPPO(PPO, HeshCalcOnlineMixin):
+    def parameters(self):
+        return list(self.policy.parameters())
+
     def calulate_grad_from_buffer(self, rollout_data):
         clip_range = self.clip_range(self._current_progress_remaining)
         # Optional: clip range for the value function
@@ -266,7 +272,7 @@ class ExtPPO(PPO, HeshCalcOnlineMixin):
             entropy_loss = -th.mean(entropy)
 
         loss = policy_loss + self.ent_coef * entropy_loss + self.vf_coef * value_loss
-        params = self.policy.parameters()
+        params = self.parameters()
         grad_f = torch.autograd.grad(loss, inputs=params, create_graph=True)
         # Optimization step
 
@@ -277,6 +283,10 @@ class ExtPPO(PPO, HeshCalcOnlineMixin):
 
 
 class ExtSAC(SAC, HeshCalcOfflineMixin):
+    def parameters(self):
+        # print(self.policy.critic.state_dict().keys())
+        return list(self.policy.actor.parameters()) + list(self.policy.critic.parameters())
+
     def calulate_grad_from_buffer(self, replay_data):
         # We need to sample because `log_std` may have changed between two gradient steps
         if self.use_sde:
@@ -323,12 +333,8 @@ class ExtSAC(SAC, HeshCalcOfflineMixin):
 
         loss = actor_loss + critic_loss
 
-        params = self.policy.parameters()
-        print(self.policy.state_dict())
+        params = self.parameters()
         grad_f = torch.autograd.grad(loss, inputs=params, create_graph=True)
         # Optimization step
-
-        # TODO: check this--grad clipping!!!
-        clip_norm_(grad_f, self.max_grad_norm)
 
         return grad_f

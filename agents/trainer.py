@@ -7,3 +7,15 @@ class Trainer:
 
     def calculate_eigenvalues(self, num_steps):
         raise NotImplementedError()
+
+    def load_weights(self, fname):
+        raise NotImplementedError()
+
+    def save_weights(self, fname):
+        raise NotImplementedError()
+
+    def set_weights(self, params):
+        raise NotImplementedError()
+
+    def get_weights(self):
+        raise NotImplementedError()

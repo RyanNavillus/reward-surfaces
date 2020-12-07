@@ -54,6 +54,13 @@ class Agent():
     with torch.no_grad():
       return (self.online_net(state.unsqueeze(0)) * self.support).sum(2).argmax(1).item()
 
+  def act_and_eval(self, state):
+    with torch.no_grad():
+      q_vals = (self.online_net(state.unsqueeze(0)) * self.support).sum(2)
+      action = q_vals.argmax(1).squeeze()
+      value = q_vals.squeeze()[action]
+      return action.item(), value.item()
+
   # Acts with an ε-greedy policy (used for evaluation only)
   def act_e_greedy(self, state, epsilon=0.001):  # High ε can reduce evaluation scores drastically
     return np.random.randint(0, self.action_space) if np.random.random() < epsilon else self.act(state)
@@ -105,6 +112,9 @@ class Agent():
   # Save model parameters on current device (don't move model between devices)
   def save(self, path, name='model.pth'):
     torch.save(self.online_net.state_dict(), os.path.join(path, name))
+
+  def save_path(self, path):
+    torch.save(self.online_net.state_dict(), path)
 
   # Evaluates Q-value based on single state (no batch)
   def evaluate_q(self, state):

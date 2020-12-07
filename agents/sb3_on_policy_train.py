@@ -7,6 +7,7 @@ from collections import OrderedDict
 from stable_baselines3.common.vec_env import DummyVecEnv
 from stable_baselines3.common.vec_env.obs_dict_wrapper import ObsDictWrapper
 import os
+from evaluate import evaluate
 
 class CheckpointCallback(BaseCallback):
     """
@@ -50,6 +51,31 @@ class CheckpointCallback(BaseCallback):
         return True
 
 
+class OnPolicyEvaluator:
+    def __init__(self, env_fn, gamma, algo, eval_trainer):
+        env = DummyVecEnv([env_fn])
+        self.state = env.reset()
+        self.env = env
+        self.gamma = gamma
+        self.algo = algo
+        self.eval_trainer = eval_trainer
+
+    def _next_state(self):
+        policy_policy = self.algo.policy
+
+        obs = torch.as_tensor(self.state)
+        action, policy_val, policy_log_prob = policy_policy.forward(obs)#, deterministic=True)
+        if self.eval_trainer is None:
+            value = policy_val.item()
+        else:
+            eval_policy = self.eval_trainer.algorithm.policy
+            value, eval_log_prob, eval_entropy = eval_policy.evaluate_actions(obs, action)
+
+        action = action.detach().cpu().numpy()
+        self.state, rew, done, info = self.env.step(action)
+        return rew[0], done[0], value
+
+
 class SB3OnPolicyTrainer:
     def __init__(self, env_fn, sb3_algorithm):
         self.env_fn = env_fn
@@ -90,121 +116,43 @@ class SB3OnPolicyTrainer:
     def calculate_eigenvalues(self, num_steps, tol=1e-2):
         return self.algorithm.calculate_hesh_eigenvalues(num_steps,tol)
 
-    def evaluate(self, num_episodes, num_envs=2, eval_trainer=None):
-        env = DummyVecEnv([self.env_fn]*num_envs)
-        policy_policy = self.algorithm.policy
-        gamma = self.algorithm.gamma
+    def evaluate(self, num_episodes, num_steps, eval_trainer=None):
+        evaluator = OnPolicyEvaluator(self.env_fn, self.algorithm.gamma, self.algorithm, eval_trainer)
+        return evaluate(evaluator, num_episodes, num_steps)
 
-        obs = env.reset()
-        obs = torch.as_tensor(obs)
 
-        ep_rews = [[] for i in range(num_envs)]
-        ep_vals = [[] for i in range(num_envs)]
-        episode_rewards = []
-        episode_value_ests = []
-        episode_values = []
-        episode_td_err = []
-        start_t = time.time()
-        while len(episode_rewards) < num_episodes:
-            action, policy_val, policy_log_prob = policy_policy.forward(obs)#, deterministic=True)
+class OffPolicyEvaluator(OnPolicyEvaluator):
+    def _next_state(self):
+        policy_policy = self.algo.policy
+        eval_policy = policy_policy if self.eval_trainer is None else self.eval_trainer.algorithm.policy
 
-            if eval_trainer is None:
-                value = policy_val
-            else:
-                eval_policy = eval_trainer.algorithm.policy
-                value, eval_log_prob, eval_entropy = eval_policy.evaluate_actions(obs, action)
+        obs = torch.as_tensor(self.state)
+        action = policy_policy.forward(obs)#, deterministic=True)
+        value = eval_policy.critic.forward(obs, action)
 
-            action = action.detach().numpy()
-            obs, rew, done, info = env.step(action)
-            obs = torch.as_tensor(obs)
-
-            for i in range(num_envs):
-                ep_vals[i].append(value[i])
-                ep_rews[i].append(rew[i])
-
-            for i, d in enumerate(done):
-                if d:
-                    episode_rewards.append(sum(ep_rews[i]))
-                    episode_value_ests.append(mean(ep_vals[i]))
-                    episode_values.append(calc_mean_value(ep_rews[i], gamma))
-                    episode_td_err.append(calc_mean_td(ep_vals[i], ep_rews[i], gamma))#TODO make this real
-
-                    ep_rews[i] = []
-                    ep_vals[i] = []
-                    end_t = time.time()
-                    print("done!", (end_t - start_t)/len(episode_rewards))
-
-        return mean(episode_rewards),mean(episode_value_ests),mean(episode_values),mean(episode_td_err)
-
-def mean(vals):
-    return sum(vals)/len(vals)
-
-def calc_mean_value(rews, gamma):
-    decayed_rew = 0
-    tot_value = 0
-    for i in range(len(rews)-1,-1,-1):
-        decayed_rew += rews[i]
-        tot_value += decayed_rew
-        decayed_rew *= gamma
-    return tot_value / len(rews)
-
-def calc_mean_td(est_vals, rewards, gamma):
-    assert len(est_vals) == len(rewards)
-    ep_len = len(est_vals)
-    td_errs = []
-    for i in range(ep_len):
-        true_val = est_vals[i+1] * gamma + rewards[i] if i < ep_len-1 else rewards[i]
-        est_val = est_vals[i]
-        td_err = (true_val - est_val)**2
-        td_errs.append(td_err)
-    return mean(td_errs)
+        action = action.detach().cpu().numpy()
+        self.state, rew, done, info = self.env.step(action)
+        return rew[0], done[0], value[0].item()
 
 
 class SB3OffPolicyTrainer(SB3OnPolicyTrainer):
-    def to_agent_obs(self, obs):
-        return torch.as_tensor(obs)
+    def evaluate(self, num_episodes, num_steps, num_envs=1, eval_trainer=None):
+        evaluator = OffPolicyEvaluator(self.env_fn, self.algorithm.gamma, self.algorithm, eval_trainer)
+        return evaluate(evaluator, num_episodes, num_steps)
 
-    def evaluate(self, num_episodes, num_envs=1, eval_trainer=None):
-        env = DummyVecEnv([self.env_fn]*num_envs)
-        policy_policy = self.algorithm.policy
-        gamma = self.algorithm.gamma
-        eval_policy = policy_policy if eval_trainer is None else eval_trainer.policy
 
-        obs = env.reset()
-        obs = self.to_agent_obs(obs)
+class HERPolicyEvaluator(OnPolicyEvaluator):
+    def _next_state(self):
+        policy_policy = self.algo.policy
+        eval_policy = policy_policy if self.eval_trainer is None else self.eval_trainer.algorithm.policy
 
-        ep_rews = [[] for i in range(num_envs)]
-        ep_vals = [[] for i in range(num_envs)]
-        episode_rewards = []
-        episode_value_ests = []
-        episode_values = []
-        episode_td_err = []
-        start_t = time.time()
-        while len(episode_rewards) < num_episodes:
-            action = policy_policy.forward(obs)#, deterministic=True)
-            value = eval_policy.critic.forward(obs, action)
+        obs = torch.as_tensor(ObsDictWrapper.convert_dict(self.state))
+        action = policy_policy.forward(obs)#, deterministic=True)
+        value = eval_policy.critic.forward(obs, action)
 
-            action = action.detach().numpy()
-            obs, rew, done, info = env.step(action)
-            obs = self.to_agent_obs(obs)
-
-            for i in range(num_envs):
-                ep_vals[i].append(value[i])
-                ep_rews[i].append(rew[i])
-
-            for i, d in enumerate(done):
-                if d:
-                    episode_rewards.append(sum(ep_rews[i]))
-                    episode_value_ests.append(mean(ep_vals[i]))
-                    episode_values.append(calc_mean_value(ep_rews[i], gamma))
-                    episode_td_err.append(calc_mean_td(ep_vals[i], ep_rews[i], gamma))#TODO make this real
-
-                    ep_rews[i] = []
-                    ep_vals[i] = []
-                    end_t = time.time()
-                    print("done!", (end_t - start_t)/len(episode_rewards))
-
-        return mean(episode_rewards),mean(episode_value_ests),mean(episode_values),mean(episode_td_err)
+        action = action.detach().cpu().numpy()
+        self.state, rew, done, info = self.env.step(action)
+        return rew[0], done[0], value[0].item()
 
 
 class SB3HerPolicyTrainer(SB3OffPolicyTrainer):
@@ -213,11 +161,12 @@ class SB3HerPolicyTrainer(SB3OffPolicyTrainer):
         self.her_algo = sb3_algorithm
         self._base_model = sb3_algorithm.model
 
-    def to_agent_obs(self, obs):
-        return torch.as_tensor(ObsDictWrapper.convert_dict(obs))
-
     def train(self, num_steps, save_dir, save_freq=1000):
         self.algorithm = self.her_algo
         values = super().train(num_steps, save_dir, save_freq)
         self.algorithm = self._base_model
         return values
+
+    def evaluate(self, num_episodes, num_steps, num_envs=1, eval_trainer=None):
+        evaluator = HERPolicyEvaluator(self.env_fn, self.algorithm.gamma, self.algorithm, eval_trainer)
+        return evaluate(evaluator, num_episodes, num_steps)

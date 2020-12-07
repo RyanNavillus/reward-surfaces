@@ -14,7 +14,7 @@ from rainbow_trainer import RainbowTrainer
 
 def test_trainer(trainer):
     # test trainer learning
-    saved_files = trainer.train(10000,"test_results",save_freq=100)
+    saved_files = trainer.train(1500,"test_results",save_freq=100)
     assert isinstance(saved_files,list) and isinstance(saved_files[0],str)
     # test trainer IO
     trainer.load_weights(saved_files[0])
@@ -23,7 +23,7 @@ def test_trainer(trainer):
     trainer.set_weights(weights)
     trainer.save_weights(saved_files[0])
     trainer.load_weights(saved_files[0])
-    trainer.evaluate(10)
+    trainer.evaluate(10, 1000)
 
 def discrete_env_fn():
     return gym.make("CartPole-v1")
@@ -37,7 +37,6 @@ def robo_env_fn():
 if __name__ == "__main__":
     print("testing Rainbow")
     test_trainer(RainbowTrainer("space_invaders",learning_starts=1024))
-    exit(0)
     print("testing SB3 HER")
     test_trainer(SB3HerPolicyTrainer(robo_env_fn,HER("MlpPolicy",robo_env_fn(),model_class=TD3,device="cpu",max_episode_length=100)))
     print("testing SB3 TD3")
@@ -48,5 +47,7 @@ if __name__ == "__main__":
     test_trainer(SB3OffPolicyTrainer(continious_env_fn,DDPG("MlpPolicy",continious_env_fn(),device="cpu")))
     print("testing SB3 PPO")
     test_trainer(SB3OnPolicyTrainer(discrete_env_fn,PPO("MlpPolicy",discrete_env_fn(),device="cpu",n_steps=10)))
+    print("testing SB3 PPO with continuous env")
+    test_trainer(SB3OnPolicyTrainer(continious_env_fn,PPO("MlpPolicy",continious_env_fn(),device="cpu",n_steps=10)))
     print("testing SB3 A2C")
     test_trainer(SB3OnPolicyTrainer(discrete_env_fn,A2C("MlpPolicy",discrete_env_fn(),device="cpu")))

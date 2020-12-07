@@ -10,10 +10,11 @@ import tempfile
 import gym  # open ai gym
 from stable_baselines3.common.bit_flipping_env import BitFlippingEnv
 from sb3_on_policy_train import SB3OnPolicyTrainer,SB3OffPolicyTrainer,SB3HerPolicyTrainer
+from rainbow_trainer import RainbowTrainer
 
-def test_trainer(env_fn, trainer):
+def test_trainer(trainer):
     # test trainer learning
-    saved_files = trainer.train(100,"test_results",save_freq=10)
+    saved_files = trainer.train(10000,"test_results",save_freq=100)
     assert isinstance(saved_files,list) and isinstance(saved_files[0],str)
     # test trainer IO
     trainer.load_weights(saved_files[0])
@@ -34,15 +35,18 @@ def robo_env_fn():
     return BitFlippingEnv(continuous=True)
 
 if __name__ == "__main__":
+    print("testing Rainbow")
+    test_trainer(RainbowTrainer("space_invaders",learning_starts=1024))
+    exit(0)
     print("testing SB3 HER")
-    test_trainer(robo_env_fn, SB3HerPolicyTrainer(robo_env_fn,HER("MlpPolicy",robo_env_fn(),model_class=TD3,device="cpu",max_episode_length=100)))
+    test_trainer(SB3HerPolicyTrainer(robo_env_fn,HER("MlpPolicy",robo_env_fn(),model_class=TD3,device="cpu",max_episode_length=100)))
     print("testing SB3 TD3")
-    test_trainer(continious_env_fn, SB3OffPolicyTrainer(continious_env_fn,TD3("MlpPolicy",continious_env_fn(),device="cpu")))
+    test_trainer(SB3OffPolicyTrainer(continious_env_fn,TD3("MlpPolicy",continious_env_fn(),device="cpu")))
     print("testing SB3 SAC")
-    test_trainer(continious_env_fn, SB3OffPolicyTrainer(continious_env_fn,SAC("MlpPolicy",continious_env_fn(),device="cpu")))
+    test_trainer(SB3OffPolicyTrainer(continious_env_fn,SAC("MlpPolicy",continious_env_fn(),device="cpu")))
     print("testing SB3 DDPG")
-    test_trainer(continious_env_fn, SB3OffPolicyTrainer(continious_env_fn,DDPG("MlpPolicy",continious_env_fn(),device="cpu")))
+    test_trainer(SB3OffPolicyTrainer(continious_env_fn,DDPG("MlpPolicy",continious_env_fn(),device="cpu")))
     print("testing SB3 PPO")
-    test_trainer(discrete_env_fn, SB3OnPolicyTrainer(discrete_env_fn,PPO("MlpPolicy",discrete_env_fn(),device="cpu",n_steps=10)))
+    test_trainer(SB3OnPolicyTrainer(discrete_env_fn,PPO("MlpPolicy",discrete_env_fn(),device="cpu",n_steps=10)))
     print("testing SB3 A2C")
-    test_trainer(discrete_env_fn, SB3OnPolicyTrainer(discrete_env_fn,A2C("MlpPolicy",discrete_env_fn(),device="cpu")))
+    test_trainer(SB3OnPolicyTrainer(discrete_env_fn,A2C("MlpPolicy",discrete_env_fn(),device="cpu")))

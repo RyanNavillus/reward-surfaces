@@ -1,4 +1,3 @@
-import gym
 import numpy as np
 from stable_baselines3.a2c import A2C
 from stable_baselines3.ppo import PPO
@@ -7,7 +6,7 @@ from stable_baselines3.td3 import TD3
 from stable_baselines3.sac import SAC
 from stable_baselines3.her import HER
 import tempfile
-import gym  # open ai gym
+import gym
 from stable_baselines3.common.bit_flipping_env import BitFlippingEnv
 from sb3_on_policy_train import SB3OnPolicyTrainer,SB3OffPolicyTrainer,SB3HerPolicyTrainer
 from rainbow_trainer import RainbowTrainer

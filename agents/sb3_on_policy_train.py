@@ -1,5 +1,5 @@
 from stable_baselines3.common.callbacks import CheckpointCallback, BaseCallback
-from extract_params import ParamLoader
+from .extract_params import ParamLoader
 import tempfile
 import time
 import torch
@@ -7,7 +7,7 @@ from collections import OrderedDict
 from stable_baselines3.common.vec_env import DummyVecEnv
 from stable_baselines3.common.vec_env.obs_dict_wrapper import ObsDictWrapper
 import os
-from evaluate import evaluate
+from .evaluate import evaluate
 
 class CheckpointCallback(BaseCallback):
     """
@@ -25,6 +25,7 @@ class CheckpointCallback(BaseCallback):
         self.save_path = save_path
         self.name_prefix = name_prefix
         self.old_params = None
+        self.save_folders = []
 
     def _init_callback(self) -> None:
         # Create folder if needed
@@ -32,19 +33,23 @@ class CheckpointCallback(BaseCallback):
             os.makedirs(self.save_path, exist_ok=True)
 
     def _on_step(self) -> bool:
-        if self.n_calls > 0 and self.n_calls - 1 % self.save_freq == 0:
+        if self.n_calls > 0 and (self.n_calls - 1) % self.save_freq == 0:
             self.old_params = [param.clone() for param in self.model.policy.parameters()]
-        if self.n_calls % self.save_freq == 0 and self.old_params is not None:
-            print("saved")
-            path = os.path.join(self.save_path, f"{self.name_prefix}_{self.num_timesteps}_steps")
+        if self.n_calls % self.save_freq == 1:
+            print(f"saved checkpoint {self.n_calls}")
+            path = os.path.join(self.save_path, f"{self.name_prefix}_{self.num_timesteps-1}_steps")
             os.makedirs(path, exist_ok=True)
-            self.model.save(os.path.join(path,"checkpoint"))
+            save_path = os.path.join(path,"checkpoint")
+            self.model.save(save_path)
+            self.save_folders.append(save_path)
             model_parameters = self.model.policy.state_dict()
             grads = OrderedDict([(name, param.grad) for name, param in model_parameters.items()])
-            delta = OrderedDict([(name, param - old_param) for old_param, (name, param) in zip(self.old_params, model_parameters.items())])
             torch.save(model_parameters,os.path.join(path,"parameters.th"))
             torch.save(grads,os.path.join(path,"grads.th"))
-            torch.save(delta,os.path.join(path,"prev_step.th"))
+
+            if self.old_params is not None:
+                delta = OrderedDict([(name, param - old_param) for old_param, (name, param) in zip(self.old_params, model_parameters.items())])
+                torch.save(delta,os.path.join(path,"prev_step.th"))
 
             if self.verbose > 1:
                 print(f"Saving model checkpoint to {path}")
@@ -63,13 +68,14 @@ class OnPolicyEvaluator:
     def _next_state(self):
         policy_policy = self.algo.policy
 
-        obs = torch.as_tensor(self.state)
+        obs = torch.as_tensor(self.state, device=self.algo.device)
         action, policy_val, policy_log_prob = policy_policy.forward(obs)#, deterministic=True)
         if self.eval_trainer is None:
             value = policy_val.item()
         else:
             eval_policy = self.eval_trainer.algorithm.policy
             value, eval_log_prob, eval_entropy = eval_policy.evaluate_actions(obs, action)
+            value = value.item()
 
         action = action.detach().cpu().numpy()
         self.state, rew, done, info = self.env.step(action)
@@ -81,7 +87,6 @@ class SB3OnPolicyTrainer:
         self.env_fn = env_fn
         self.algorithm = sb3_algorithm
         self.device = sb3_algorithm.device
-        # print([param[0] for param in self.parameters])
 
     def train(self, num_steps, save_dir, save_freq=1000):
         save_prefix = f'sb3_{type(self.algorithm).__name__}'
@@ -89,7 +94,7 @@ class SB3OnPolicyTrainer:
                                                  name_prefix=save_prefix)
         self.algorithm.learn(num_steps,callback=checkpoint_callback)
         saved_files = [f"{save_dir}/{save_prefix}_{i}_steps/checkpoint.zip" for i in range(save_freq,num_steps,save_freq)]
-        return saved_files
+        return checkpoint_callback.save_folders
 
     def get_weights(self):
         with tempfile.NamedTemporaryFile(suffix=".zip") as save_file:
@@ -126,7 +131,7 @@ class OffPolicyEvaluator(OnPolicyEvaluator):
         policy_policy = self.algo.policy
         eval_policy = policy_policy if self.eval_trainer is None else self.eval_trainer.algorithm.policy
 
-        obs = torch.as_tensor(self.state)
+        obs = torch.as_tensor(self.state, device=self.algo.device)
         action = policy_policy.forward(obs)#, deterministic=True)
         value = eval_policy.critic.forward(obs, action)
 

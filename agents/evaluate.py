@@ -34,7 +34,12 @@ def evaluate(evaluator, num_episodes, num_steps):
             end_t = time.time()
             print("done!", (end_t - start_t)/len(episode_rewards))
 
-    return mean(episode_rewards),mean(episode_value_ests),mean(episode_values),mean(episode_td_err)
+    return {
+        "episode_rewards": mean(episode_rewards),
+        "episode_value_ests": mean(episode_value_ests),
+        "episode_values": mean(episode_values),
+        "episode_td_err": mean(episode_td_err),
+    }
 
 
 def mean(vals):

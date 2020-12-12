@@ -1,8 +1,8 @@
-from Rainbow.agent import Agent
-from Rainbow.env import Env
-from Rainbow.main import main, get_parser
+from .Rainbow.agent import Agent
+from .Rainbow.env import Env
+from .Rainbow.main import main, get_parser
 import torch
-from evaluate import evaluate
+from .evaluate import evaluate
 
 class RainbowEvaluator:
     def __init__(self, env, agent, gamma, eval_trainer):

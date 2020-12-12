@@ -168,21 +168,23 @@ def main(args):
             dqn.learn(mem)  # Train with n-step distributional double-Q learning
 
           # Checkpoint the network
-          if (args.checkpoint_interval != 0) and ((T+1) % args.checkpoint_interval == 0):
+          if (args.checkpoint_interval != 0) and ((T+1) % args.checkpoint_interval == 1):
             old_params = [param.clone() for param in dqn.online_net.parameters()]
             # model_parameters = dqn.online_net.named_parameters()
-          if (args.checkpoint_interval != 0) and (T % args.checkpoint_interval == 0) and old_params is not None:
-            chpt_folder = os.path.join(results_dir,f'rainbow_{T}_steps/')
+          if (args.checkpoint_interval != 0) and ((T) % args.checkpoint_interval == 1):
+            chpt_folder = os.path.join(results_dir,f'rainbow_{T-1}_steps/')
             os.makedirs(chpt_folder,exist_ok=True)
             dqn.save(chpt_folder, "checkpoint.pth")
             saved_files.append(os.path.join(chpt_folder, "checkpoint.pth"))
             model_parameters = list(dqn.online_net.named_parameters())
-
             grads = OrderedDict([(name, param.grad) for name, param in model_parameters])
-            delta = OrderedDict([(name, param - old_param) for old_param, (name, param) in zip(old_params, model_parameters)])
-            torch.save(model_parameters,os.path.join(chpt_folder,"parameters.th"))
             torch.save(grads,os.path.join(chpt_folder,"grads.th"))
-            torch.save(delta,os.path.join(chpt_folder,"prev_step.th"))
+            torch.save(model_parameters,os.path.join(chpt_folder,"parameters.th"))
+
+            if old_params is not None:
+                delta = OrderedDict([(name, param - old_param) for old_param, (name, param) in zip(old_params, model_parameters)])
+                torch.save(delta,os.path.join(chpt_folder,"prev_step.th"))
+
             # print(list(grads.values())[0])
             # print(list(delta.values())[0])
 

@@ -8,6 +8,8 @@ from .sb3_on_policy_train import SB3OnPolicyTrainer,SB3OffPolicyTrainer,SB3HerPo
 from .rainbow_trainer import RainbowTrainer
 import gym
 from .sb3_extended_algos import ExtA2C, ExtPPO, ExtSAC
+from stable_baselines3.common.atari_wrappers import AtariWrapper
+from stable_baselines3.common.vec_env import DummyVecEnv, VecFrameStack, VecNormalize, VecTransposeImage
 
 
 SB3_ON_ALGOS = {
@@ -20,23 +22,42 @@ SB3_OFF_ALGOS = {
     "SAC": ExtSAC,
 }
 
+def make_vec_env_fn(env_name):
+    def env_fn_v(num_envs=1):
+        if "NoFrameskip" in env_name:
+            def env_fn():
+                env = gym.make("SpaceInvadersNoFrameskip-v4")
+                env = AtariWrapper(env)
+                return env
+            env = DummyVecEnv([env_fn]*num_envs)
+            env = VecFrameStack(env, 4)
+            env = VecTransposeImage(env)
+            env = VecNormalize(env)
+            return env
+        else:
+            def env_fn():
+                return gym.make(env_name)
+            return DummyVecEnv([env_fn]*num_envs)
+    return env_fn_v
+
 def make_agent(agent_name, env_name, device, hyperparams):
     if 'rainbow' == agent_name:
         return RainbowTrainer(env_name,device=device,**hyperparams)
     elif "SB3_OFF" == agent_name:
-        env_fn = lambda: gym.make(env_name)
+        env_fn = make_vec_env_fn(env_name)
         env = env_fn()
         algo = SB3_OFF_ALGOS[hyperparams.pop('ALGO')]
         model = "MlpPolicy" if len(env.observation_space.shape) != 3 else "CnnPolicy"
         return SB3OffPolicyTrainer(env_fn,algo(model,env,device=device,**hyperparams))
     elif "SB3_ON" == agent_name:
-        env_fn = lambda: gym.make(env_name)
-        env = env_fn()
+        env_fn = make_vec_env_fn(env_name)
+        num_envs = hyperparams.pop('num_envs', 16)
+        env = env_fn(num_envs)
         algo = SB3_ON_ALGOS[hyperparams.pop('ALGO')]
         model = "MlpPolicy" if len(env.observation_space.shape) != 3 else "CnnPolicy"
         return SB3OnPolicyTrainer(env_fn,algo(model,env,device=device,**hyperparams))
     elif "SB3_HER" == agent_name:
-        env_fn = lambda: gym.make(env_name)
+        env_fn = make_vec_env_fn(env_name)
         algo = SB3_OFF_ALGOS[hyperparams.pop('ALGO')]
         return SB3HerPolicyTrainer(env_fn,HER("MlpPolicy",env_fn(),model_class=algo,device=device,**hyperparams))
     else:

@@ -57,8 +57,8 @@ class CheckpointCallback(BaseCallback):
 
 
 class OnPolicyEvaluator:
-    def __init__(self, env_fn, gamma, algo, eval_trainer):
-        env = DummyVecEnv([env_fn])
+    def __init__(self, vec_env, gamma, algo, eval_trainer):
+        env = vec_env
         self.state = env.reset()
         self.env = env
         self.gamma = gamma
@@ -122,7 +122,7 @@ class SB3OnPolicyTrainer:
         return self.algorithm.calculate_hesh_eigenvalues(num_steps,tol)
 
     def evaluate(self, num_episodes, num_steps, eval_trainer=None):
-        evaluator = OnPolicyEvaluator(self.env_fn, self.algorithm.gamma, self.algorithm, eval_trainer)
+        evaluator = OnPolicyEvaluator(self.env_fn(), self.algorithm.gamma, self.algorithm, eval_trainer)
         return evaluate(evaluator, num_episodes, num_steps)
 
 
@@ -142,7 +142,7 @@ class OffPolicyEvaluator(OnPolicyEvaluator):
 
 class SB3OffPolicyTrainer(SB3OnPolicyTrainer):
     def evaluate(self, num_episodes, num_steps, num_envs=1, eval_trainer=None):
-        evaluator = OffPolicyEvaluator(self.env_fn, self.algorithm.gamma, self.algorithm, eval_trainer)
+        evaluator = OffPolicyEvaluator(self.env_fn(), self.algorithm.gamma, self.algorithm, eval_trainer)
         return evaluate(evaluator, num_episodes, num_steps)
 
 
@@ -173,5 +173,5 @@ class SB3HerPolicyTrainer(SB3OffPolicyTrainer):
         return values
 
     def evaluate(self, num_episodes, num_steps, num_envs=1, eval_trainer=None):
-        evaluator = HERPolicyEvaluator(self.env_fn, self.algorithm.gamma, self.algorithm, eval_trainer)
+        evaluator = HERPolicyEvaluator(self.env_fn(), self.algorithm.gamma, self.algorithm, eval_trainer)
         return evaluate(evaluator, num_episodes, num_steps)

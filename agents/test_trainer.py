@@ -6,10 +6,15 @@ from stable_baselines3.td3 import TD3
 from stable_baselines3.sac import SAC
 from stable_baselines3.her import HER
 import tempfile
+from stable_baselines3.common.vec_env import DummyVecEnv
 import gym
 from stable_baselines3.common.bit_flipping_env import BitFlippingEnv
 from .sb3_on_policy_train import SB3OnPolicyTrainer,SB3OffPolicyTrainer,SB3HerPolicyTrainer
 from .rainbow_trainer import RainbowTrainer
+from stable_baselines3.common.atari_wrappers import AtariWrapper
+from stable_baselines3.common.vec_env import VecFrameStack, VecNormalize, VecTransposeImage
+
+# from .create_env import create_env
 
 def test_trainer(learn_steps, save_freq, trainer):
     # test trainer learning
@@ -25,19 +30,36 @@ def test_trainer(learn_steps, save_freq, trainer):
     trainer.evaluate(10, 1000)
 
 def discrete_env_fn():
-    return gym.make("CartPole-v1")
+    def env_fn():
+        return gym.make("CartPole-v1")
+    return DummyVecEnv([env_fn])
 
 def continious_env_fn():
-    return gym.make("Pendulum-v0")
+    def env_fn():
+        return gym.make("Pendulum-v0")
+    return DummyVecEnv([env_fn])
 
 def robo_env_fn():
-    return BitFlippingEnv(continuous=True)
+    def env_fn():
+        return BitFlippingEnv(continuous=True)
+    return DummyVecEnv([env_fn])
+
+def atari_env(num_envs=1):
+    def env_fn():
+        env = gym.make("SpaceInvadersNoFrameskip-v4")
+        env = AtariWrapper(env)
+        return env
+    env = DummyVecEnv([env_fn]*num_envs)
+    env = VecFrameStack(env, 4)
+    env = VecTransposeImage(env)
+    env = VecNormalize(env)
+    return env
 
 if __name__ == "__main__":
-    print("testing Rainbow")
-    test_trainer(1500,1000,RainbowTrainer("space_invaders",learning_starts=1000))
     print("testing SB3 HER")
     test_trainer(100,100,SB3HerPolicyTrainer(robo_env_fn,HER("MlpPolicy",robo_env_fn(),model_class=TD3,device="cpu",max_episode_length=100)))
+    print("testing SB3 A2C")
+    test_trainer(100,100,SB3OnPolicyTrainer(atari_env,A2C("CnnPolicy",atari_env(4),device="cuda")))
     print("testing SB3 TD3")
     test_trainer(100,100,SB3OffPolicyTrainer(continious_env_fn,TD3("MlpPolicy",continious_env_fn(),device="cpu")))
     print("testing SB3 SAC")
@@ -50,3 +72,5 @@ if __name__ == "__main__":
     test_trainer(100,100,SB3OnPolicyTrainer(continious_env_fn,PPO("MlpPolicy",continious_env_fn(),device="cpu",n_steps=10)))
     print("testing SB3 A2C")
     test_trainer(100,100,SB3OnPolicyTrainer(discrete_env_fn,A2C("MlpPolicy",discrete_env_fn(),device="cpu")))
+    print("testing Rainbow")
+    test_trainer(1500,1000,RainbowTrainer("space_invaders",learning_starts=1000))

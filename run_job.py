@@ -4,7 +4,7 @@ import torch
 import json
 
 def main():
-    parser = argparse.ArgumentParser(description='Rainbow')
+    parser = argparse.ArgumentParser(description='run a particular evaluation job')
     parser.add_argument('--checkpoint_path', type=str, required=True)
     parser.add_argument('--params_path', type=str, required=True)
     parser.add_argument('--output_path', type=str, required=True)

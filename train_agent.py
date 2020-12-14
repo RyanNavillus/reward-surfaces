@@ -5,30 +5,6 @@ import json
 import os
 
 
-def filter_normalize(param):
-    # TODO: verify with loss landscapes code
-    ndims = len(param.shape)
-    if ndims == 1 or ndims == 0:
-        # don't do any random direction for scalars
-        return np.zeros_like(param)
-    elif ndims == 2:
-        dir = np.random.normal(size=param.shape)
-        dir /= np.sqrt(np.sum(np.square(dir),axis=0,keepdims=True))
-        dir *= np.sqrt(np.sum(np.square(param),axis=0,keepdims=True))
-        return dir
-    elif ndims == 4:
-        dir = np.random.normal(size=param.shape)
-        dir /= np.sqrt(np.sum(np.square(dir),axis=(0,1,2),keepdims=True))
-        dir *= np.sqrt(np.sum(np.square(param),axis=(0,1,2),keepdims=True))
-        return dir
-    else:
-        assert False, "only 1, 2, 4 dimentional filters allowed, got {}".format(param.shape)
-
-
-def fischer_normalization(aget):
-    
-
-
 def main():
     parser = argparse.ArgumentParser(description='run a particular evaluation job')
     parser.add_argument('save_dir', type=str)

@@ -41,6 +41,7 @@ def make_vec_env_fn(env_name):
     return env_fn_v
 
 def make_agent(agent_name, env_name, device, hyperparams):
+    hyperparams = dict(**hyperparams)
     if 'rainbow' == agent_name:
         return RainbowTrainer(env_name,device=device,**hyperparams)
     elif "SB3_OFF" == agent_name:

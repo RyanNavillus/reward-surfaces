@@ -172,7 +172,7 @@ def main(args):
             old_params = [param.clone() for param in dqn.online_net.parameters()]
             # model_parameters = dqn.online_net.named_parameters()
           if (args.checkpoint_interval != 0) and ((T) % args.checkpoint_interval == 1):
-            chpt_folder = os.path.join(results_dir,f'rainbow_{T-1}_steps/')
+            chpt_folder = os.path.join(results_dir,f'{T-1:07}/')
             os.makedirs(chpt_folder,exist_ok=True)
             dqn.save(chpt_folder, "checkpoint.pth")
             saved_files.append(os.path.join(chpt_folder, "checkpoint.pth"))

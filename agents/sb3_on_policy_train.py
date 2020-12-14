@@ -37,7 +37,7 @@ class CheckpointCallback(BaseCallback):
             self.old_params = [param.clone() for param in self.model.policy.parameters()]
         if self.n_calls % self.save_freq == 1:
             print(f"saved checkpoint {self.n_calls}")
-            path = os.path.join(self.save_path, f"{self.name_prefix}_{self.num_timesteps-1}_steps")
+            path = os.path.join(self.save_path, f"{self.num_timesteps-1:07}")
             os.makedirs(path, exist_ok=True)
             save_path = os.path.join(path,"checkpoint")
             self.model.save(save_path)
@@ -93,7 +93,6 @@ class SB3OnPolicyTrainer:
         checkpoint_callback = CheckpointCallback(save_freq=save_freq, save_path=save_dir,
                                                  name_prefix=save_prefix)
         self.algorithm.learn(num_steps,callback=checkpoint_callback)
-        saved_files = [f"{save_dir}/{save_prefix}_{i}_steps/checkpoint.zip" for i in range(save_freq,num_steps,save_freq)]
         return checkpoint_callback.save_folders
 
     def get_weights(self):

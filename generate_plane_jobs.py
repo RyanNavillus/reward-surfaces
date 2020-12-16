@@ -4,6 +4,7 @@ import torch
 import json
 import os
 import shutil
+from pathlib import Path
 import numpy as np
 
 def strip_lagging_slash(f):
@@ -71,19 +72,21 @@ def main():
     if args.num_episodes is None:
         args.num_episodes = 10000000000000
 
-    base_source_path = args.checkpoint_dir
-    folder_argname = os.path.dirname(strip_lagging_slash(base_source_path))
-    checkpoint_fname = next(fname for fname in os.listdir(args.checkpoint_dir) if "checkpoint" in fname)
-    checkpoint_path = os.path.join(args.checkpoint_dir, checkpoint_fname)
+
+    out_path = Path(args.output_path)
+    checkpoint_dir = Path(args.checkpoint_dir)
+    folder_argname = os.path.dirname(strip_lagging_slash(args.checkpoint_dir))
+    checkpoint_fname = next(fname for fname in os.listdir(checkpoint_dir) if "checkpoint" in fname)
+    checkpoint_path = checkpoint_dir / checkpoint_fname
     info_fname = "info.json"
     params_fname = "parameters.th"
 
-    os.makedirs(args.output_path, exist_ok=False)
-    shutil.copy(checkpoint_path, os.path.join(args.output_path, checkpoint_fname))
-    #shutil.copy(os.path.join(folder_argname, info_fname), os.path.join(args.output_path, info_fname))
-    shutil.copy(os.path.join(args.checkpoint_dir, params_fname), os.path.join(args.output_path, params_fname))
+    os.makedirs(output_path, exist_ok=False)
+    shutil.copy(checkpoint_path, (output_path, checkpoint_fname))
+    #shutil.copy((folder_argname, info_fname), (output_path, info_fname))
+    shutil.copy((checkpoint_dir / params_fname), (output_path, params_fname))
 
-    info = json.load(open(os.path.join(folder_argname, info_fname)))
+    info = json.load(open((folder_argname, info_fname)))
 
     device = "cpu"
     agent = make_agent(info['agent_name'], info['env'], device, info['hyperparameters'])
@@ -92,8 +95,8 @@ def main():
     alts = find_unscaled_alts(agent, args.directions)
     scaled_alts = [[a*args.magnitude for a in alt] for alt in alts]
 
-    np.savez(os.path.join(args.output_path, "dir1.npz"), *scaled_alts[0])
-    np.savez(os.path.join(args.output_path, "dir2.npz"), *scaled_alts[1])
+    np.savez((output_path / "dir1.npz"), *scaled_alts[0])
+    np.savez((output_path / "dir2.npz"), *scaled_alts[1])
 
     # update info
     info['experiment_type'] = "plane"
@@ -103,9 +106,9 @@ def main():
     info['num_episodes'] = args.num_episodes
     info['num_steps'] = args.num_steps
 
-    json.dump(info, open(os.path.join(args.output_path, info_fname),'w'), indent=4)
+    json.dump(info, open((output_path / info_fname),'w'), indent=4)
 
-    job_out_path = os.mkdir(os.path.join(args.output_path, "results"))
+    job_out_path = os.mkdir((output_path / "results"))
     seperate_eval_arg = " --use_offset_critic " if args.use_offset_critic else ""
 
     job_list = []
@@ -118,7 +121,7 @@ def main():
             job_list.append(job)
 
     jobs = "\n".join(job_list)+"\n"
-    open(os.path.join(args.output_path, "jobs.sh"),'w').write(jobs)
+    open((output_path / "jobs.sh"),'w').write(jobs)
 
 
 

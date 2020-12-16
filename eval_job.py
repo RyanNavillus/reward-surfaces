@@ -1,3 +1,4 @@
+import torch
 import argparse
 from agents.make_agent import make_agent
 import torch
@@ -16,6 +17,8 @@ def main():
     parser.add_argument('--use_offset_critic', action='store_true')
 
     args = parser.parse_args()
+
+    torch.set_num_threads(1)
 
     base_source_path = args.job_dir
     checkpoint_fname = next(fname for fname in os.listdir(args.job_dir) if "checkpoint" in fname)
@@ -46,8 +49,6 @@ def main():
     results = agent.evaluate(info['num_episodes'], info['num_steps'], eval_trainer=eval_agent)
 
     json.dump(results, open(os.path.join(args.job_dir,'results',f"{args.offset1:03},{args.offset2:03}.json"),'w'))
-
-
 
 
 

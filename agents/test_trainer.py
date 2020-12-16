@@ -8,6 +8,7 @@ from stable_baselines3.her import HER
 import tempfile
 from stable_baselines3.common.vec_env import DummyVecEnv
 import gym
+import torch
 from stable_baselines3.common.bit_flipping_env import BitFlippingEnv
 from .sb3_on_policy_train import SB3OnPolicyTrainer,SB3OffPolicyTrainer,SB3HerPolicyTrainer
 from .rainbow_trainer import RainbowTrainer

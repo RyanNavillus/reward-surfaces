@@ -66,6 +66,14 @@ def npvec_to_tensorlist(vec, params, device):
     return rval
 
 class HeshCalcOnlineMixin:
+    def eval_log_prob(self, obs, act):
+        '''
+        returns action, logprob
+        logprob should be differentialble to allow for backprop
+        '''
+        val, log_prob, entropy = self.evaluate_actions(obs, act)
+        return log_prob
+
     def calculate_hesh_vec_prod(self, vec, num_samples):
         '''
         stores hessian vector dot product in params.grad
@@ -142,6 +150,9 @@ class HeshCalcOnlineMixin:
         return maxeig, mineig
 
 class HeshCalcOfflineMixin(HeshCalcOnlineMixin):
+    def eval_log_prob(self, obs, act):
+        raise NotImplmenetedError("eval_log_prob not implemented for all sb3 algorithms including TD3 and DDPG (in theory maybe td3 can work???)")
+
     def generate_samples(self, max_samples, batch_size):
         for i in range(0, max_samples+batch_size-1, batch_size):
             yield self.replay_buffer.sample(batch_size=batch_size)
@@ -286,6 +297,10 @@ class ExtSAC(SAC, HeshCalcOfflineMixin):
     def parameters(self):
         # print(self.policy.critic.state_dict().keys())
         return list(self.policy.actor.parameters()) + list(self.policy.critic.parameters())
+
+    def eval_log_prob(self, obs, act):
+        mean_actions, log_std, kwargs = self.policy.critic.get_action_dist_params(obs)
+        return self.policy.critic.action_dist.actions_from_params()
 
     def calulate_grad_from_buffer(self, replay_data):
         # We need to sample because `log_std` may have changed between two gradient steps

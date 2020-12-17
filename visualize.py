@@ -14,68 +14,75 @@ import math
 import argparse
 import h5py
 import numpy as np
+import pandas
 from scipy import interpolate
 import sys
 
-def plot_2d_contour(x_coords,y_coords,z_values, base_name, vmin=0.1, vmax=10, vlevel=0.5, show=False):
+def plot_2d_contour(x_coords,y_coords,z_values, base_name, vmin=0.1, vmax=10, vlevel=0.5, show=False, type='mesh'):
     """Plot 2D contour map and 3D surface."""
     surf_file = "bob"
     #f = h5py.File(surf_file, 'r')
 
-    x = x_coords
-    y = y_coords
-    X, Y = np.meshgrid(x, y)
+    X = x_coords
+    Y = y_coords
+    #print(X)
+    # X, Y = np.meshgrid(np.arange(3), np.arange(3))
+    # print(X)
 
     Z = z_values
-
-    if (len(x) <= 1 or len(y) <= 1):
-        print('The length of coordinates is not enough for plotting contours')
-        return
+    print(Z.shape)
+    # if (len(x) <= 1 or len(y) <= 1):
+    #     print('The length of coordinates is not enough for plotting contours')
+    #     return
 
     # --------------------------------------------------------------------
     # Plot 2D contours
     # --------------------------------------------------------------------
-    fig = plt.figure()
-    CS = plt.contour(X, Y, Z, cmap='summer', levels=np.arange(vmin, vmax, vlevel))
-    plt.clabel(CS, inline=1, fontsize=8)
-    fig.savefig(base_name + '_2dcontour' + '.png', dpi=300,
-                bbox_inches='tight', format='png')
+    if type == 'all' or type == 'contour':
+        fig = plt.figure()
+        CS = plt.contour(X, Y, Z, cmap='summer', levels=np.arange(vmin, vmax, vlevel))
+        plt.clabel(CS, inline=1, fontsize=8)
+        fig.savefig(base_name + '_2dcontour' + '.png', dpi=300,
+                    bbox_inches='tight', format='png')
 
-    fig = plt.figure()
-    print(base_name + '_2dcontourf' + '.png')
-    CS = plt.contourf(X, Y, Z, cmap='summer', levels=np.arange(vmin, vmax, vlevel))
-    fig.savefig(base_name + '_2dcontourf' + '.png', dpi=300,
-                bbox_inches='tight', format='png')
+    if type == 'all' or type == 'contourf':
+        fig = plt.figure()
+        print(base_name + '_2dcontourf' + '.png')
+        CS = plt.contourf(X, Y, Z, cmap='summer', levels=np.arange(vmin, vmax, vlevel))
+        fig.savefig(base_name + '_2dcontourf' + '.png', dpi=300,
+                    bbox_inches='tight', format='png')
 
     # --------------------------------------------------------------------
     # Plot 2D heatmaps
     # --------------------------------------------------------------------
-    fig = plt.figure()
-    sns_plot = sns.heatmap(Z, cmap='viridis', cbar=True, vmin=vmin, vmax=vmax,
-                           xticklabels=False, yticklabels=False)
-    sns_plot.invert_yaxis()
-    sns_plot.get_figure().savefig(base_name + '_2dheat.png',
-                                  dpi=300, bbox_inches='tight', format='png')
+    if type == 'all' or type == 'heat':
+        fig = plt.figure()
+        sns_plot = sns.heatmap(Z, cmap='viridis', cbar=True, vmin=vmin, vmax=vmax,
+                               xticklabels=False, yticklabels=False)
+        sns_plot.invert_yaxis()
+        sns_plot.get_figure().savefig(base_name + '_2dheat.png',
+                                      dpi=300, bbox_inches='tight', format='png')
 
     # --------------------------------------------------------------------
     # Plot 3D surface
     # --------------------------------------------------------------------
-    fig = plt.figure()
-    ax = Axes3D(fig)
-    surf = ax.plot_surface(X, Y, Z, cmap=cm.coolwarm, linewidth=0, antialiased=False)
-    fig.colorbar(surf, shrink=0.5, aspect=5)
-    fig.savefig(base_name + '_3dsurface.png', dpi=300,
-                bbox_inches='tight', format='png')
+    if type == 'all' or type == 'mesh':
+        fig = plt.figure()
+        ax = Axes3D(fig)
+        surf = ax.plot_surface(X, Y, Z, cmap=cm.coolwarm, linewidth=0, antialiased=False)
+        fig.colorbar(surf, shrink=0.5, aspect=5)
+        fig.savefig(base_name + '_3dsurface.png', dpi=300,
+                    bbox_inches='tight', format='png')
     #f.close()
     #if show: plt.show()
 
-def generate_vtp(x_coords, y_coords, vals, vtp_file, log=False, zmax=-1, interp=-1):
+def generate_vtp(xcoordinates, ycoordinates, vals, vtp_file, log=False, zmax=-1, interp=-1):
     #set this to True to generate points
     show_points = False
     #set this to True to generate polygons
     show_polys = True
 
-    [xcoordinates, ycoordinates] = np.meshgrid(x_coords, y_coords)
+    #[xcoordinates, ycoordinates] = np.meshgrid(x_coords, y_coords)
 
     x_array = xcoordinates[:].ravel()
     y_array = ycoordinates[:].ravel()
@@ -277,20 +284,38 @@ def generate_vtp(x_coords, y_coords, vals, vtp_file, log=False, zmax=-1, interp=
     print("Done with file:{}".format(vtp_file))
 
 
+def isqrt(n):
+    x = n
+    y = (x + 1) // 2
+    while y < x:
+        x = y
+        y = (x + n // x) // 2
+    return x
+
+
 if __name__ == "__main__":
-    assert len(sys.argv) >= 3, "need 2 parameters, outname, fname"
+    assert len(sys.argv) >= 4, "need 3 parameters, outname, fname, key_name, Optional[plot_type]"
     outname = sys.argv[1]
     datafname = sys.argv[2]
-    if len(sys.argv) >= 4:
-        type = sys.argv[3]
+    key_name = sys.argv[3]
+    if len(sys.argv) == 5:
+        type = sys.argv[4]
     else:
-        type = "all"
+        type = "mesh"
+
     #"output_files/trpo/LunarLander-v2/true_values_<12,12>_100.npy"
-    data = np.load(datafname)
-    size = data.shape[0]
-    vmin = np.min(data)
-    vmax = np.max(data)
+    data = pandas.read_csv(datafname)
+    dsize = isqrt(len(data['dim0']))
+    xvals = (data['dim0'].values).reshape(dsize,dsize)
+    yvals = (data['dim1'].values).reshape(dsize,dsize)
+    zvals = (data[key_name].values).reshape(dsize,dsize)
+    #print(type(xvals))
+    #size = data.shape[0]
+    vmin = np.min(zvals)
+    vmax = np.max(zvals)
+    # print(vmin)
+    # print(vmax)
     vlevel = (vmax-vmin)/15
-    plot_2d_contour(np.arange(size),np.arange(size),data,outname,vmin=vmin,vmax=vmax,vlevel=vlevel)
+    plot_2d_contour(xvals,yvals,zvals,outname,vmin=vmin,vmax=vmax,vlevel=vlevel,type=type)
     if type == "all" or type == "vtp":
-        generate_vtp(np.arange(size),np.arange(size),data, outname+".vtp")
+        generate_vtp(xvals,yvals,zvals, outname+".vtp")

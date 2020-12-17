@@ -66,8 +66,12 @@ class OnPolicyEvaluator:
         self.eval_trainer = eval_trainer
 
     def _next_state(self):
+        return self._next_state_act()[:3]
+
+    def _next_state_act(self):
         policy_policy = self.algo.policy
 
+        old_state = self.state
         obs = torch.as_tensor(self.state, device=self.algo.device)
         action, policy_val, policy_log_prob = policy_policy.forward(obs)#, deterministic=True)
         if self.eval_trainer is None:
@@ -79,7 +83,7 @@ class OnPolicyEvaluator:
 
         action = action.detach().cpu().numpy()
         self.state, rew, done, info = self.env.step(action)
-        return rew[0], done[0], value
+        return rew[0], done[0], value, old_state, action
 
 
 class SB3OnPolicyTrainer:
@@ -126,17 +130,18 @@ class SB3OnPolicyTrainer:
 
 
 class OffPolicyEvaluator(OnPolicyEvaluator):
-    def _next_state(self):
+    def _next_state_act(self):
         policy_policy = self.algo.policy
         eval_policy = policy_policy if self.eval_trainer is None else self.eval_trainer.algorithm.policy
 
+        old_state = self.state
         obs = torch.as_tensor(self.state, device=self.algo.device)
         action = policy_policy.forward(obs)#, deterministic=True)
         value = eval_policy.critic.forward(obs, action)
 
         action = action.detach().cpu().numpy()
         self.state, rew, done, info = self.env.step(action)
-        return rew[0], done[0], value[0].item()
+        return rew[0], done[0], value[0].item(), old_state, action
 
 
 class SB3OffPolicyTrainer(SB3OnPolicyTrainer):
@@ -150,13 +155,14 @@ class HERPolicyEvaluator(OnPolicyEvaluator):
         policy_policy = self.algo.policy
         eval_policy = policy_policy if self.eval_trainer is None else self.eval_trainer.algorithm.policy
 
+        old_state = self.state
         obs = torch.as_tensor(ObsDictWrapper.convert_dict(self.state))
         action = policy_policy.forward(obs)#, deterministic=True)
         value = eval_policy.critic.forward(obs, action)
 
         action = action.detach().cpu().numpy()
         self.state, rew, done, info = self.env.step(action)
-        return rew[0], done[0], value[0].item()
+        return rew[0], done[0], value[0].item(), old_state, action
 
 
 class SB3HerPolicyTrainer(SB3OffPolicyTrainer):

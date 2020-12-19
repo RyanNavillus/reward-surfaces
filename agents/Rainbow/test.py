@@ -32,7 +32,7 @@ def test(args, T, dqn, val_mem, metrics, results_dir, evaluate=False):
       if done:
         T_rewards.append(reward_sum)
         break
-  env.close()
+ # env.close()
 
   # Test Q-values over validation memory
   for state in val_mem:  # Iterate over valid states

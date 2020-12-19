@@ -22,11 +22,25 @@ SB3_OFF_ALGOS = {
     "SAC": ExtSAC,
 }
 
-def make_vec_env_fn(env_name):
+class SimpleObsWrapper(gym.Wrapper):
+    def __init__(self, env):
+        super().__init__(env)
+        self.observation_space = env.observation_space['observation']
+
+    def reset(self):
+        return super().reset()['observation']
+
+    def step(self, action):
+        obs, rew, done, info = super().step(action)
+        return obs['observation'], rew, done, info
+
+
+def make_vec_env_fn(env_name, simple_obs=True):
     def env_fn_v(num_envs=1):
         if "NoFrameskip" in env_name:
+            # Atari environment
             def env_fn():
-                env = gym.make("SpaceInvadersNoFrameskip-v4")
+                env = gym.make(env_name)
                 env = AtariWrapper(env)
                 return env
             env = DummyVecEnv([env_fn]*num_envs)
@@ -34,6 +48,13 @@ def make_vec_env_fn(env_name):
             env = VecTransposeImage(env)
             env = VecNormalize(env)
             return env
+        elif ("Fetch" in env_name or "Hand" in env_name) and simple_obs:
+            # Gym robotics environment
+            def env_fn():
+                env = gym.make(env_name)
+                env = SimpleObsWrapper(env)
+                return env
+            return DummyVecEnv([env_fn]*num_envs)
         else:
             def env_fn():
                 return gym.make(env_name)
@@ -58,7 +79,7 @@ def make_agent(agent_name, env_name, device, hyperparams):
         model = "MlpPolicy" if len(env.observation_space.shape) != 3 else "CnnPolicy"
         return SB3OnPolicyTrainer(env_fn,algo(model,env,device=device,**hyperparams))
     elif "SB3_HER" == agent_name:
-        env_fn = make_vec_env_fn(env_name)
+        env_fn = make_vec_env_fn(env_name, simple_obs=False)
         algo = SB3_OFF_ALGOS[hyperparams.pop('ALGO')]
         return SB3HerPolicyTrainer(env_fn,HER("MlpPolicy",env_fn(),model_class=algo,device=device,**hyperparams))
     else:

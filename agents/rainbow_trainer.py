@@ -28,7 +28,7 @@ class RainbowTrainer:
         self.device = device
         parser = get_parser()
         args = parser.parse_args(self.args_list())
-        if torch.cuda.is_available() and not args.disable_cuda:
+        if torch.cuda.is_available() and device != 'cpu' and not args.disable_cuda:
             args.device = torch.device('cuda')
         else:
             args.device = torch.device('cpu')
@@ -57,7 +57,7 @@ class RainbowTrainer:
         return saved_files
 
     def load_weights(self, checkpoint):
-        state_dict = torch.load(checkpoint)
+        state_dict = torch.load(checkpoint, map_location=self.device)
         self.agent.online_net.load_state_dict(state_dict)
 
     def save_weights(self, checkpoint):

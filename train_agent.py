@@ -22,8 +22,6 @@ def main():
 
     os.makedirs(args.save_dir,exist_ok=False)
 
-    agent.train(args.num_steps, args.save_dir, save_freq=args.save_freq)
-
     run_info = {
         "agent_name": args.agent_name,
         "env": args.env,
@@ -32,6 +30,8 @@ def main():
     run_info_fname = os.path.join(args.save_dir, "info.json")
     with open(run_info_fname, 'w') as file:
         file.write(json.dumps(run_info,indent=4))
+
+    agent.train(args.num_steps, args.save_dir, save_freq=args.save_freq)
 
 
 if __name__ == "__main__":

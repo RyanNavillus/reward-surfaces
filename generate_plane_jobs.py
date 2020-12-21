@@ -60,7 +60,7 @@ def main():
     parser.add_argument('--grid-size', type=int, default=5)
     parser.add_argument('--num-steps', type=int)
     parser.add_argument('--num-episodes', type=int)
-    parser.add_argument('--device', type=str, default='cpu')
+    #parser.add_argument('--device', type=str, default='cpu')
     parser.add_argument('--use_offset_critic', action='store_true')
 
     args = parser.parse_args()
@@ -73,20 +73,20 @@ def main():
         args.num_episodes = 10000000000000
 
 
-    out_path = Path(args.output_path)
+    output_path = Path(args.output_path)
     checkpoint_dir = Path(args.checkpoint_dir)
-    folder_argname = os.path.dirname(strip_lagging_slash(args.checkpoint_dir))
+    folder_argname = Path(os.path.dirname(strip_lagging_slash(args.checkpoint_dir)))
     checkpoint_fname = next(fname for fname in os.listdir(checkpoint_dir) if "checkpoint" in fname)
     checkpoint_path = checkpoint_dir / checkpoint_fname
     info_fname = "info.json"
     params_fname = "parameters.th"
 
     os.makedirs(output_path, exist_ok=False)
-    shutil.copy(checkpoint_path, (output_path, checkpoint_fname))
+    shutil.copy(checkpoint_path, (output_path / checkpoint_fname))
     #shutil.copy((folder_argname, info_fname), (output_path, info_fname))
-    shutil.copy((checkpoint_dir / params_fname), (output_path, params_fname))
+    shutil.copy((checkpoint_dir / params_fname), (output_path / params_fname))
 
-    info = json.load(open((folder_argname, info_fname)))
+    info = json.load(open((folder_argname / info_fname)))
 
     device = "cpu"
     agent = make_agent(info['agent_name'], info['env'], device, info['hyperparameters'])

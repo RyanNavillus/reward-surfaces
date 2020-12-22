@@ -303,18 +303,20 @@ if __name__ == "__main__":
     else:
         type = "mesh"
 
-    #"output_files/trpo/LunarLander-v2/true_values_<12,12>_100.npy"
     data = pandas.read_csv(datafname)
     dsize = isqrt(len(data['dim0']))
-    xvals = (data['dim0'].values).reshape(dsize,dsize)
-    yvals = (data['dim1'].values).reshape(dsize,dsize)
-    zvals = (data[key_name].values).reshape(dsize,dsize)
-    #print(type(xvals))
-    #size = data.shape[0]
+    xvals = (data['dim0'].values)
+    yvals = (data['dim1'].values)
+
+    zvals = (data[key_name].values)#.reshape(dsize,dsize)
+    idxs = np.argsort(xvals + yvals*len(data['dim0']))
+    xvals = xvals[idxs].reshape(dsize,dsize)
+    yvals = yvals[idxs].reshape(dsize,dsize)
+    zvals = zvals[idxs].reshape(dsize,dsize)
+
     vmin = np.min(zvals)
     vmax = np.max(zvals)
-    # print(vmin)
-    # print(vmax)
+
     vlevel = (vmax-vmin)/15
     plot_2d_contour(xvals,yvals,zvals,outname,vmin=vmin,vmax=vmax,vlevel=vlevel,type=type)
     if type == "all" or type == "vtp":

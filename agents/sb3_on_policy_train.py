@@ -151,12 +151,12 @@ class SB3OffPolicyTrainer(SB3OnPolicyTrainer):
 
 
 class HERPolicyEvaluator(OnPolicyEvaluator):
-    def _next_state(self):
+    def _next_state_act(self):
         policy_policy = self.algo.policy
         eval_policy = policy_policy if self.eval_trainer is None else self.eval_trainer.algorithm.policy
 
         old_state = self.state
-        obs = torch.as_tensor(ObsDictWrapper.convert_dict(self.state))
+        obs = torch.as_tensor(ObsDictWrapper.convert_dict(self.state), device=self.algo.device)
         action = policy_policy.forward(obs)#, deterministic=True)
         value = eval_policy.critic.forward(obs, action)
 

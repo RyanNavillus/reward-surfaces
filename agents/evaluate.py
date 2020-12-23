@@ -24,6 +24,7 @@ def evaluate(evaluator, num_episodes, num_steps):
         ep_rews.append(rew)
         tot_steps += 1
         if done:
+            ep_rew_tot = sum(ep_rews)
             episode_rewards.append(sum(ep_rews))
             episode_value_ests.append(mean(ep_vals))
             episode_values.append(calc_mean_value(ep_rews, gamma))
@@ -32,7 +33,7 @@ def evaluate(evaluator, num_episodes, num_steps):
             ep_rews = []
             ep_vals = []
             end_t = time.time()
-            print("done!", (end_t - start_t)/len(episode_rewards))
+            print("done!", (end_t - start_t)/tot_steps, (end_t - start_t)/len(episode_rewards),ep_rew_tot)
 
     return {
         "episode_rewards": mean(episode_rewards),

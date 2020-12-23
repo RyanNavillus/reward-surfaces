@@ -69,7 +69,7 @@ class RainbowTrainer:
 
     def set_weights(self, np_arrs):
         for np_arr, param in zip(np_arrs, self.agent.online_net.parameters()):
-            param.data = torch.tensor(np_arr)
+            param.data = torch.tensor(np_arr,device=self.device)
 
     def evaluate(self, num_episodes, num_steps, eval_trainer=None):
         evaluator = RainbowEvaluator(self.env, self.agent, self.agent.discount, eval_trainer)

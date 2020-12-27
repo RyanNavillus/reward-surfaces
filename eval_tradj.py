@@ -48,11 +48,15 @@ def main():
 
     all_results = []
     for checkpoint, path in zip(checkpoints, checkpoint_fnames):
-        agent.load_weights(path)
-        print("evaluating ",checkpoint)
-        results = agent.evaluate(args.num_episodes, args.num_steps)
-        results['checkpoint'] = checkpoint
-        all_results.append(results)
+        try:
+            agent.load_weights(path)
+            print("evaluating ",checkpoint)
+            results = agent.evaluate(args.num_episodes, args.num_steps)
+            results['checkpoint'] = checkpoint
+            all_results.append(results)
+        except Exception:
+            print("failed to evaluate checkpoint",checkpoint)
+        
 
     df = pandas.read_json(json.dumps(all_results))
     df.to_csv(train_dir/"eval_tradj.csv",index=False)

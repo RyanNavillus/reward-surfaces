@@ -318,6 +318,7 @@ if __name__ == "__main__":
     vmax = np.max(zvals)
 
     vlevel = (vmax-vmin)/15
+    outname = outname + key_name
     plot_2d_contour(xvals,yvals,zvals,outname,vmin=vmin,vmax=vmax,vlevel=vlevel,type=type)
     if type == "all" or type == "vtp":
         generate_vtp(xvals,yvals,zvals, outname+".vtp")

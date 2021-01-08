@@ -68,7 +68,8 @@ class SegmentTree():
         return indices
     any_final_idxs = is_final_idxs.any()
     if any_final_idxs:
-        children_indices[:,is_final_idxs] = indices
+        children_indices = np.where(is_final_idxs, indices.reshape(1,-1), children_indices)
+        print("any final indexes hit!")
 
     left_children_values = self.sum_tree[children_indices[0]]
     successor_choices = np.greater(values, left_children_values).astype(np.int32)  # Classify which values are in left or right branches

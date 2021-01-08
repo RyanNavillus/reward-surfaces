@@ -1,4 +1,5 @@
 import time
+import torch
 
 class Evaluator:
     def _next_state(self):
@@ -19,7 +20,8 @@ def evaluate(evaluator, num_episodes, num_steps):
     start_t = time.time()
     done = False
     while not done or (len(episode_rewards) < num_episodes and tot_steps < num_steps):
-        rew, done, value = evaluator._next_state()#, deterministic=True)
+        with torch.no_grad():
+            rew, done, value = evaluator._next_state()#, deterministic=True)
         ep_vals.append(value)
         ep_rews.append(rew)
         tot_steps += 1

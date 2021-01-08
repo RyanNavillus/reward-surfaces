@@ -60,7 +60,7 @@ def main():
     parser.add_argument('--grid-size', type=int, default=5)
     parser.add_argument('--num-steps', type=int)
     parser.add_argument('--num-episodes', type=int)
-    #parser.add_argument('--device', type=str, default='cpu')
+    parser.add_argument('--device', type=str, default='cpu')
     parser.add_argument('--use_offset_critic', action='store_true')
 
     args = parser.parse_args()
@@ -105,6 +105,7 @@ def main():
     info['grid_size'] = args.grid_size
     info['num_episodes'] = args.num_episodes
     info['num_steps'] = args.num_steps
+    info['eval_device'] = args.device
 
     json.dump(info, open((output_path / info_fname),'w'), indent=4)
 

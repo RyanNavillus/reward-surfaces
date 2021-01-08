@@ -13,7 +13,7 @@ def main():
     parser.add_argument('job_dir', type=str)
     parser.add_argument('--offset1', type=float, help="if specified, looks for dir1.npz for parameter offset and multiplies it by offset, adds to parameter for evaluation")
     parser.add_argument('--offset2', type=float, help="if specified, looks for dir2.npz for parameter offset and multiplies it by offset, adds to parameter for evaluation")
-    parser.add_argument('--device', type=str, default='cpu')
+    #parser.add_argument('--device', type=str, default='cpu')
     parser.add_argument('--use_offset_critic', action='store_true')
 
     args = parser.parse_args()
@@ -28,12 +28,12 @@ def main():
 
     info = json.load(open(os.path.join(args.job_dir, info_fname)))
 
-    agent = make_agent(info['agent_name'], info['env'], args.device, info['hyperparameters'])
+    agent = make_agent(info['agent_name'], info['env'], info['eval_device'], info['hyperparameters'])
     agent.load_weights(checkpoint_path)
 
     eval_agent = None
     if args.use_offset_critic:
-        eval_agent = make_agent(info['agent_name'], info['env'], args.device, info['hyperparameters'])
+        eval_agent = make_agent(info['agent_name'], info['env'], info['eval_device'], info['hyperparameters'])
         eval_agent.load_weights(checkpoint_path)
 
     agent_weights = agent.get_weights()

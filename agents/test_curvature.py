@@ -9,8 +9,9 @@ from stable_baselines3.her import HER
 import tempfile
 import gym  # open ai gym
 from stable_baselines3.common.bit_flipping_env import BitFlippingEnv
-from sb3_on_policy_train import SB3OnPolicyTrainer,SB3OffPolicyTrainer,SB3HerPolicyTrainer
-from sb3_extended_algos import ExtA2C, ExtPPO, ExtSAC
+from .sb3_on_policy_train import SB3OnPolicyTrainer,SB3OffPolicyTrainer,SB3HerPolicyTrainer
+from .sb3_extended_algos import ExtA2C, ExtPPO, ExtSAC
+from .evaluate_est_hesh import calculate_est_hesh_eigenvalues
 
 def test_curvature(env_fn, trainer):
     # test trainer learning

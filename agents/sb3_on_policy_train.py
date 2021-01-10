@@ -8,6 +8,8 @@ from stable_baselines3.common.vec_env import DummyVecEnv
 from stable_baselines3.common.vec_env.obs_dict_wrapper import ObsDictWrapper
 import os
 from .evaluate import evaluate
+from .evaluate_est_hesh import calculate_est_hesh_eigenvalues
+
 
 class CheckpointCallback(BaseCallback):
     """
@@ -122,7 +124,7 @@ class SB3OnPolicyTrainer:
         self.algorithm.save(save_file)
 
     def calculate_eigenvalues(self, num_steps, tol=1e-2):
-        return self.algorithm.calculate_hesh_eigenvalues(num_steps,tol)
+        return calculate_est_hesh_eigenvalues(self.algorithm,num_steps,tol)
 
     def evaluate(self, num_episodes, num_steps, eval_trainer=None):
         evaluator = OnPolicyEvaluator(self.env_fn(), self.algorithm.gamma, self.algorithm, eval_trainer)

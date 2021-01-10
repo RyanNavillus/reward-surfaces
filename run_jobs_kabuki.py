@@ -23,7 +23,7 @@ def main():
             requirements_args = " --no-gpu-required --memory-required=1000 --num-cpus=1 "
 
         exec_command = f"execute_batch --copy-forward agents '*.py' {fname} --copy-backwards {results_dir} --machines {' '.join(machine_names)} {requirements_args} {shfile.name}"
-        # print(exec_command)
+        print(exec_command)
         subprocess.run(exec_command,shell=True)
 
 if __name__ == "__main__":

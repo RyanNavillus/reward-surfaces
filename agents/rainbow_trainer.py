@@ -12,10 +12,13 @@ class RainbowEvaluator:
         self.eval_trainer = eval_trainer
         self.state = env.reset()
         self.done = True
+        self._step_num = 0
 
     def _next_state(self):
         action, value = self.agent.act_and_eval(self.state)  # Choose an action ε-greedily
         self.state, reward, done = self.env.step(action)  # Step
+        if self._step_num % 1024 == 0:
+            self.agent.reset_noise()
         if done:
             self.state = self.env.reset()
         return reward, done, value
@@ -72,5 +75,7 @@ class RainbowTrainer:
             param.data = torch.tensor(np_arr,device=self.device)
 
     def evaluate(self, num_episodes, num_steps, eval_trainer=None):
+        self.agent.train()
+        self.env.eval()
         evaluator = RainbowEvaluator(self.env, self.agent, self.agent.discount, eval_trainer)
         return evaluate(evaluator, num_episodes, num_steps)

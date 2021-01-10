@@ -15,8 +15,13 @@ def main():
                 proc_list[i] = None
             if proc_list[i] is None:
                 job = job_list[job_idx]
-                proc_list[i] = subprocess.Popen(job.strip().split())
-                print("started: ",job)
+                try:
+                    proc_list[i] = subprocess.Popen(job.strip(), shell=True)
+                    print("started: ",job)
+                except IndexError:
+                    print("job did not start:", job)
+                    pass
+
                 job_idx += 1
         time.sleep(0.2)
 

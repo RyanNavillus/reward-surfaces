@@ -117,7 +117,7 @@ def main():
         for j in range(args.grid_size):
             x = i - args.grid_size // 2
             y = j - args.grid_size // 2
-            job = f"python eval_job.py {args.output_path} --offset1={x}  --offset2={y} {seperate_eval_arg}"
+            job = f"python eval_plane_job.py {args.output_path} --offset1={x}  --offset2={y} {seperate_eval_arg}"
             #print(job)
             job_list.append(job)
 

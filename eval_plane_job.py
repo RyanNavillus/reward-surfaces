@@ -15,6 +15,7 @@ def main():
     parser.add_argument('--offset2', type=float, help="if specified, looks for dir2.npz for parameter offset and multiplies it by offset, adds to parameter for evaluation")
     #parser.add_argument('--device', type=str, default='cpu')
     parser.add_argument('--use_offset_critic', action='store_true')
+    parser.add_argument('--calculate_hesh', action='store_true')
 
     args = parser.parse_args()
 
@@ -51,7 +52,15 @@ def main():
     print(agent_weights[0][0][0][0])
     agent.set_weights(agent_weights)
 
-    results = agent.evaluate(info['num_episodes'], info['num_steps'], eval_trainer=eval_agent)
+    if not args.calculate_hesh:
+        results = agent.evaluate(info['num_episodes'], info['num_steps'], eval_trainer=eval_agent)
+
+    if args.calculate_hesh:
+        assert info['num_episodes'] > 100000000, "hesh calculation only takes in steps, not episodes"
+        maxeig, mineig = agent.calculate_eigenvalues(info['num_steps'])
+        results = {}
+        results['maxeig'] = maxeig
+        results['mineig'] = mineig
 
     json.dump(results, open(os.path.join(args.job_dir,'results',f"{args.offset1:03},{args.offset2:03}.json"),'w'))
 

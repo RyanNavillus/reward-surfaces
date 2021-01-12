@@ -76,4 +76,4 @@ def calculate_est_hesh_eigenvalues(model, num_samples, tol):
 
     model.cleanup_buffer()
 
-    return maxeig, mineig
+    return float(maxeig), float(mineig)

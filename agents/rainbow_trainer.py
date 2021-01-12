@@ -57,7 +57,7 @@ class RainbowHeshEvaluator:
         # print(self.batch_size)
         indexs = np.arange(self.batch_size) + i*self.batch_size
         sample = self.buffer.get_samples_from_idxs(indexs)
-        weights = torch.ones(self.batch_size)
+        weights = torch.ones(self.batch_size, device=self.device)
         indexes = np.zeros(self.batch_size, dtype=np.int32)
         grad = self.agent.calulate_grad_from_buffer((indexes,)+sample+(weights,))
         return grad

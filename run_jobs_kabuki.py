@@ -18,7 +18,7 @@ def main():
         shfile.write("".join(new_job_list).encode("utf-8"))
         shfile.flush()
         if device == "cuda":
-            requirements_args = " --no-reserve-gpu --gpu-memory-required=1000 --gpu-utilization=0.25 --memory-required=2000 --num-cpus=1 "
+            requirements_args = " --no-reserve-gpu --gpu-memory-required=1000 --gpu-utilization=0.8 --memory-required=12000 --num-cpus=1 "
         else:
             requirements_args = " --no-gpu-required --memory-required=1000 --num-cpus=1 "
 

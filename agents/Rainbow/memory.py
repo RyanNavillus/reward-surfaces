@@ -126,6 +126,7 @@ class ReplayMemory():
     transitions[blank_mask] = blank_trans
     return transitions
 
+
   # Returns a valid sample from each segment
   def _get_samples_from_segments(self, batch_size, p_total):
     segment_length = p_total / batch_size  # Batch size number of segments, based on sum over all probabilities
@@ -150,6 +151,21 @@ class ReplayMemory():
     # Mask for non-terminal nth next states
     nonterminals = torch.tensor(np.expand_dims(transitions['nonterminal'][:, self.history + self.n - 1], axis=1), dtype=torch.float32, device=self.device)
     return probs, idxs, tree_idxs, states, actions, R, next_states, nonterminals
+
+  def get_samples_from_idxs(self, idxs):
+      transitions = self._get_transitions(idxs)
+      # Create un-discretised states and nth next states
+      all_states = transitions['state']
+      states = torch.tensor(all_states[:, :self.history], device=self.device, dtype=torch.float32).div_(255)
+      next_states = torch.tensor(all_states[:, self.n:self.n + self.history], device=self.device, dtype=torch.float32).div_(255)
+      # Discrete actions to be used as index
+      actions = torch.tensor(np.copy(transitions['action'][:, self.history - 1]), dtype=torch.int64, device=self.device)
+      # Calculate truncated n-step discounted returns R^n = Σ_k=0->n-1 (γ^k)R_t+k+1 (note that invalid nth next states have reward 0)
+      rewards = torch.tensor(np.copy(transitions['reward'][:, self.history - 1:-1]), dtype=torch.float32, device=self.device)
+      R = torch.matmul(rewards, self.n_step_scaling)
+      # Mask for non-terminal nth next states
+      nonterminals = torch.tensor(np.expand_dims(transitions['nonterminal'][:, self.history + self.n - 1], axis=1), dtype=torch.float32, device=self.device)
+      return states, actions, R, next_states, nonterminals
 
   def sample(self, batch_size):
     p_total = self.transitions.total()  # Retrieve sum of all priorities (used to create a normalised probability distribution)

@@ -12,10 +12,12 @@ from stable_baselines3.common.bit_flipping_env import BitFlippingEnv
 from .sb3_on_policy_train import SB3OnPolicyTrainer,SB3OffPolicyTrainer,SB3HerPolicyTrainer
 from .sb3_extended_algos import ExtA2C, ExtPPO, ExtSAC
 from .evaluate_est_hesh import calculate_est_hesh_eigenvalues
+from .rainbow_trainer import RainbowTrainer
+
 
 def test_curvature(env_fn, trainer):
     # test trainer learning
-    saved_files = trainer.train(100,"test_results",save_freq=1000)
+    # saved_files = trainer.train(100,"test_results",save_freq=1000)
     maxeig, mineig = trainer.calculate_eigenvalues(100,1.e-5)
     print(maxeig, mineig)
 
@@ -26,6 +28,8 @@ def continious_env_fn():
     return gym.make("Pendulum-v0")
 
 if __name__ == "__main__":
+    print("testing Rainbow curvature")
+    test_curvature(discrete_env_fn,RainbowTrainer("space_invaders",learning_starts=1000))
     print("testing SB3 SAC curvature")
     test_curvature(continious_env_fn, SB3OffPolicyTrainer(continious_env_fn,ExtSAC("MlpPolicy",continious_env_fn(),device="cuda")))
     print("testing SB3 A2C curvature")

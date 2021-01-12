@@ -7,6 +7,7 @@ from torch import optim
 from torch.nn.utils import clip_grad_norm_
 
 from .model import DQN
+from ..sb3_extended_algos import clip_norm_
 
 
 class Agent():
@@ -65,46 +66,61 @@ class Agent():
   def act_e_greedy(self, state, epsilon=0.001):  # High ε can reduce evaluation scores drastically
     return np.random.randint(0, self.action_space) if np.random.random() < epsilon else self.act(state)
 
-  def learn(self, mem):
-    # Sample transitions
-    idxs, states, actions, returns, next_states, nonterminals, weights = mem.sample(self.batch_size)
-
+  def get_loss(self, idxs, states, actions, returns, next_states, nonterminals, weights):
     # Calculate current state probabilities (online network noise already sampled)
     log_ps = self.online_net(states, log=True)  # Log probabilities log p(s_t, ·; θonline)
     log_ps_a = log_ps[range(self.batch_size), actions]  # log p(s_t, a_t; θonline)
 
     with torch.no_grad():
-      # Calculate nth next state probabilities
-      pns = self.online_net(next_states)  # Probabilities p(s_t+n, ·; θonline)
-      dns = self.support.expand_as(pns) * pns  # Distribution d_t+n = (z, p(s_t+n, ·; θonline))
-      argmax_indices_ns = dns.sum(2).argmax(1)  # Perform argmax action selection using online network: argmax_a[(z, p(s_t+n, a; θonline))]
-      self.target_net.reset_noise()  # Sample new target net noise
-      pns = self.target_net(next_states)  # Probabilities p(s_t+n, ·; θtarget)
-      pns_a = pns[range(self.batch_size), argmax_indices_ns]  # Double-Q probabilities p(s_t+n, argmax_a[(z, p(s_t+n, a; θonline))]; θtarget)
+        # Calculate nth next state probabilities
+        pns = self.online_net(next_states)  # Probabilities p(s_t+n, ·; θonline)
+        dns = self.support.expand_as(pns) * pns  # Distribution d_t+n = (z, p(s_t+n, ·; θonline))
+        argmax_indices_ns = dns.sum(2).argmax(1)  # Perform argmax action selection using online network: argmax_a[(z, p(s_t+n, a; θonline))]
+        self.target_net.reset_noise()  # Sample new target net noise
+        pns = self.target_net(next_states)  # Probabilities p(s_t+n, ·; θtarget)
+        pns_a = pns[range(self.batch_size), argmax_indices_ns]  # Double-Q probabilities p(s_t+n, argmax_a[(z, p(s_t+n, a; θonline))]; θtarget)
 
-      # Compute Tz (Bellman operator T applied to z)
-      Tz = returns.unsqueeze(1) + nonterminals * (self.discount ** self.n) * self.support.unsqueeze(0)  # Tz = R^n + (γ^n)z (accounting for terminal states)
-      Tz = Tz.clamp(min=self.Vmin, max=self.Vmax)  # Clamp between supported values
-      # Compute L2 projection of Tz onto fixed support z
-      b = (Tz - self.Vmin) / self.delta_z  # b = (Tz - Vmin) / Δz
-      l, u = b.floor().to(torch.int64), b.ceil().to(torch.int64)
-      # Fix disappearing probability mass when l = b = u (b is int)
-      l[(u > 0) * (l == u)] -= 1
-      u[(l < (self.atoms - 1)) * (l == u)] += 1
+        # Compute Tz (Bellman operator T applied to z)
+        Tz = returns.unsqueeze(1) + nonterminals * (self.discount ** self.n) * self.support.unsqueeze(0)  # Tz = R^n + (γ^n)z (accounting for terminal states)
+        Tz = Tz.clamp(min=self.Vmin, max=self.Vmax)  # Clamp between supported values
+        # Compute L2 projection of Tz onto fixed support z
+        b = (Tz - self.Vmin) / self.delta_z  # b = (Tz - Vmin) / Δz
+        l, u = b.floor().to(torch.int64), b.ceil().to(torch.int64)
+        # Fix disappearing probability mass when l = b = u (b is int)
+        l[(u > 0) * (l == u)] -= 1
+        u[(l < (self.atoms - 1)) * (l == u)] += 1
 
-      # Distribute probability of Tz
-      m = states.new_zeros(self.batch_size, self.atoms)
-      offset = torch.linspace(0, ((self.batch_size - 1) * self.atoms), self.batch_size).unsqueeze(1).expand(self.batch_size, self.atoms).to(actions)
-      m.view(-1).index_add_(0, (l + offset).view(-1), (pns_a * (u.float() - b)).view(-1))  # m_l = m_l + p(s_t+n, a*)(u - b)
-      m.view(-1).index_add_(0, (u + offset).view(-1), (pns_a * (b - l.float())).view(-1))  # m_u = m_u + p(s_t+n, a*)(b - l)
+        # Distribute probability of Tz
+        m = states.new_zeros(self.batch_size, self.atoms)
+        offset = torch.linspace(0, ((self.batch_size - 1) * self.atoms), self.batch_size).unsqueeze(1).expand(self.batch_size, self.atoms).to(actions)
+        m.view(-1).index_add_(0, (l + offset).view(-1), (pns_a * (u.float() - b)).view(-1))  # m_l = m_l + p(s_t+n, a*)(u - b)
+        m.view(-1).index_add_(0, (u + offset).view(-1), (pns_a * (b - l.float())).view(-1))  # m_u = m_u + p(s_t+n, a*)(b - l)
 
     loss = -torch.sum(m * log_ps_a, 1)  # Cross-entropy loss (minimises DKL(m||p(s_t, a_t)))
+    return (weights * loss).mean()
+
+  def learn(self, mem):
+    # Sample transitions
+    sample = mem.sample(self.batch_size)
+    idxs, states, actions, returns, next_states, nonterminals, weights = sample
+
+    loss = self.get_loss(states, actions, returns, next_states, nonterminals, weights)
     self.online_net.zero_grad()
-    (weights * loss).mean().backward()  # Backpropagate importance-weighted minibatch loss
+    loss.backward()  # Backpropagate importance-weighted minibatch loss
     clip_grad_norm_(self.online_net.parameters(), self.norm_clip)  # Clip gradients by L2 norm
     self.optimiser.step()
 
     mem.update_priorities(idxs, loss.detach().cpu().numpy())  # Update priorities of sampled transitions
+
+  def calulate_grad_from_buffer(self, sample):
+      loss = self.get_loss(*sample)
+      params = self.online_net.parameters()
+      grad_f = torch.autograd.grad(loss, inputs=params, create_graph=True)
+      # Optimization step
+
+      # TODO: check this--grad clipping!!!
+      clip_norm_(grad_f, self.norm_clip)
+      return grad_f
 
   def update_target_net(self):
     self.target_net.load_state_dict(self.online_net.state_dict())

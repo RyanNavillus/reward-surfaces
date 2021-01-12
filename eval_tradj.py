@@ -43,10 +43,7 @@ def main():
     if info['est_hesh']:
         print(f"estimating hesh with {info['eval_num_steps']} steps")
         assert info['eval_num_episodes'] > 100000000, "hesh calculation only takes in steps, not episodes"
-        maxeig, mineig = agent.calculate_eigenvalues(info['eval_num_steps'])
-        results = {}
-        results['maxeig'] = maxeig
-        results['mineig'] = mineig
+        results = agent.calculate_eigenvalues(info['eval_num_steps'])
     else:
         results = agent.evaluate(info['eval_num_steps'], info['eval_num_episodes'])
     results['checkpoint'] = checkpoint

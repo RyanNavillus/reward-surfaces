@@ -4,7 +4,7 @@ from .Rainbow.main import main, get_parser
 from .Rainbow.memory import ReplayMemory
 import torch
 import numpy as np
-from .evaluate import evaluate
+from .evaluate import evaluate, calculate_stats
 from .evaluate_est_hesh import calculate_est_hesh_eigenvalues
 
 class RainbowEvaluator:
@@ -46,11 +46,16 @@ class RainbowHeshEvaluator:
         self.buffer = ReplayMemory(self.args, num_samples)
         self.num_batches = num_samples//self.batch_size
         self.num_samples = num_samples
+        datas = []
+
         for i in range(num_samples):
             rew, done, value = evaluator._next_state()
+            datas.append((rew, done, value))
             state = evaluator.state
             action = evaluator.action
             self.buffer.append(state, action, rew, done)
+
+        self.buffer_stats = calculate_stats(datas,self.agent.discount)
 
     def calulate_grad_from_buffer(self, i):
         # print(i)
@@ -136,4 +141,8 @@ class RainbowTrainer:
 
     def calculate_eigenvalues(self, num_steps, tol=1e-2):
         hesh_eval = RainbowHeshEvaluator(self.agent, self.env, self.args)
-        return calculate_est_hesh_eigenvalues(hesh_eval,num_steps,tol)
+        maxeig, mineig = calculate_est_hesh_eigenvalues(hesh_eval,num_steps,tol)
+        hesh_eval.buffer_stats['maxeig'] = maxeig
+        hesh_eval.buffer_stats['mineig'] = mineig
+        hesh_eval.buffer_stats['ratio'] = min(0,mineig)/maxeig
+        return hesh_eval.buffer_stats

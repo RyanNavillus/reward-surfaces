@@ -8,6 +8,7 @@ import torch
 import torch as th
 from torch.nn import functional as F
 from gym import spaces
+from .evaluate import calculate_stats
 from scipy.sparse.linalg import LinearOperator, eigsh
 from stable_baselines3.common.buffers import RolloutBuffer, ReplayBuffer
 from stable_baselines3.common.callbacks import BaseCallback
@@ -76,6 +77,8 @@ class HeshCalcOnlineMixin:
         )
         cb = DoNothingCallback(self)
         self.collect_rollouts(self.env, cb, self.rollout_buffer, n_rollout_steps=rollout_steps)
+        evaluation_data = list(zip(self.rollout_buffer.rewards, self.rollout_buffer.dones, self.rollout_buffer.values))
+        self.buffer_stats = calculate_stats(evaluation_data,self.gamma)
 
     def cleanup_buffer(self):
         self.rollout_buffer = self._old_buffer
@@ -112,7 +115,8 @@ class HeshCalcOfflineMixin(HeshCalcOnlineMixin):
             replay_buffer=self.replay_buffer,
             log_interval=10,
         )
-
+        evaluation_data = list(zip(self.replay_buffer.rewards, self.replay_buffer.dones, np.zeros_like(self.replay_buffer.rewards)))
+        self.buffer_stats = calculate_stats(evaluation_data,self.gamma)
 
 class ExtA2C(A2C, HeshCalcOnlineMixin):
     def parameters(self):

@@ -17,9 +17,9 @@ from .rainbow_trainer import RainbowTrainer
 
 def test_curvature(env_fn, trainer):
     # test trainer learning
-    # saved_files = trainer.train(100,"test_results",save_freq=1000)
-    maxeig, mineig = trainer.calculate_eigenvalues(100,1.e-5)
-    print(maxeig, mineig)
+    saved_files = trainer.train(100,"test_results",save_freq=1000)
+    results = trainer.calculate_eigenvalues(100,1.e-5)
+    print(results['maxeig'], results['mineig'], results['ratio'])
 
 def discrete_env_fn():
     return gym.make("CartPole-v1")
@@ -28,11 +28,11 @@ def continious_env_fn():
     return gym.make("Pendulum-v0")
 
 if __name__ == "__main__":
-    print("testing Rainbow curvature")
-    test_curvature(discrete_env_fn,RainbowTrainer("space_invaders",learning_starts=1000))
     print("testing SB3 SAC curvature")
     test_curvature(continious_env_fn, SB3OffPolicyTrainer(continious_env_fn,ExtSAC("MlpPolicy",continious_env_fn(),device="cuda")))
     print("testing SB3 A2C curvature")
     test_curvature(discrete_env_fn, SB3OnPolicyTrainer(discrete_env_fn,ExtA2C("MlpPolicy",discrete_env_fn(),device="cpu")))
     print("testing SB3 PPO curvature")
     test_curvature(discrete_env_fn, SB3OnPolicyTrainer(discrete_env_fn,ExtPPO("MlpPolicy",discrete_env_fn(),device="cpu")))
+    print("testing Rainbow curvature")
+    test_curvature(discrete_env_fn,RainbowTrainer("space_invaders",learning_starts=1000))

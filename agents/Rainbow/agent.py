@@ -104,7 +104,7 @@ class Agent():
     sample = mem.sample(self.batch_size)
     idxs, states, actions, returns, next_states, nonterminals, weights = sample
 
-    loss = self.get_loss(states, actions, returns, next_states, nonterminals, weights)
+    loss = self.get_loss(idxs, states, actions, returns, next_states, nonterminals, weights)
     self.online_net.zero_grad()
     loss.backward()  # Backpropagate importance-weighted minibatch loss
     clip_grad_norm_(self.online_net.parameters(), self.norm_clip)  # Clip gradients by L2 norm

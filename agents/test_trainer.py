@@ -57,10 +57,10 @@ def atari_env(num_envs=1):
     return env
 
 if __name__ == "__main__":
-    print("testing Rainbow")
-    test_trainer(1500,1000,RainbowTrainer("space_invaders",learning_starts=1000))
     print("testing SB3 HER")
     test_trainer(100,100,SB3HerPolicyTrainer(robo_env_fn,HER("MlpPolicy",robo_env_fn(),model_class=TD3,device="cpu",max_episode_length=100)))
+    print("testing Rainbow")
+    test_trainer(1500,1000,RainbowTrainer("space_invaders",learning_starts=1000))
     print("testing SB3 A2C with Atari")
     test_trainer(100,100,SB3OnPolicyTrainer(atari_env,A2C("CnnPolicy",atari_env(16),device="cuda")))
     print("testing SB3 TD3")

@@ -124,7 +124,12 @@ class SB3OnPolicyTrainer:
         self.algorithm.save(save_file)
 
     def calculate_eigenvalues(self, num_steps, tol=1e-2):
-        return calculate_est_hesh_eigenvalues(self.algorithm,num_steps,tol)
+        maxeig,mineig = calculate_est_hesh_eigenvalues(self.algorithm,num_steps,tol)
+        buffer_stats = self.algorithm.buffer_stats
+        buffer_stats['maxeig'] = maxeig
+        buffer_stats['mineig'] = mineig
+        buffer_stats['ratio'] = min(0,mineig)/maxeig
+        return buffer_stats
 
     def evaluate(self, num_episodes, num_steps, eval_trainer=None):
         evaluator = OnPolicyEvaluator(self.env_fn(), self.algorithm.gamma, self.algorithm, eval_trainer)

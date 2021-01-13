@@ -8,7 +8,7 @@ class Evaluator:
         return rew, done, value
         '''
 
-def evaluate(evaluator, num_episodes, num_steps):
+def generate_data(evaluator, num_episodes, num_steps):
     gamma = evaluator.gamma
 
     all_datas = []
@@ -27,7 +27,12 @@ def evaluate(evaluator, num_episodes, num_steps):
             tot_eps += 1
             end_t = time.time()
             print("done!", (end_t - start_t)/tot_steps, (end_t - start_t)/tot_eps,tot_rew/tot_eps)
-    return calculate_stats(all_datas,gamma)
+    return all_datas
+
+
+def evaluate(evaluator, num_episodes, num_steps):
+    all_datas = generate_data(evaluator, num_episodes, num_steps)
+    return calculate_stats(all_datas,evaluator.gamma)
 
 
 def calculate_stats(all_datas, gamma):

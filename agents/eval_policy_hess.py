@@ -140,7 +140,7 @@ def compute_vec_hesh_prod(algorithm, params, all_states, all_returns, all_action
     for eps in range(len(all_states)):
         # print("vec prod computed")
         grad_accum = [p*0 for p in params]
-        grad_mul_ret_accum = [p*0 for p in params]
+        grad_m_mr_dot_v_accum = torch.zeros(1,device=device)
         hesh_prod_accum = [p*0 for p in params]
         eps_states = all_states[eps]
         eps_returns = all_returns[eps]
@@ -164,12 +164,13 @@ def compute_vec_hesh_prod(algorithm, params, all_states, all_returns, all_action
 
             hesh_prods = torch.autograd.grad(g_mr_dot_v, inputs=params, create_graph=True)
             assert len(hesh_prods) == len(vec)
-            accumulate(grad_mul_ret_accum,grad_mul_ret)
+            grad_m_mr_dot_v_accum.data += g_mr_dot_v
+            #accumulate(grad_mul_ret_accum,grad_mul_ret)
             accumulate(grad_accum,grads)
             accumulate(hesh_prod_accum,hesh_prods)
 
-        grad_vec_prod = sum([torch.dot(g_acc.view(-1),v.view(-1)) for g_acc,v in zip(grad_accum, vec)], torch.zeros(1,device=device))
-        t1s = [g_mr_acc * grad_vec_prod for g_mr_acc in grad_mul_ret_accum]
+        # grad_vec_prod = sum([torch.dot(g_acc.view(-1),v.view(-1)) for g_acc,v in zip(grad_accum, vec)], torch.zeros(1,device=device))
+        t1s = [g_mr_acc * grad_m_mr_dot_v_accum for g_mr_acc in grad_accum]
         t2s = hesh_prod_accum
         assert len(accum) == len(t1s) == len(t2s)
         for acc,t1,t2 in zip(accum, t1s, t2s):

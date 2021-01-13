@@ -45,7 +45,7 @@ def gen_advantage_est(rewards, values, decay, gae_lambda=1.):
 
 def mean_baseline_est(rewards):
     baseline = mean([sum(rew) for rew in rewards])
-    return [[sum(rew)-baseline]*len(rew) for rew in rewards]
+    return [sum(rew)-baseline for rew in rewards]
 
 
 def decayed_baselined_values(rewards, decay):
@@ -95,8 +95,9 @@ def gather_policy_hess_data(evaluator, num_episodes, num_steps, gamma, returns_m
             end_t = time.time()
             print("done!", (end_t - start_t)/len(episode_rewards))
 
+    # returns = mean_baseline_est(episode_rewards)
     # if returns_method == 'baselined_vals':
-    #     returns = decayed_baselined_values(episode_rewards, gamma)
+    #returns = decayed_baselined_values(episode_rewards, gamma)
     # elif returns_method == 'gen_advantage':
     returns = gen_advantage_est(episode_rewards, episode_value_ests, gamma, gae_lambda)
     # else:
@@ -104,16 +105,16 @@ def gather_policy_hess_data(evaluator, num_episodes, num_steps, gamma, returns_m
 
 
     single_dim_grad = None
-
-    all_states = sum(episode_states,[])
-    all_returns = sum(returns,[])
-    all_actions = sum(episode_actions,[])
+    #
+    # all_states = sum(episode_states,[])
+    # all_returns = sum(returns,[])
+    # all_actions = sum(episode_actions,[])
     # print(len(all_returns))
     # print(len(sum(episode_rewards,[])))
     # print(len(sum(episode_states,[])))
     # exit(0)
 
-    return all_states, all_returns, all_actions
+    return episode_states, returns, episode_actions
 
 def get_used_params(algorithm, states, actions):
     params = algorithm.parameters()
@@ -124,38 +125,55 @@ def get_used_params(algorithm, states, actions):
     # print(grads)
     return new_params
 
-def compute_vec_hesh_prod(algorithm, all_states, all_returns, all_actions, vec, batch_size = 1):
-    params = get_used_params(algorithm, torch.tensor(all_states[0:2]),torch.tensor(all_actions[0:2]))
+def accumulate(accumulator, data):
+    assert len(accumulator) == len(data)
+    for a,d in zip(accumulator,data):
+        a.data += d
+
+def compute_vec_hesh_prod(algorithm, params, all_states, all_returns, all_actions, vec, batch_size = 1):
+    device = params[0].device
     accum = [p*0 for p in params]
     # print(len(all_states))
     # print(len(all_returns))
     assert len(all_states) == len(all_actions)
     assert len(all_states) == len(all_returns)
-    print("vec prod computed")
-    for idx in range(0, len(all_states)-1, batch_size):
-        batch_size = min(batch_size, len(all_states) - idx)
-        batch_states = torch.squeeze(torch.tensor(all_states[idx:idx + batch_size]),dim=1)
-        batch_returns = torch.tensor(all_returns[idx:idx + batch_size])
-        batch_actions = torch.squeeze(torch.tensor(all_actions[idx:idx + batch_size]),dim=1)
+    for eps in range(len(all_states)):
+        # print("vec prod computed")
+        grad_accum = [p*0 for p in params]
+        grad_mul_ret_accum = [p*0 for p in params]
+        hesh_prod_accum = [p*0 for p in params]
+        eps_states = all_states[eps]
+        eps_returns = all_returns[eps]
+        eps_act = all_actions[eps]
+        assert len(eps_act) == len(eps_states)
+        assert len(eps_act) == len(eps_returns)
+        for idx in range(0, len(eps_act), batch_size):
+            eps_batch_size = min(batch_size, len(eps_act) - idx)
+            batch_states = torch.squeeze(torch.tensor(eps_states[idx:idx + eps_batch_size],device=device),dim=1)
+            batch_actions = torch.squeeze(torch.tensor(eps_act[idx:idx + eps_batch_size],device=device),dim=1)
+            batch_returns = torch.tensor(eps_returns[idx:idx + eps_batch_size],device=device).float()
 
-        logprob = algorithm.eval_log_prob(batch_states,batch_actions)
-        # print(all_states[0].shape)
-        # print(batch_states.shape)
-        # print(batch_returns.shape)
-        # print(batch_actions.shape)
-        # print(logprob.shape)
-        # # exit(0)
-        # grad_outs = [torch.eye(batch_size,batch_size) for p in params]
-        grads = torch.autograd.grad(outputs=logprob, inputs=tuple(params), create_graph=True)
-        # print(grads[0].shape)
-        assert len(vec) == len(grads)
-        g_dot_v = sum([torch.dot(g.view(-1),v.view(-1)) for g,v in zip(grads, vec)], torch.zeros(1))
-        # print(g_dot_v.shape)
-        t1s = [g_dot_v * v for v in vec]
-        t2s = torch.autograd.grad(g_dot_v, inputs=params, create_graph=True)
+            logprob = torch.sum(algorithm.eval_log_prob(batch_states,batch_actions))
+            grads = torch.autograd.grad(outputs=logprob, inputs=tuple(params), create_graph=True)
 
+            logprob_mul_return = torch.dot(algorithm.eval_log_prob(batch_states,batch_actions), batch_returns)
+            grad_mul_ret = torch.autograd.grad(outputs=logprob_mul_return, inputs=tuple(params), create_graph=True)
+            assert len(vec) == len(grad_mul_ret)
+            assert len(vec) == len(grads)
+            g_mr_dot_v = sum([torch.dot(g_mr.view(-1),v.view(-1)) for g_mr,v in zip(grad_mul_ret, vec)], torch.zeros(1,device=device))
+
+            hesh_prods = torch.autograd.grad(g_mr_dot_v, inputs=params, create_graph=True)
+            assert len(hesh_prods) == len(vec)
+            accumulate(grad_mul_ret_accum,grad_mul_ret)
+            accumulate(grad_accum,grads)
+            accumulate(hesh_prod_accum,hesh_prods)
+
+        grad_vec_prod = sum([torch.dot(g_acc.view(-1),v.view(-1)) for g_acc,v in zip(grad_accum, vec)], torch.zeros(1,device=device))
+        t1s = [g_mr_acc * grad_vec_prod for g_mr_acc in grad_mul_ret_accum]
+        t2s = hesh_prod_accum
+        assert len(accum) == len(t1s) == len(t2s)
         for acc,t1,t2 in zip(accum, t1s, t2s):
-            acc += (t1 + t2)
+            acc.data += (t1 + t2)
 
     return accum
 
@@ -167,12 +185,14 @@ def gradtensor_to_npvec(params, include_bn=True):
 
 def calculate_true_hesh_eigenvalues(algorithm, all_states, all_returns, all_actions, tol, device):
     algorithm.dot_prod_calcs = 0
-    params = get_used_params(algorithm, torch.tensor(all_states[0:2]),torch.tensor(all_actions[0:2]))
+    device = algorithm.parameters()[0].device
+
+    params = get_used_params(algorithm, torch.tensor(all_states[0][0:2],device=device),torch.tensor(all_actions[0][0:2],device=device))
 
     def hess_vec_prod(vec):
         algorithm.dot_prod_calcs += 1
         vec = npvec_to_tensorlist(vec, params, device)
-        accum = compute_vec_hesh_prod(algorithm, all_states, all_returns, all_actions, vec)
+        accum = compute_vec_hesh_prod(algorithm, params, all_states, all_returns, all_actions, vec)
         return gradtensor_to_npvec(accum)
 
 

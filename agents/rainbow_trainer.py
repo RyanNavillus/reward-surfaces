@@ -144,5 +144,5 @@ class RainbowTrainer:
         maxeig, mineig = calculate_est_hesh_eigenvalues(hesh_eval,num_steps,tol)
         hesh_eval.buffer_stats['maxeig'] = maxeig
         hesh_eval.buffer_stats['mineig'] = mineig
-        hesh_eval.buffer_stats['ratio'] = min(0,mineig)/maxeig
+        hesh_eval.buffer_stats['ratio'] = -min(0,mineig)/maxeig
         return hesh_eval.buffer_stats

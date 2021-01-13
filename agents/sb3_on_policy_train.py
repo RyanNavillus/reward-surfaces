@@ -129,7 +129,7 @@ class SB3OnPolicyTrainer:
         buffer_stats = self.algorithm.buffer_stats
         buffer_stats['maxeig'] = maxeig
         buffer_stats['mineig'] = mineig
-        buffer_stats['ratio'] = min(0,mineig)/maxeig
+        buffer_stats['ratio'] = -min(0,mineig)/maxeig
         return buffer_stats
 
     def evaluate_policy_hess(self, num_episodes, num_steps, returns_method, gae_lambda, tol=1e-2):
@@ -139,7 +139,7 @@ class SB3OnPolicyTrainer:
         buffer_stats = {}
         buffer_stats['maxeig'] = maxeig
         buffer_stats['mineig'] = mineig
-        buffer_stats['ratio'] = min(0,mineig)/maxeig
+        buffer_stats['ratio'] = -min(0,mineig)/maxeig
         return buffer_stats
 
     def evaluate(self, num_episodes, num_steps, eval_trainer=None):

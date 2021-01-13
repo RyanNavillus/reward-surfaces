@@ -18,7 +18,7 @@ from .rainbow_trainer import RainbowTrainer
 def test_curvature(env_fn, trainer):
     # test trainer learning
     saved_files = trainer.train(100,"test_results",save_freq=1000)
-    results = trainer.evaluate_policy_hess(1000,10000,'baselined_vals',1.0)
+    results = trainer.evaluate_policy_hess(1000,2000,'baselined_vals',1.0,tol=1.0)
     print(results)
 
 def discrete_env_fn():

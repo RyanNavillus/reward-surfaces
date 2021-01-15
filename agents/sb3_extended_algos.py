@@ -75,6 +75,7 @@ class HeshCalcOnlineMixin:
             gae_lambda=self.gae_lambda,
             n_envs=self.n_envs,
         )
+        self.env.reset()
         cb = DoNothingCallback(self)
         self.collect_rollouts(self.env, cb, self.rollout_buffer, n_rollout_steps=rollout_steps)
         evaluation_data = list(zip(self.rollout_buffer.rewards, self.rollout_buffer.dones, self.rollout_buffer.values))

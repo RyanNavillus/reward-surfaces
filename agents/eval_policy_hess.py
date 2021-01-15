@@ -130,7 +130,7 @@ def accumulate(accumulator, data):
     for a,d in zip(accumulator,data):
         a.data += d
 
-def compute_vec_hesh_prod(algorithm, params, all_states, all_returns, all_actions, vec, batch_size = 1):
+def compute_vec_hesh_prod(algorithm, params, all_states, all_returns, all_actions, vec, batch_size = 512):
     device = params[0].device
     accum = [p*0 for p in params]
     # print(len(all_states))

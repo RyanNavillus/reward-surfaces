@@ -42,6 +42,7 @@ def npvec_to_tensorlist(vec, params, device):
 
 def calculate_est_hesh_eigenvalues(model, num_samples, tol):
     model.setup_buffer(num_samples)
+    print("finished collecting data for est hesh")
 
     model.dot_prod_calcs = 0
 

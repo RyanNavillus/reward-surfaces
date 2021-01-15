@@ -2,6 +2,7 @@ import subprocess
 import sys
 import time
 import multiprocessing
+import argparse
 
 def main():
     assert len(sys.argv) == 2, "needs one argument, the file with jobs"

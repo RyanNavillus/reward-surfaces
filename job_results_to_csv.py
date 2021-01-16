@@ -9,7 +9,8 @@ def main():
 
     args = parser.parse_args()
 
-    results_dir = Path(args.job_dir) / 'results'
+    job_dir = Path(args.job_dir)
+    results_dir = job_dir / 'results'
 
     results_fnames = list(os.listdir(results_dir))
 
@@ -26,7 +27,8 @@ def main():
 
         csv_rows.append(",".join(row_data))
 
-    print("\n".join(csv_rows))
+    with open(job_dir / "results.csv", 'w') as file:
+        file.write("\n".join(csv_rows) + "\n")
 
 if __name__ == "__main__":
     main()

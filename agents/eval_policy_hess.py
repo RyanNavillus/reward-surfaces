@@ -93,7 +93,7 @@ def gather_policy_hess_data(evaluator, num_episodes, num_steps, gamma, returns_m
             ep_states = []
             ep_actions = []
             end_t = time.time()
-            print("done!", (end_t - start_t)/len(episode_rewards))
+            #print("done!", (end_t - start_t)/len(episode_rewards))
 
     # returns = mean_baseline_est(episode_rewards)
     # if returns_method == 'baselined_vals':

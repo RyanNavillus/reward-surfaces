@@ -133,7 +133,7 @@ class SB3OnPolicyTrainer:
         return buffer_stats
 
     def evaluate_policy_hess(self, num_episodes, num_steps, returns_method, gae_lambda, tol=1e-2):
-        evaluator = OnPolicyEvaluator(DummyVecEnv([self.env_fn]), self.algorithm.gamma, self.algorithm, None)
+        evaluator = OnPolicyEvaluator(self.env_fn(), self.algorithm.gamma, self.algorithm, None)
         all_states, all_returns, all_actions = gather_policy_hess_data(evaluator, num_episodes, num_steps, self.algorithm.gamma, returns_method, gae_lambda)
         maxeig, mineig = calculate_true_hesh_eigenvalues(self.algorithm, all_states, all_returns, all_actions, tol, self.device)
         buffer_stats = {}

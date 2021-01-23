@@ -130,11 +130,40 @@ def accumulate(accumulator, data):
     for a,d in zip(accumulator,data):
         a.data += d
 
-def compute_vec_hesh_prod(algorithm, params, all_states, all_returns, all_actions, vec, batch_size = 512):
+
+def compute_grad_mags(algorithm, params, all_states, all_returns, all_actions):
+    device = params[0].device
+    batch_size = 32
+    accum = [p*0 for p in params]
+    for eps in range(len(all_states)):
+        eps_states = all_states[eps]
+        eps_returns = all_returns[eps]
+        eps_act = all_actions[eps]
+        assert len(eps_act) == len(eps_states)
+        assert len(eps_act) == len(eps_returns)
+        for idx in range(0, len(eps_act), batch_size):
+            eps_batch_size = min(batch_size, len(eps_act) - idx)
+            batch_states = torch.squeeze(torch.tensor(eps_states[idx:idx + eps_batch_size],device=device),dim=1)
+            batch_actions = torch.tensor(eps_act[idx:idx + eps_batch_size],device=device).reshape(eps_batch_size, -1)
+            batch_returns = torch.tensor(eps_returns[idx:idx + eps_batch_size],device=device).float()
+
+            logprob = torch.dot(algorithm.eval_log_prob(batch_states,batch_actions),batch_returns)
+            logprob.backard()
+
+            grad = torch.autograd.grad(outputs=logprob, inputs=tuple(params))
+            for g,a in zip(grad, accum):
+                a.data += torch.square(g)
+
+    return accum
+
+
+def compute_vec_hesh_prod(algorithm, params, grad_mags, all_states, all_returns, all_actions, vec, batch_size = 512):
     device = params[0].device
     accum = [p*0 for p in params]
+    grad_inv_mags = [1./m for m in grad_mags]
     # print(len(all_states))
     # print(len(all_returns))
+    assert len(grad_mags) == len(params)
     assert len(all_states) == len(all_actions)
     assert len(all_states) == len(all_returns)
     for eps in range(len(all_states)):
@@ -150,7 +179,7 @@ def compute_vec_hesh_prod(algorithm, params, all_states, all_returns, all_action
         for idx in range(0, len(eps_act), batch_size):
             eps_batch_size = min(batch_size, len(eps_act) - idx)
             batch_states = torch.squeeze(torch.tensor(eps_states[idx:idx + eps_batch_size],device=device),dim=1)
-            batch_actions = torch.squeeze(torch.tensor(eps_act[idx:idx + eps_batch_size],device=device),dim=1)
+            batch_actions = torch.tensor(eps_act[idx:idx + eps_batch_size],device=device).reshape(eps_batch_size, -1)
             batch_returns = torch.tensor(eps_returns[idx:idx + eps_batch_size],device=device).float()
 
             logprob = torch.sum(algorithm.eval_log_prob(batch_states,batch_actions))
@@ -158,6 +187,7 @@ def compute_vec_hesh_prod(algorithm, params, all_states, all_returns, all_action
 
             logprob_mul_return = torch.dot(algorithm.eval_log_prob(batch_states,batch_actions), batch_returns)
             grad_mul_ret = torch.autograd.grad(outputs=logprob_mul_return, inputs=tuple(params), create_graph=True)
+            grad_mul_ret = [gmr * gim for gmr, gim in zip(grad_mul_ret, grad_inv_mags)]
             assert len(vec) == len(grad_mul_ret)
             assert len(vec) == len(grads)
             g_mr_dot_v = sum([torch.dot(g_mr.view(-1),v.view(-1)) for g_mr,v in zip(grad_mul_ret, vec)], torch.zeros(1,device=device))
@@ -189,36 +219,34 @@ def calculate_true_hesh_eigenvalues(algorithm, all_states, all_returns, all_acti
     device = algorithm.parameters()[0].device
 
     params = get_used_params(algorithm, torch.tensor(all_states[0][0:2],device=device),torch.tensor(all_actions[0][0:2],device=device))
+    grad_mags = compute_grad_mags(algorithm, params, all_states, all_returns, all_actions)
 
     def hess_vec_prod(vec):
         algorithm.dot_prod_calcs += 1
         vec = npvec_to_tensorlist(vec, params, device)
-        accum = compute_vec_hesh_prod(algorithm, params, all_states, all_returns, all_actions, vec)
+        accum = compute_vec_hesh_prod(algorithm, params, grad_mags, all_states, all_returns, all_actions, vec)
         return gradtensor_to_npvec(accum)
 
 
     N = sum(np.prod(param.shape) for param in params)
     A = LinearOperator((N, N), matvec=hess_vec_prod)
-    eigvals, eigvecs = eigsh(A, k=1, tol=tol)
+    eigvals, eigvecs = eigsh(A, k=1, tol=tol, which="LA")
     maxeig = eigvals[0]
     print(f"max eignvalue = {maxeig}")
     print(eigvecs[0])
     # If the largest eigenvalue is positive, shift matrix so that any negative eigenvalue is now the largest
     # We assume the smallest eigenvalue is zero or less, and so this shift is more than what we need
-    shift = maxeig*.51
-    def shifted_hess_vec_prod(vec):
-        return hess_vec_prod(vec) - shift*vec
+    # shift = maxeig*.51
+    # def shifted_hess_vec_prod(vec):
+    #     return hess_vec_prod(vec) - shift*vec
 
-    A = LinearOperator((N, N), matvec=shifted_hess_vec_prod)
-    eigvals, eigvecs = eigsh(A, k=1, tol=tol)
-    eigvals = eigvals + shift
+    A = LinearOperator((N, N), matvec=hess_vec_prod)
+    eigvals, eigvecs = eigsh(A, k=1, tol=tol, which="SA")
+    eigvals = eigvals #+ shift
     mineig = eigvals[0]
     print(f"min eignvalue = {mineig}")
 
-    if maxeig <= 0 and mineig > 0:
-        maxeig, mineig = mineig, maxeig
-    else:
-        assert maxeig >= 0 or mineig < 0, "something weird is going on that loss landscapes paper does not handle"
+    assert maxeig >= 0, "something weird is going on"
 
     print("number of evaluations required: ", algorithm.dot_prod_calcs)
 

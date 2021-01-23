@@ -29,6 +29,6 @@ if __name__ == "__main__":
     # print("testing SB3 SAC curvature")
     # test_curvature(continious_env_fn, SB3OffPolicyTrainer(continious_env_fn,ExtSAC("MlpPolicy",continious_env_fn(),device="cuda")))
     print("testing SB3 A2C curvature")
-    test_curvature(discrete_env_fn, SB3OnPolicyTrainer(discrete_env_fn,ExtPPO("MlpPolicy",discrete_env_fn(),device="cpu")))
+    test_curvature(continious_env_fn, SB3OnPolicyTrainer(continious_env_fn,ExtPPO("MlpPolicy",continious_env_fn(),device="cpu")))
     print("testing SB3 PPO curvature")
     test_curvature(continious_env_fn, SB3OnPolicyTrainer(continious_env_fn,ExtPPO("MlpPolicy",continious_env_fn(),device="cpu")))

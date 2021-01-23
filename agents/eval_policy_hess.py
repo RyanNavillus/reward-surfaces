@@ -148,7 +148,6 @@ def compute_grad_mags(algorithm, params, all_states, all_returns, all_actions):
             batch_returns = torch.tensor(eps_returns[idx:idx + eps_batch_size],device=device).float()
 
             logprob = torch.dot(algorithm.eval_log_prob(batch_states,batch_actions),batch_returns)
-            logprob.backard()
 
             grad = torch.autograd.grad(outputs=logprob, inputs=tuple(params))
             for g,a in zip(grad, accum):

@@ -51,7 +51,7 @@ def main():
         results = agent.evaluate_policy_hess(info['eval_num_episodes'], info['eval_num_steps'], "NOT_USED", gae_lambda=1., tol=1e-2)
 
     if not info['calc_hesh'] and not info['est_hesh']:
-        results = agent.evaluate(info['eval_num_steps'], info['eval_num_episodes'])
+        results = agent.evaluate(info['eval_num_episodes'], info['eval_num_steps'])
 
     results['checkpoint'] = checkpoint
 

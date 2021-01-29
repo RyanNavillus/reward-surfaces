@@ -10,6 +10,7 @@ import gym
 from .sb3_extended_algos import ExtA2C, ExtPPO, ExtSAC
 from stable_baselines3.common.atari_wrappers import AtariWrapper
 from stable_baselines3.common.vec_env import DummyVecEnv, VecFrameStack, VecNormalize, VecTransposeImage
+import pybulletgym
 
 
 SB3_ON_ALGOS = {
@@ -87,6 +88,6 @@ def make_agent(agent_name, env_name, device, hyperparams):
 
 if __name__ == "__main__":
     agent = make_agent("rainbow","space_invaders","cpu",{})
-    agent = make_agent("SB3_OFF","Pendulum-v0","cpu",{'ALGO':'TD3'})
+    agent = make_agent("SB3_OFF","InvertedPendulumPyBulletEnv-v0","cpu",{'ALGO':'TD3'})
     agent = make_agent("SB3_ON","Pendulum-v0","cpu",{'ALGO':'PPO'})
     # agent = make_agent("SB3_HER","Pendulum-v0","cpu",{'ALGO':'TD3',"max_episode_length":100})

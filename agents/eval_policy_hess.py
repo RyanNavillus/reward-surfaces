@@ -45,7 +45,7 @@ def gen_advantage_est(rewards, values, decay, gae_lambda=1.):
 
 def mean_baseline_est(rewards):
     baseline = mean([sum(rew) for rew in rewards])
-    return [sum(rew)-baseline for rew in rewards]
+    return [np.ones_like(rew) * (sum(rew)-baseline) for rew in rewards]
 
 
 def decayed_baselined_values(rewards, decay):
@@ -95,11 +95,11 @@ def gather_policy_hess_data(evaluator, num_episodes, num_steps, gamma, returns_m
             end_t = time.time()
             #print("done!", (end_t - start_t)/len(episode_rewards))
 
-    # returns = mean_baseline_est(episode_rewards)
+    returns = mean_baseline_est(episode_rewards)
     # if returns_method == 'baselined_vals':
     #returns = decayed_baselined_values(episode_rewards, gamma)
     # elif returns_method == 'gen_advantage':
-    returns = gen_advantage_est(episode_rewards, episode_value_ests, gamma, gae_lambda)
+    # returns = gen_advantage_est(episode_rewards, episode_value_ests, gamma, gae_lambda)
     # else:
     #     raise ValueError("bad value for `returns_method`")
 
@@ -134,7 +134,7 @@ def accumulate(accumulator, data):
 def compute_grad_mags(algorithm, params, all_states, all_returns, all_actions):
     device = params[0].device
     batch_size = 32
-    accum = [p*0 for p in params]
+    accum = [p.detach()*0 for p in params]
     for eps in range(len(all_states)):
         eps_states = all_states[eps]
         eps_returns = all_returns[eps]
@@ -159,7 +159,7 @@ def compute_grad_mags(algorithm, params, all_states, all_returns, all_actions):
 def compute_vec_hesh_prod(algorithm, params, grad_mags, all_states, all_returns, all_actions, vec, batch_size = 512):
     device = params[0].device
     accum = [p*0 for p in params]
-    grad_inv_mags = [1./m for m in grad_mags]
+    grad_inv_mags = [1./(m+1e-7) for m in grad_mags]
     # print(len(all_states))
     # print(len(all_returns))
     assert len(grad_mags) == len(params)

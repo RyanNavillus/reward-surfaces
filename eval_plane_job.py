@@ -40,7 +40,6 @@ def main():
     agent_weights = agent.get_weights()
     if args.offset1 is not None:
         offset1_data = np.load(os.path.join(args.job_dir, "dir1.npz"))
-        print(list(offset1_data.values())[0][0][0][0])
         for a_weight, off in zip(agent_weights, offset1_data.values()):
             a_weight += off * args.offset1 / (info['grid_size']//2)
     if args.offset2 is not None:
@@ -49,7 +48,6 @@ def main():
         for a_weight, off in zip(agent_weights, offset2_data.values()):
             a_weight += off * args.offset2 / (info['grid_size']//2)
 
-    print(agent_weights[0][0][0][0])
     agent.set_weights(agent_weights)
 
     if not args.calculate_hesh:

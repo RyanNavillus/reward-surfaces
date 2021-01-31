@@ -55,13 +55,16 @@ def main():
     parser = argparse.ArgumentParser(description='generate jobs for plane')
     parser.add_argument('checkpoint_dir', type=str)
     parser.add_argument('output_path', type=str)
-    parser.add_argument('--directions', type=str, default="filter")
-    parser.add_argument('--magnitude', type=float, default=1.)
+    parser.add_argument('--directions', type=str, default="filter", help="'filter' is only option right now")
+    parser.add_argument('--copy-directions', type=str, help="overrides directions with directions from specified folder. Does not copy any other data. ")
+    parser.add_argument('--magnitude', type=float, default=1., help="scales directions by given amount")
     parser.add_argument('--grid-size', type=int, default=5)
     parser.add_argument('--num-steps', type=int)
     parser.add_argument('--num-episodes', type=int)
     parser.add_argument('--device', type=str, default='cpu')
-    parser.add_argument('--use_offset_critic', action='store_true')
+    parser.add_argument('--use_offset_critic', action='store_true', help="use critic at center or at offset for value estimation")
+    parser.add_argument('--est-hesh', action='store_true')
+    parser.add_argument('--calc-hesh', action='store_true')
 
     args = parser.parse_args()
 
@@ -92,20 +95,29 @@ def main():
     agent = make_agent(info['agent_name'], info['env'], device, info['hyperparameters'])
     agent.load_weights(checkpoint_path)
 
-    alts = find_unscaled_alts(agent, args.directions)
-    scaled_alts = [[a*args.magnitude for a in alt] for alt in alts]
+    if args.copy_directions is not None:
+        # copy directions
+        dir_path = Path(args.copy_directions)
+        shutil.copy(dir_path / "dir1.npz", output_path / "dir1.npz")
+        shutil.copy(dir_path / "dir2.npz", output_path / "dir2.npz")
+    else:
+        # generate directions normally
+        alts = find_unscaled_alts(agent, args.directions)
+        scaled_alts = [[a*args.magnitude for a in alt] for alt in alts]
 
-    np.savez((output_path / "dir1.npz"), *scaled_alts[0])
-    np.savez((output_path / "dir2.npz"), *scaled_alts[1])
+        np.savez((output_path / "dir1.npz"), *scaled_alts[0])
+        np.savez((output_path / "dir2.npz"), *scaled_alts[1])
 
     # update info
     info['experiment_type'] = "plane"
-    info['directions'] = args.directions
+    info['directions'] = args.directions if args.copy_directions is None else "copy"
+    info['checkpoint_dir'] = args.checkpoint_dir
     info['magnitude'] = args.magnitude
     info['grid_size'] = args.grid_size
     info['num_episodes'] = args.num_episodes
     info['num_steps'] = args.num_steps
     info['eval_device'] = args.device
+    info['calc_hesh'] = args.device
 
     json.dump(info, open((output_path / info_fname),'w'), indent=4)
 

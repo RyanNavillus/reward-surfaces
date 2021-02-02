@@ -117,7 +117,8 @@ def main():
     info['num_episodes'] = args.num_episodes
     info['num_steps'] = args.num_steps
     info['eval_device'] = args.device
-    info['calc_hesh'] = args.device
+    info['calc_hesh'] = args.calc_hesh
+    info['est_hesh'] = args.est_hesh
 
     json.dump(info, open((output_path / info_fname),'w'), indent=4)
 

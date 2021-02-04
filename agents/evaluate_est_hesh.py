@@ -40,20 +40,20 @@ def npvec_to_tensorlist(vec, params, device):
     return rval
 
 
-def calculate_est_hesh_eigenvalues(model, num_samples, tol):
-    model.setup_buffer(num_samples)
+def calculate_est_hesh_eigenvalues(estimator, num_samples, tol):
+    estimator.setup_buffer(num_samples)
     print("finished collecting data for est hesh")
 
-    model.dot_prod_calcs = 0
+    estimator.dot_prod_calcs = 0
 
     def hess_vec_prod(vec):
-        model.dot_prod_calcs += 1
-        vec = npvec_to_tensorlist(vec, model.parameters(), model.device)
-        model.calculate_hesh_vec_prod(vec, num_samples)
-        return gradtensor_to_npvec(model.parameters())
+        estimator.dot_prod_calcs += 1
+        vec = npvec_to_tensorlist(vec, estimator.parameters(), estimator.device)
+        estimator.calculate_hesh_vec_prod(vec, num_samples)
+        return gradtensor_to_npvec(estimator.parameters())
 
 
-    N = sum(np.prod(param.shape) for param in model.parameters())
+    N = sum(np.prod(param.shape) for param in estimator.parameters())
     A = LinearOperator((N, N), matvec=hess_vec_prod)
     eigvals, eigvecs = eigsh(A, k=1, tol=tol)
     maxeig = eigvals[0]
@@ -73,8 +73,8 @@ def calculate_est_hesh_eigenvalues(model, num_samples, tol):
 
     assert maxeig >= 0 or mineig < 0, "something weird is going on but this case is handled by the loss landscapes paper, so duplicating that here"
 
-    print("number of evaluations required: ", model.dot_prod_calcs)
+    print("number of evaluations required: ", estimator.dot_prod_calcs)
 
-    model.cleanup_buffer()
+    estimator.cleanup_buffer()
 
     return float(maxeig), float(mineig)

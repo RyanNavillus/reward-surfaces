@@ -142,9 +142,11 @@ class SB3OnPolicyTrainer:
         buffer_stats['ratio'] = -min(0,mineig)/maxeig
         return buffer_stats
 
-    def evaluate(self, num_episodes, num_steps, eval_trainer=None):
-        evaluator = OnPolicyEvaluator(self.env_fn(), self.algorithm.gamma, self.algorithm, eval_trainer)
-        return evaluate(evaluator, num_episodes, num_steps)
+    def evaluator(self, eval_trainer=None):
+        return OnPolicyEvaluator(self.env_fn(), self.algorithm.gamma, self.algorithm, eval_trainer)
+
+    def action_evalutor(self):
+        return self.algorithm
 
 
 class OffPolicyEvaluator(OnPolicyEvaluator):
@@ -163,9 +165,8 @@ class OffPolicyEvaluator(OnPolicyEvaluator):
 
 
 class SB3OffPolicyTrainer(SB3OnPolicyTrainer):
-    def evaluate(self, num_episodes, num_steps, num_envs=1, eval_trainer=None):
-        evaluator = OffPolicyEvaluator(self.env_fn(), self.algorithm.gamma, self.algorithm, eval_trainer)
-        return evaluate(evaluator, num_episodes, num_steps)
+    def evaluator(self, eval_trainer=None):
+        return OffPolicyEvaluator(self.env_fn(), self.algorithm.gamma, self.algorithm, eval_trainer)
 
 
 class HERPolicyEvaluator(OnPolicyEvaluator):
@@ -195,6 +196,5 @@ class SB3HerPolicyTrainer(SB3OffPolicyTrainer):
         self.algorithm = self._base_model
         return values
 
-    def evaluate(self, num_episodes, num_steps, num_envs=1, eval_trainer=None):
-        evaluator = HERPolicyEvaluator(self.env_fn(), self.algorithm.gamma, self.algorithm, eval_trainer)
-        return evaluate(evaluator, num_episodes, num_steps)
+    def evaluator(self, eval_trainer=None):
+        return HERPolicyEvaluator(self.env_fn(), self.algorithm.gamma, self.algorithm, eval_trainer)

@@ -116,9 +116,9 @@ def gather_policy_hess_data(evaluator, num_episodes, num_steps, gamma, returns_m
 
     return episode_states, returns, episode_actions
 
-def get_used_params(algorithm, states, actions):
-    params = algorithm.parameters()
-    out = torch.sum(algorithm.eval_log_prob(states,actions))
+def get_used_params(evaluator, states, actions):
+    params = evaluator.parameters()
+    out = torch.sum(evaluator.eval_log_prob(states,actions))
     grads = torch.autograd.grad(out, inputs=params, create_graph=True, allow_unused=True)
     new_params = [p for g,p in zip(grads,params) if g is not None]
     # grads = torch.autograd.grad(out, inputs=new_params, create_graph=True, allow_unused=True)
@@ -131,7 +131,7 @@ def accumulate(accumulator, data):
         a.data += d
 
 
-def compute_grad_mags(algorithm, params, all_states, all_returns, all_actions):
+def compute_grad_mags(evaluator, params, all_states, all_returns, all_actions):
     device = params[0].device
     batch_size = 32
     accum = [p.detach()*0 for p in params]
@@ -147,7 +147,7 @@ def compute_grad_mags(algorithm, params, all_states, all_returns, all_actions):
             batch_actions = torch.tensor(eps_act[idx:idx + eps_batch_size],device=device).reshape(eps_batch_size, -1)
             batch_returns = torch.tensor(eps_returns[idx:idx + eps_batch_size],device=device).float()
 
-            logprob = torch.dot(algorithm.eval_log_prob(batch_states,batch_actions),batch_returns)
+            logprob = torch.dot(evaluator.eval_log_prob(batch_states,batch_actions),batch_returns)
 
             grad = torch.autograd.grad(outputs=logprob, inputs=tuple(params))
             for g,a in zip(grad, accum):
@@ -156,7 +156,7 @@ def compute_grad_mags(algorithm, params, all_states, all_returns, all_actions):
     return accum
 
 
-def compute_vec_hesh_prod(algorithm, params, grad_mags, all_states, all_returns, all_actions, vec, batch_size = 512):
+def compute_vec_hesh_prod(evaluator, params, grad_mags, all_states, all_returns, all_actions, vec, batch_size = 512):
     device = params[0].device
     accum = [p*0 for p in params]
     grad_inv_mags = [1./(m+1e-7) for m in grad_mags]
@@ -181,10 +181,10 @@ def compute_vec_hesh_prod(algorithm, params, grad_mags, all_states, all_returns,
             batch_actions = torch.tensor(eps_act[idx:idx + eps_batch_size],device=device).reshape(eps_batch_size, -1)
             batch_returns = torch.tensor(eps_returns[idx:idx + eps_batch_size],device=device).float()
 
-            logprob = torch.sum(algorithm.eval_log_prob(batch_states,batch_actions))
+            logprob = torch.sum(evaluator.eval_log_prob(batch_states,batch_actions))
             grads = torch.autograd.grad(outputs=logprob, inputs=tuple(params), create_graph=True)
 
-            logprob_mul_return = torch.dot(algorithm.eval_log_prob(batch_states,batch_actions), batch_returns)
+            logprob_mul_return = torch.dot(evaluator.eval_log_prob(batch_states,batch_actions), batch_returns)
             grad_mul_ret = torch.autograd.grad(outputs=logprob_mul_return, inputs=tuple(params), create_graph=True)
             grad_mul_ret = [gmr * gim for gmr, gim in zip(grad_mul_ret, grad_inv_mags)]
             assert len(vec) == len(grad_mul_ret)
@@ -213,17 +213,17 @@ def gradtensor_to_npvec(params, include_bn=True):
     return np.concatenate([p.data.cpu().numpy().ravel() for p in params if filter(p)])
 
 
-def calculate_true_hesh_eigenvalues(algorithm, all_states, all_returns, all_actions, tol, device):
-    algorithm.dot_prod_calcs = 0
-    device = algorithm.parameters()[0].device
+def calculate_true_hesh_eigenvalues(evaluator, all_states, all_returns, all_actions, tol, device):
+    evaluator.dot_prod_calcs = 0
+    device = evaluator.parameters()[0].device
 
-    params = get_used_params(algorithm, torch.tensor(all_states[0][0:2],device=device),torch.tensor(all_actions[0][0:2],device=device))
-    grad_mags = compute_grad_mags(algorithm, params, all_states, all_returns, all_actions)
+    params = get_used_params(evaluator, torch.tensor(all_states[0][0:2],device=device),torch.tensor(all_actions[0][0:2],device=device))
+    grad_mags = compute_grad_mags(evaluator, params, all_states, all_returns, all_actions)
 
     def hess_vec_prod(vec):
-        algorithm.dot_prod_calcs += 1
+        evaluator.dot_prod_calcs += 1
         vec = npvec_to_tensorlist(vec, params, device)
-        accum = compute_vec_hesh_prod(algorithm, params, grad_mags, all_states, all_returns, all_actions, vec)
+        accum = compute_vec_hesh_prod(evaluator, params, grad_mags, all_states, all_returns, all_actions, vec)
         return gradtensor_to_npvec(accum)
 
 
@@ -247,7 +247,7 @@ def calculate_true_hesh_eigenvalues(algorithm, all_states, all_returns, all_acti
 
     assert maxeig >= 0, "something weird is going on"
 
-    print("number of evaluations required: ", algorithm.dot_prod_calcs)
+    print("number of evaluations required: ", evaluator.dot_prod_calcs)
 
     return float(maxeig), float(mineig)
 

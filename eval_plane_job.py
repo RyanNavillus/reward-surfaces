@@ -6,6 +6,7 @@ import json
 import os
 import shutil
 import numpy as np
+import pathlib
 
 
 def main():
@@ -20,46 +21,43 @@ def main():
 
     torch.set_num_threads(1)
 
-    base_source_path = args.job_dir
+    base_source_path = pathlib.Path(args.job_dir)
     checkpoint_fname = next(fname for fname in os.listdir(args.job_dir) if "checkpoint" in fname)
-    checkpoint_path = os.path.join(args.job_dir, checkpoint_fname)
+    checkpoint_path = base_source_path / checkpoint_fname
     info_fname = "info.json"
     params_fname = "parameters.th"
 
-    info = json.load(open(os.path.join(args.job_dir, info_fname)))
+    info = json.load(open(base_source_path / info_fname))
 
-    agent = make_agent(info['agent_name'], info['env'], info['eval_device'], info['hyperparameters'])
+    agent = make_agent(info['agent_name'], info['env'], info['device'], info['hyperparameters'])
     agent.load_weights(checkpoint_path)
 
     eval_agent = None
     if args.use_offset_critic:
-        eval_agent = make_agent(info['agent_name'], info['env'], info['eval_device'], info['hyperparameters'])
+        eval_agent = make_agent(info['agent_name'], info['env'], info['device'], info['hyperparameters'])
         eval_agent.load_weights(checkpoint_path)
 
     agent_weights = agent.get_weights()
     if args.offset1 is not None:
-        offset1_data = np.load(os.path.join(args.job_dir, "dir1.npz"))
+        offset1_data = np.load(base_source_path / "dir1.npz")
+        offset1_scalar = args.offset1 * info['magnitude'] / (info['grid_size']//2)
         for a_weight, off in zip(agent_weights, offset1_data.values()):
-            a_weight += off * args.offset1 / (info['grid_size']//2)
+            a_weight += off * offset1_scalar
     if args.offset2 is not None:
-        offset2_data = np.load(os.path.join(args.job_dir, "dir2.npz"))
+        offset2_data = np.load(base_source_path / "dir2.npz")
+        offset2_scalar = args.offset2 * info['magnitude'] / (info['grid_size']//2)
         # agent_weights += [off * args.offset2 / (info['grid_size']//2) for off in offset2_data.values()]
         for a_weight, off in zip(agent_weights, offset2_data.values()):
-            a_weight += off * args.offset2 / (info['grid_size']//2)
+            a_weight += off * offset2_scalar
 
     agent.set_weights(agent_weights)
 
-    if not info['calc_hesh'] and not info['est_hesh']:
-        results = agent.evaluate(info['num_episodes'], info['num_steps'], eval_trainer=eval_agent)
-
-    if info['calc_hesh']:
-        results = agent.evaluate_policy_hess(info['num_episodes'], info['num_steps'], "NOT_USED", gae_lambda=1., tol=1e-2)
-
-    if info['est_hesh']:
-        assert info['num_episodes'] > 100000000, "hesh calculation only takes in steps, not episodes"
-        results = agent.calculate_eigenvalues(info['num_steps'])
-
-    json.dump(results, open(os.path.join(args.job_dir,'results',f"{args.offset1:03},{args.offset2:03}.json"),'w'))
+    job_name = f"{args.offset1:03},{args.offset2:03}"
+    cur_results = {
+        "dim0": offset1_scalar,
+        "dim1": offset2_scalar,
+    }
+    save_results(agent, info, base_source_path, cur_results, job_name)
 
 
 

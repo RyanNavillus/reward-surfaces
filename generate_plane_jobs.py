@@ -103,10 +103,9 @@ def main():
     else:
         # generate directions normally
         alts = find_unscaled_alts(agent, args.directions)
-        scaled_alts = [[a*args.magnitude for a in alt] for alt in alts]
 
-        np.savez((output_path / "dir1.npz"), *scaled_alts[0])
-        np.savez((output_path / "dir2.npz"), *scaled_alts[1])
+        np.savez((output_path / "dir1.npz"), *alts[0])
+        np.savez((output_path / "dir2.npz"), *alts[1])
 
     # update info
     info['experiment_type'] = "plane"
@@ -116,7 +115,7 @@ def main():
     info['grid_size'] = args.grid_size
     info['num_episodes'] = args.num_episodes
     info['num_steps'] = args.num_steps
-    info['eval_device'] = args.device
+    info['device'] = args.device
     info['calc_hesh'] = args.calc_hesh
     info['est_hesh'] = args.est_hesh
 

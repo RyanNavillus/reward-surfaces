@@ -26,7 +26,7 @@ def main():
     args = parser.parse_args()
 
     assert not (args.est_hesh and args.calc_hesh), "calculating and estimating hessian cannot happen at the same time"
-    assert args.num_steps is not None or args.num_episodes is not None, "one of num_step or num_episodes must be specified"
+    assert args.num_steps is not None or args.num_episodes is not None, "one of num_stepw or num_episodes must be specified"
     if args.num_steps is None:
         args.num_steps = 10000000000000
     if args.num_episodes is None:
@@ -40,8 +40,8 @@ def main():
     info = json.load(open((train_dir / info_fname)))
 
     device = args.device
-    info['eval_num_episodes'] = args.num_episodes
-    info['eval_num_steps'] = args.num_steps
+    info['num_episodes'] = args.num_episodes
+    info['num_steps'] = args.num_steps
     info['est_hesh'] = args.est_hesh
     info['calc_hesh'] = args.calc_hesh
 

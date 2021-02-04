@@ -133,11 +133,10 @@ class RainbowTrainer:
         for np_arr, param in zip(np_arrs, self.agent.online_net.parameters()):
             param.data = torch.tensor(np_arr,device=self.device)
 
-    def evaluate(self, num_episodes, num_steps, eval_trainer=None):
+    def evaluator(self, eval_trainer=None):
         self.agent.train()
         self.env.eval()
-        evaluator = RainbowEvaluator(self.env, self.agent, self.agent.discount, eval_trainer)
-        return evaluate(evaluator, num_episodes, num_steps)
+        return RainbowEvaluator(self.env, self.agent, self.agent.discount, eval_trainer)
 
     def calculate_eigenvalues(self, num_steps, tol=1e-2):
         hesh_eval = RainbowHeshEvaluator(self.agent, self.env, self.args)

@@ -14,13 +14,20 @@ from .sb3_extended_algos import ExtA2C, ExtPPO, ExtSAC
 from .evaluate_est_hesh import calculate_est_hesh_eigenvalues
 from .rainbow_trainer import RainbowTrainer
 from .make_agent import make_vec_env_fn
+from .eval_policy_hess import gather_policy_hess_data, calculate_true_hesh_eigenvalues
 
 
 def test_curvature(env_fn, trainer):
     # test trainer learning
     saved_files = trainer.train(100,"test_results",save_freq=1000)
-    results = trainer.evaluate_policy_hess(10000,3, "NOT_USED", gae_lambda=1., tol=1e-2)
-    print(results)
+    num_episodes = 10
+    num_steps = 1000
+    evaluator = trainer.evaluator()
+    action_evalutor = trainer.action_evalutor()
+    all_states, all_returns, all_actions = gather_policy_hess_data(evaluator, num_episodes, num_steps, action_evalutor.gamma, "UNUSED", gae_lambda=1.0)
+    maxeig, mineig = calculate_true_hesh_eigenvalues(action_evalutor, all_states, all_returns, all_actions, tol=0.01, device=action_evalutor.device)
+
+    print(maxeig, mineig)
 
 discrete_env_fn = make_vec_env_fn("CartPole-v1")
 continious_env_fn = make_vec_env_fn("Pendulum-v0")

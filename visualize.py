@@ -310,6 +310,7 @@ if __name__ == "__main__":
 
     zvals = (data[key_name].values)#.reshape(dsize,dsize)
     idxs = np.argsort(xvals + yvals*len(data['dim0']))
+    print("\n".join(str(x) for x in (zip(xvals[idxs],yvals[idxs]))))
     xvals = xvals[idxs].reshape(dsize,dsize)
     yvals = yvals[idxs].reshape(dsize,dsize)
     zvals = zvals[idxs].reshape(dsize,dsize)

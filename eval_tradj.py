@@ -7,6 +7,7 @@ import os
 import shutil
 from pathlib import Path
 import numpy as np
+from agents.compute_results import save_results
 
 def strip_lagging_slash(f):
     if f[-1] == '/':
@@ -37,25 +38,16 @@ def main():
     checkpoint_fname = next(fname for fname in os.listdir(path) if "checkpoint" in fname)
     checkpoint_path = path / checkpoint_fname
 
-
     agent.load_weights(checkpoint_path)
+
     print("evaluating ",checkpoint)
 
-    if info['est_hesh']:
-        print(f"estimating hesh with {info['eval_num_steps']} steps")
-        assert info['eval_num_episodes'] > 100000000, "hesh calculation only takes in steps, not episodes"
-        results = agent.calculate_eigenvalues(info['eval_num_steps'])
+    job_name = checkpoint
+    cur_results = {
+        "checkpoint": checkpoint,
+    }
+    save_results(agent, info, out_dir, cur_results, job_name)
 
-    if info['calc_hesh']:
-        print(f"estimating hesh with {info['eval_num_steps']} steps, {info['eval_num_episodes']} episodes")
-        results = agent.evaluate_policy_hess(info['eval_num_episodes'], info['eval_num_steps'], "NOT_USED", gae_lambda=1., tol=1e-2)
-
-    if not info['calc_hesh'] and not info['est_hesh']:
-        results = agent.evaluate(info['eval_num_episodes'], info['eval_num_steps'])
-
-    results['checkpoint'] = checkpoint
-
-    json.dump(results,open(out_dir/f"results/{checkpoint}.json",'w'))
 
 if __name__ == "__main__":
     main()

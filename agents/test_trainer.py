@@ -14,6 +14,7 @@ from .sb3_on_policy_train import SB3OnPolicyTrainer,SB3OffPolicyTrainer,SB3HerPo
 from .rainbow_trainer import RainbowTrainer
 from stable_baselines3.common.atari_wrappers import AtariWrapper
 from stable_baselines3.common.vec_env import VecFrameStack, VecNormalize, VecTransposeImage
+from .evaluate import evaluate
 
 # from .create_env import create_env
 
@@ -28,7 +29,8 @@ def test_trainer(learn_steps, save_freq, trainer):
     trainer.set_weights(weights)
     trainer.save_weights(saved_files[0])
     trainer.load_weights(saved_files[0])
-    trainer.evaluate(10, 1000)
+    evaluator = trainer.evaluator()
+    evaluate(evaluator, 10, 1000)
 
 def discrete_env_fn():
     def env_fn():

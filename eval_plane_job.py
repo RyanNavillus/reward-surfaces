@@ -2,6 +2,7 @@ import torch
 import argparse
 from agents.make_agent import make_agent
 import torch
+torch.set_num_threads(1)
 import json
 import os
 import shutil

@@ -20,6 +20,21 @@ def gradtensor_to_npvec(params, include_bn=True):
     return np.concatenate([p.grad.data.cpu().numpy().ravel() for p in params if filter(p)])
 
 
+def nplist_to_tensor_list(nplist, device):
+    return [torch.from_numpy(item).to(device) for item in nplist]
+
+
+def npvec_to_nplist(vec, params):
+    loc = 0
+    rval = []
+    for p in params:
+        numel = p.data.numel()
+        rval.append(vec[loc:loc+numel].reshape(tuple(p.data.shape)).astype(np.float32))
+        loc += numel
+    assert loc == vec.size, 'The vector has more elements than the net has parameters'
+    return rval
+
+
 def npvec_to_tensorlist(vec, params, device):
     """ Convert a numpy vector to a list of tensor with the same dimensions as params
 
@@ -30,14 +45,7 @@ def npvec_to_tensorlist(vec, params, device):
         Returns:
             rval: a list of tensors with the same shape as params
     """
-    loc = 0
-    rval = []
-    for p in params:
-        numel = p.data.numel()
-        rval.append(torch.from_numpy(vec[loc:loc+numel]).to(device).view(p.data.shape).float())
-        loc += numel
-    assert loc == vec.size, 'The vector has more elements than the net has parameters'
-    return rval
+    return nplist_to_tensor_list(npvec_to_nplist(vec, params), device)
 
 
 def calculate_est_hesh_eigenvalues(estimator, num_samples, tol):

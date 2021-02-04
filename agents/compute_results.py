@@ -3,6 +3,7 @@ import json
 import pathlib
 from .eval_policy_hess import gather_policy_hess_data, calculate_true_hesh_eigenvalues
 from .evaluate import evaluate
+import numpy as np
 
 
 def save_results(agent, info, out_dir, results, job_name):
@@ -16,10 +17,14 @@ def save_results(agent, info, out_dir, results, job_name):
         evaluator = agent.evaluator()
         action_evalutor = agent.action_evalutor()
         all_states, all_returns, all_actions = gather_policy_hess_data(evaluator, info['num_episodes'], info['num_steps'], action_evalutor.gamma, "UNUSED", gae_lambda=1.0)
-        maxeig, mineig = calculate_true_hesh_eigenvalues(action_evalutor, all_states, all_returns, all_actions, tol=0.01, device=action_evalutor.device)
+        maxeig, mineig, maxeigvec, mineigvec = calculate_true_hesh_eigenvalues(action_evalutor, all_states, all_returns, all_actions, tol=0.01, device=action_evalutor.device)
         results['mineig'] = mineig
         results['maxeig'] = maxeig
         results['ratio'] = mineig / max(-0.001*mineig,maxeig)
+        vec_folder = out_dir/f"results/{job_name}"
+        os.mkdir(vec_folder)
+        np.savez(vec_folder/"maxeigvec.npz", *maxeigvec)
+        np.savez(vec_folder/"mineigvec.npz", *mineigvec)
 
     if not info['calc_hesh'] and not info['est_hesh']:
         evaluator = agent.evaluator()

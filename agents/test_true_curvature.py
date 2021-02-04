@@ -25,8 +25,10 @@ def test_curvature(env_fn, trainer):
     evaluator = trainer.evaluator()
     action_evalutor = trainer.action_evalutor()
     all_states, all_returns, all_actions = gather_policy_hess_data(evaluator, num_episodes, num_steps, action_evalutor.gamma, "UNUSED", gae_lambda=1.0)
-    maxeig, mineig = calculate_true_hesh_eigenvalues(action_evalutor, all_states, all_returns, all_actions, tol=0.01, device=action_evalutor.device)
+    maxeig, mineig, maxeigvec, mineigvec = calculate_true_hesh_eigenvalues(action_evalutor, all_states, all_returns, all_actions, tol=0.01, device=action_evalutor.device)
 
+    np.savez("test_results/vec1.npz", *maxeigvec)
+    np.savez("test_results/vec2.npz", *mineigvec)
     print(maxeig, mineig)
 
 discrete_env_fn = make_vec_env_fn("CartPole-v1")

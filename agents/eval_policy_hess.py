@@ -1,6 +1,6 @@
 import time
 from .evaluate import mean, generate_data
-from .evaluate_est_hesh import npvec_to_tensorlist
+from .evaluate_est_hesh import npvec_to_tensorlist, npvec_to_nplist
 import numpy as np
 import torch
 import torch as th
@@ -125,6 +125,21 @@ def get_used_params(evaluator, states, actions):
     # print(grads)
     return new_params
 
+
+def zero_unused_params(params, policy_params, nplist):
+    assert len(nplist) == len(policy_params)
+    res_list = []
+    policy_idx = 0
+    for p in params:
+        if policy_idx < len(policy_params) and policy_params[policy_idx] is p:
+            npval = nplist[policy_idx]
+            policy_idx += 1
+        else:
+            npval = np.zeros(p.shape,dtype=np.float32)
+        res_list.append(npval)
+    return res_list
+
+
 def accumulate(accumulator, data):
     assert len(accumulator) == len(data)
     for a,d in zip(accumulator,data):
@@ -226,30 +241,26 @@ def calculate_true_hesh_eigenvalues(evaluator, all_states, all_returns, all_acti
         accum = compute_vec_hesh_prod(evaluator, params, grad_mags, all_states, all_returns, all_actions, vec)
         return gradtensor_to_npvec(accum)
 
-
     N = sum(np.prod(param.shape) for param in params)
     A = LinearOperator((N, N), matvec=hess_vec_prod)
     eigvals, eigvecs = eigsh(A, k=1, tol=tol, which="LA")
-    maxeig = eigvals[0]
-    print(f"max eignvalue = {maxeig}")
-    print(eigvecs[0])
-    # If the largest eigenvalue is positive, shift matrix so that any negative eigenvalue is now the largest
-    # We assume the smallest eigenvalue is zero or less, and so this shift is more than what we need
-    # shift = maxeig*.51
-    # def shifted_hess_vec_prod(vec):
-    #     return hess_vec_prod(vec) - shift*vec
+    maxeigval = eigvals[0]
+    maxeigvec = npvec_to_nplist(eigvecs.reshape(N), params)
+    maxeigvec = zero_unused_params(evaluator.parameters(), params, maxeigvec)
+    print(f"max eignvalue = {maxeigval}")
 
     A = LinearOperator((N, N), matvec=hess_vec_prod)
     eigvals, eigvecs = eigsh(A, k=1, tol=tol, which="SA")
-    eigvals = eigvals #+ shift
-    mineig = eigvals[0]
-    print(f"min eignvalue = {mineig}")
+    mineigval = eigvals[0]
+    mineigvec = npvec_to_nplist(eigvecs.reshape(N), params)
+    mineigvec = zero_unused_params(evaluator.parameters(), params, mineigvec)
+    print(f"min eignvalue = {mineigval}")
 
-    assert maxeig >= 0, "something weird is going on"
+    assert maxeigval > 0, "something weird is going on"
 
     print("number of evaluations required: ", evaluator.dot_prod_calcs)
 
-    return float(maxeig), float(mineig)
+    return float(maxeigval), float(mineigval), maxeigvec, mineigvec
 
 
 #

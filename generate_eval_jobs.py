@@ -20,6 +20,7 @@ def main():
     parser.add_argument('--device', type=str, default='cpu')
     parser.add_argument('--est-hesh', action='store_true')
     parser.add_argument('--calc-hesh', action='store_true')
+    parser.add_argument('--calc-grad', action='store_true')
     parser.add_argument('--num-steps', type=int)
     parser.add_argument('--num-episodes', type=int)
 
@@ -44,6 +45,7 @@ def main():
     info['num_steps'] = args.num_steps
     info['est_hesh'] = args.est_hesh
     info['calc_hesh'] = args.calc_hesh
+    info['calc_grad'] = args.calc_grad
 
     json.dump(info, open((out_dir / info_fname),'w'), indent=4)
 

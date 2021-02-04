@@ -149,7 +149,8 @@ def accumulate(accumulator, data):
 def compute_grad_mags(evaluator, params, all_states, all_returns, all_actions):
     device = params[0].device
     batch_size = 32
-    accum = [p.detach()*0 for p in params]
+    mag_accum = [p.detach()*0 for p in params]
+    grad_accum = [p.detach()*0 for p in params]
     for eps in range(len(all_states)):
         eps_states = all_states[eps]
         eps_returns = all_returns[eps]
@@ -165,16 +166,26 @@ def compute_grad_mags(evaluator, params, all_states, all_returns, all_actions):
             logprob = torch.dot(evaluator.eval_log_prob(batch_states,batch_actions),batch_returns)
 
             grad = torch.autograd.grad(outputs=logprob, inputs=tuple(params))
-            for g,a in zip(grad, accum):
-                a.data += torch.square(g)
+            for g,ma,ga in zip(grad, mag_accum, grad_accum):
+                ma.data += torch.square(g)
+                ga.data += g
 
-    return accum
+    return mag_accum, grad_accum
+
+
+def compute_policy_gradient(evaluator, all_states, all_returns, all_actions, device):
+    device = evaluator.parameters()[0].device
+    params = get_used_params(evaluator, torch.tensor(all_states[0][0:2],device=device),torch.tensor(all_actions[0][0:2],device=device))
+
+    grad_mags, grad_dir = compute_grad_mags(evaluator, params, all_states, all_returns, all_actions)
+
+    grad_dir = zero_unused_params(evaluator.parameters(), params, grad_dir)
+    return grad_dir
 
 
 def compute_vec_hesh_prod(evaluator, params, grad_mags, all_states, all_returns, all_actions, vec, batch_size = 512):
     device = params[0].device
     accum = [p*0 for p in params]
-    grad_inv_mags = [1./(m+1e-7) for m in grad_mags]
     # print(len(all_states))
     # print(len(all_returns))
     assert len(grad_mags) == len(params)
@@ -201,8 +212,6 @@ def compute_vec_hesh_prod(evaluator, params, grad_mags, all_states, all_returns,
 
             logprob_mul_return = torch.dot(evaluator.eval_log_prob(batch_states,batch_actions), batch_returns)
             grad_mul_ret = torch.autograd.grad(outputs=logprob_mul_return, inputs=tuple(params), create_graph=True)
-            grad_mul_ret = [gmr * gim for gmr, gim in zip(grad_mul_ret, grad_inv_mags)]
-            assert len(vec) == len(grad_mul_ret)
             assert len(vec) == len(grads)
             g_mr_dot_v = sum([torch.dot(g_mr.view(-1),v.view(-1)) for g_mr,v in zip(grad_mul_ret, vec)], torch.zeros(1,device=device))
 
@@ -233,12 +242,12 @@ def calculate_true_hesh_eigenvalues(evaluator, all_states, all_returns, all_acti
     device = evaluator.parameters()[0].device
 
     params = get_used_params(evaluator, torch.tensor(all_states[0][0:2],device=device),torch.tensor(all_actions[0][0:2],device=device))
-    grad_mags = compute_grad_mags(evaluator, params, all_states, all_returns, all_actions)
+    #grad_mags = compute_grad_mags(evaluator, params, all_states, all_returns, all_actions)
 
     def hess_vec_prod(vec):
         evaluator.dot_prod_calcs += 1
         vec = npvec_to_tensorlist(vec, params, device)
-        accum = compute_vec_hesh_prod(evaluator, params, grad_mags, all_states, all_returns, all_actions, vec)
+        accum = compute_vec_hesh_prod(evaluator, params, all_states, all_returns, all_actions, vec)
         return gradtensor_to_npvec(accum)
 
     N = sum(np.prod(param.shape) for param in params)

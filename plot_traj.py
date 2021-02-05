@@ -17,7 +17,7 @@ def main():
     fig = plt.figure()
     ax = plt.axes()
     ax.plot(df['checkpoint'][idxs], df[args.key][idxs])
-    out_fname = "vis/"+"".join([c for c in csv_file if re.match(r'\w', c)])
+    out_fname = "vis/"+"".join([c for c in csv_file if re.match(r'\w', c)]) + args.key
     plt.savefig(out_fname)
 
 if __name__ == "__main__":

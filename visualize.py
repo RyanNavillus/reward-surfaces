@@ -4,6 +4,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import pyplot as plt
 from matplotlib import cm
 import h5py
+import re
 import argparse
 import numpy as np
 from os.path import exists
@@ -294,14 +295,19 @@ def isqrt(n):
 
 
 if __name__ == "__main__":
-    assert len(sys.argv) >= 4, "need 3 parameters, outname, fname, key_name, Optional[plot_type]"
-    outname = sys.argv[1]
-    datafname = sys.argv[2]
-    key_name = sys.argv[3]
-    if len(sys.argv) == 5:
-        type = sys.argv[4]
-    else:
-        type = "mesh"
+    parser = argparse.ArgumentParser(description='generate jobs for plane')
+    parser.add_argument('datafname', type=str)
+    parser.add_argument('--outname', type=str, help="if specified, outputs file with this name (extension added onto name)")
+    parser.add_argument('--key', type=str, default="episode_rewards", help="key in csv file to plot")
+    parser.add_argument('--type', type=str, default="mesh", help="plot type. Possible types are: [all, mesh, vtp, heat, contour, contourf]")
+
+    args = parser.parse_args()
+
+    default_outname = "vis/" + "".join([c for c in args.datafname if re.match(r'\w', c)]) + args.key + "_" + args.type
+    outname = args.outname if args.outname is not None else default_outname
+    datafname = args.datafname
+    key_name = args.key
+    type = args.type
 
     data = pandas.read_csv(datafname)
     dsize = isqrt(len(data['dim0']))

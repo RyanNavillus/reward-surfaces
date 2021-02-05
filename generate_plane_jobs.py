@@ -50,6 +50,13 @@ def find_unscaled_alts(agent, method):
     else:
         raise ValueError(f"bad directions argument {method}, must be 'filter' or `fischer`")
 
+def readz(fname):
+    outvecs = []
+    with np.load(fname) as data:
+        for item in data:
+            outvecs.append(data[item])
+    return outvecs
+
 
 def main():
     parser = argparse.ArgumentParser(description='generate jobs for plane')
@@ -57,6 +64,8 @@ def main():
     parser.add_argument('output_path', type=str)
     parser.add_argument('--directions', type=str, default="filter", help="'filter' is only option right now")
     parser.add_argument('--copy-directions', type=str, help="overrides directions with directions from specified folder. Does not copy any other data. ")
+    parser.add_argument('--dir1', type=str, help="overrides dir1 with vector from specified path.")
+    parser.add_argument('--dir2', type=str, help="overrides dir2 with vector from specified path.")
     parser.add_argument('--magnitude', type=float, default=1., help="scales directions by given amount")
     parser.add_argument('--grid-size', type=int, default=5)
     parser.add_argument('--num-steps', type=int)
@@ -96,17 +105,23 @@ def main():
     agent = make_agent(info['agent_name'], info['env'], device, info['hyperparameters'])
     agent.load_weights(checkpoint_path)
 
+    # generate directions normally
+    dir1, dir2 = find_unscaled_alts(agent, args.directions)
+
     if args.copy_directions is not None:
         # copy directions
         dir_path = Path(args.copy_directions)
-        shutil.copy(dir_path / "dir1.npz", output_path / "dir1.npz")
-        shutil.copy(dir_path / "dir2.npz", output_path / "dir2.npz")
-    else:
-        # generate directions normally
-        alts = find_unscaled_alts(agent, args.directions)
+        dir1 = readz(dir_path / "dir1.npz")
+        dir2 = readz(dir_path / "dir2.npz")
+    if args.dir1 is not None:
+        dir1 = readz(args.dir1)
+        info['dir1'] = args.dir1
+    if args.dir2 is not None:
+        dir2 = readz(args.dir2)
+        info['dir2'] = args.dir2
 
-        np.savez((output_path / "dir1.npz"), *alts[0])
-        np.savez((output_path / "dir2.npz"), *alts[1])
+    np.savez((output_path / "dir1.npz"), *dir1)
+    np.savez((output_path / "dir2.npz"), *dir2)
 
     # update info
     info['experiment_type'] = "plane"

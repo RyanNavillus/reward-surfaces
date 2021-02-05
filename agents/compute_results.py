@@ -19,8 +19,8 @@ def save_results(agent, info, out_dir, results, job_name):
         all_states, all_returns, all_actions = gather_policy_hess_data(evaluator, info['num_episodes'], info['num_steps'], action_evalutor.gamma, "UNUSED", gae_lambda=1.0)
 
     if info['calc_grad']:
-        poligy_grad = compute_policy_gradient(action_evalutor, all_states, all_returns, all_actions, action_evalutor.device)
-        np.savez(out_dir / f"results/{job_name}.npz", *poligy_grad)
+        policy_grad = compute_policy_gradient(action_evalutor, all_states, all_returns, all_actions, action_evalutor.device)
+        np.savez(out_dir / f"results/{job_name}.npz", *policy_grad)
 
     if info['calc_hesh']:
         print(f"estimating hesh")

@@ -183,12 +183,11 @@ def compute_policy_gradient(evaluator, all_states, all_returns, all_actions, dev
     return grad_dir
 
 
-def compute_vec_hesh_prod(evaluator, params, grad_mags, all_states, all_returns, all_actions, vec, batch_size = 512):
+def compute_vec_hesh_prod(evaluator, params, all_states, all_returns, all_actions, vec, batch_size = 512):
     device = params[0].device
     accum = [p*0 for p in params]
     # print(len(all_states))
     # print(len(all_returns))
-    assert len(grad_mags) == len(params)
     assert len(all_states) == len(all_actions)
     assert len(all_states) == len(all_returns)
     for eps in range(len(all_states)):

@@ -17,10 +17,13 @@ def save_results(agent, info, out_dir, results, job_name):
         evaluator = agent.evaluator()
         action_evalutor = agent.action_evalutor()
         all_states, all_returns, all_actions = gather_policy_hess_data(evaluator, info['num_episodes'], info['num_steps'], action_evalutor.gamma, "UNUSED", gae_lambda=1.0)
+        vec_folder = out_dir/f"results/{job_name}"
+        os.makedirs(vec_folder,exist_ok=True)
 
     if info['calc_grad']:
-        policy_grad = compute_policy_gradient(action_evalutor, all_states, all_returns, all_actions, action_evalutor.device)
-        np.savez(out_dir / f"results/{job_name}.npz", *policy_grad)
+        policy_grad, policy_mag = compute_policy_gradient(action_evalutor, all_states, all_returns, all_actions, action_evalutor.device)
+        np.savez(vec_folder / f"grad.npz", *policy_grad)
+        np.savez(vec_folder / f"grad_mag.npz", *policy_grad)
 
     if info['calc_hesh']:
         print(f"estimating hesh")
@@ -29,7 +32,6 @@ def save_results(agent, info, out_dir, results, job_name):
         results['maxeig'] = maxeig
         results['ratio'] = mineig / max(-0.001*mineig,maxeig)
         vec_folder = out_dir/f"results/{job_name}"
-        os.mkdir(vec_folder)
         np.savez(vec_folder/"maxeigvec.npz", *maxeigvec)
         np.savez(vec_folder/"mineigvec.npz", *mineigvec)
 

@@ -46,7 +46,7 @@ def run_job_list(jobs_fname, max_job_time=30, max_memory=800, wait=True):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='generate jobs for plane')
+    parser = argparse.ArgumentParser(description='run every command in batch script as seperate process on a cluster using SLURM')
     parser.add_argument('jobs_fname', type=str)
     parser.add_argument('--max-job-time', type=int, default=30, help="maximum time for single job in minutes")
     parser.add_argument('--max-memory', type=int, default=800, help="maximum memory of program in megabytes")

@@ -148,7 +148,8 @@ def accumulate(accumulator, data):
 
 def compute_grad_mags(evaluator, params, all_states, all_returns, all_actions):
     device = params[0].device
-    batch_size = 32
+    batch_size = 8
+    num_grad_steps = 0
     mag_accum = [p.detach()*0 for p in params]
     grad_accum = [p.detach()*0 for p in params]
     for eps in range(len(all_states)):
@@ -170,6 +171,10 @@ def compute_grad_mags(evaluator, params, all_states, all_returns, all_actions):
                 ma.data += torch.square(g)
                 ga.data += g
 
+            num_grad_steps += 1
+
+    mag_accum = [m/num_grad_steps for m in mag_accum]
+    grad_accum = [m/num_grad_steps for m in grad_accum]
     return mag_accum, grad_accum
 
 
@@ -177,10 +182,12 @@ def compute_policy_gradient(evaluator, all_states, all_returns, all_actions, dev
     device = evaluator.parameters()[0].device
     params = get_used_params(evaluator, torch.tensor(all_states[0][0:2],device=device),torch.tensor(all_actions[0][0:2],device=device))
 
-    grad_mags, grad_dir = compute_grad_mags(evaluator, params, all_states, all_returns, all_actions)
+    grad_mag, grad_dir = compute_grad_mags(evaluator, params, all_states, all_returns, all_actions)
 
     grad_dir = zero_unused_params(evaluator.parameters(), params, grad_dir)
-    return grad_dir
+    grad_mag = zero_unused_params(evaluator.parameters(), params, grad_mag)
+
+    return grad_dir, grad_mag
 
 
 def compute_vec_hesh_prod(evaluator, params, all_states, all_returns, all_actions, vec, batch_size = 512):

@@ -59,7 +59,7 @@ def plot_2d_contour(x_coords,y_coords,z_values, base_name, vmin=0.1, vmax=10, vl
     if type == 'all' or type == 'heat':
         fig = plt.figure()
         sns_plot = sns.heatmap(Z, cmap='viridis', cbar=True, vmin=vmin, vmax=vmax,
-                               xticklabels=False, yticklabels=False)
+                               )
         sns_plot.invert_yaxis()
         sns_plot.get_figure().savefig(base_name + '_2dheat.png',
                                       dpi=300, bbox_inches='tight', format='png')
@@ -294,20 +294,10 @@ def isqrt(n):
     return x
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='generate jobs for plane')
-    parser.add_argument('datafname', type=str)
-    parser.add_argument('--outname', type=str, help="if specified, outputs file with this name (extension added onto name)")
-    parser.add_argument('--key', type=str, default="episode_rewards", help="key in csv file to plot")
-    parser.add_argument('--type', type=str, default="mesh", help="plot type. Possible types are: [all, mesh, vtp, heat, contour, contourf]")
-
-    args = parser.parse_args()
-
-    default_outname = "vis/" + "".join([c for c in args.datafname if re.match(r'\w', c)]) + args.key + "_" + args.type
-    outname = args.outname if args.outname is not None else default_outname
-    datafname = args.datafname
-    key_name = args.key
-    type = args.type
+def visualize_csv(csv_fname, outname=None, key_name="episode_rewards", type="mesh"):
+    default_outname = "vis/" + "".join([c for c in csv_fname if re.match(r'\w', c)]) + key_name + "_" + type
+    outname = outname if outname is not None else default_outname
+    datafname = csv_fname
 
     data = pandas.read_csv(datafname)
     dsize = isqrt(len(data['dim0']))
@@ -329,3 +319,16 @@ if __name__ == "__main__":
     plot_2d_contour(xvals,yvals,zvals,outname,vmin=vmin,vmax=vmax,vlevel=vlevel,type=type)
     if type == "all" or type == "vtp":
         generate_vtp(xvals,yvals,zvals, outname+".vtp")
+
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='generate jobs for plane')
+    parser.add_argument('datafname', type=str)
+    parser.add_argument('--outname', type=str, help="if specified, outputs file with this name (extension added onto name)")
+    parser.add_argument('--key', type=str, default="episode_rewards", help="key in csv file to plot")
+    parser.add_argument('--type', type=str, default="mesh", help="plot type. Possible types are: [all, mesh, vtp, heat, contour, contourf]")
+
+    args = parser.parse_args()
+
+    visualize_csv(args.datafname, args.outname, args.key, args.type)

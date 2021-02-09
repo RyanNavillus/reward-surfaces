@@ -74,8 +74,9 @@ def plot_2d_contour(x_coords,y_coords,z_values, base_name, vmin=0.1, vmax=10, vl
         fig.colorbar(surf, shrink=0.5, aspect=5)
         fig.savefig(base_name + '_3dsurface.png', dpi=300,
                     bbox_inches='tight', format='png')
-    #f.close()
-    #if show: plt.show()
+
+    if show:
+        plt.show()
 
 def generate_vtp(xcoordinates, ycoordinates, vals, vtp_file, log=False, zmax=-1, interp=-1):
     #set this to True to generate points
@@ -294,7 +295,7 @@ def isqrt(n):
     return x
 
 
-def visualize_csv(csv_fname, outname=None, key_name="episode_rewards", type="mesh"):
+def visualize_csv(csv_fname, outname=None, key_name="episode_rewards", type="mesh", show=False):
     default_outname = "vis/" + "".join([c for c in csv_fname if re.match(r'\w', c)]) + key_name + "_" + type
     outname = outname if outname is not None else default_outname
     datafname = csv_fname
@@ -316,7 +317,7 @@ def visualize_csv(csv_fname, outname=None, key_name="episode_rewards", type="mes
 
     vlevel = (vmax-vmin)/15
     outname = outname + key_name
-    plot_2d_contour(xvals,yvals,zvals,outname,vmin=vmin,vmax=vmax,vlevel=vlevel,type=type)
+    plot_2d_contour(xvals,yvals,zvals,outname,vmin=vmin,vmax=vmax,vlevel=vlevel,type=type,show=show)
     if type == "all" or type == "vtp":
         generate_vtp(xvals,yvals,zvals, outname+".vtp")
 
@@ -328,7 +329,8 @@ if __name__ == "__main__":
     parser.add_argument('--outname', type=str, help="if specified, outputs file with this name (extension added onto name)")
     parser.add_argument('--key', type=str, default="episode_rewards", help="key in csv file to plot")
     parser.add_argument('--type', type=str, default="mesh", help="plot type. Possible types are: [all, mesh, vtp, heat, contour, contourf]")
+    parser.add_argument('--show', type=store_true, help="If true, shows plot instead of saving it (does not work for vtp output)")
 
     args = parser.parse_args()
 
-    visualize_csv(args.datafname, args.outname, args.key, args.type)
+    visualize_csv(args.datafname, args.outname, args.key, args.type, arg.show)

@@ -19,7 +19,7 @@ import pandas
 from scipy import interpolate
 import sys
 
-def plot_2d_contour(x_coords,y_coords,z_values, base_name, vmin=0.1, vmax=10, vlevel=0.5, show=False, type='mesh'):
+def plot_2d_contour(x_coords,y_coords,z_values, base_name, vmin=0.1, vmax=10, vlevel=0.5, show=False, type='mesh', dir1_scale=1., dir2_scale=1., dir1_name="dim1", dir2_name="dim2"):
     """Plot 2D contour map and 3D surface."""
     surf_file = "bob"
     #f = h5py.File(surf_file, 'r')
@@ -57,10 +57,14 @@ def plot_2d_contour(x_coords,y_coords,z_values, base_name, vmin=0.1, vmax=10, vl
     # Plot 2D heatmaps
     # --------------------------------------------------------------------
     if type == 'all' or type == 'heat':
-        fig = plt.figure()
+        size = len(X[0])
+
+        labels_d1 = [f"{x:0.2f}" for x in (np.arange(size)-size//2)/(size/2)*dir1_scale]
+        labels_d2 = [f"{x:0.2f}" for x in (np.arange(size)-size//2)/(size/2)*dir2_scale]
         sns_plot = sns.heatmap(Z, cmap='viridis', cbar=True, vmin=vmin, vmax=vmax,
-                               )
+                               xticklabels=labels_d1, yticklabels=labels_d2)
         sns_plot.invert_yaxis()
+        sns_plot.set(xlabel=dir1_name, ylabel=dir2_name)
         sns_plot.get_figure().savefig(base_name + '_2dheat.png',
                                       dpi=300, bbox_inches='tight', format='png')
 
@@ -295,7 +299,7 @@ def isqrt(n):
     return x
 
 
-def visualize_csv(csv_fname, outname=None, key_name="episode_rewards", type="mesh", show=False):
+def visualize_csv(csv_fname, outname=None, key_name="episode_rewards", type="mesh", show=False, dir1_scale=1., dir2_scale=1., dir1_name="dim1", dir2_name="dim2"):
     default_outname = "vis/" + "".join([c for c in csv_fname if re.match(r'\w', c)]) + key_name + "_" + type
     outname = outname if outname is not None else default_outname
     datafname = csv_fname
@@ -317,7 +321,7 @@ def visualize_csv(csv_fname, outname=None, key_name="episode_rewards", type="mes
 
     vlevel = (vmax-vmin)/15
     outname = outname + key_name
-    plot_2d_contour(xvals,yvals,zvals,outname,vmin=vmin,vmax=vmax,vlevel=vlevel,type=type,show=show)
+    plot_2d_contour(xvals,yvals,zvals,outname,vmin=vmin,vmax=vmax,vlevel=vlevel,type=type,show=show, dir1_scale=dir1_scale, dir2_scale=dir2_scale, dir1_name=dir1_name, dir2_name=dir2_name)
     if type == "all" or type == "vtp":
         generate_vtp(xvals,yvals,zvals, outname+".vtp")
 
@@ -329,8 +333,8 @@ if __name__ == "__main__":
     parser.add_argument('--outname', type=str, help="if specified, outputs file with this name (extension added onto name)")
     parser.add_argument('--key', type=str, default="episode_rewards", help="key in csv file to plot")
     parser.add_argument('--type', type=str, default="mesh", help="plot type. Possible types are: [all, mesh, vtp, heat, contour, contourf]")
-    parser.add_argument('--show', type=store_true, help="If true, shows plot instead of saving it (does not work for vtp output)")
+    parser.add_argument('--show', action='store_true', help="If true, shows plot instead of saving it (does not work for vtp output)")
 
     args = parser.parse_args()
 
-    visualize_csv(args.datafname, args.outname, args.key, args.type, arg.show)
+    visualize_csv(args.datafname, args.outname, args.key, args.type, args.show)

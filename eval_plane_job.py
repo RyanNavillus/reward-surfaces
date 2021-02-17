@@ -46,12 +46,13 @@ def main():
     agent_weights = agent.get_weights()
     if args.offset1 is not None:
         offset1_data = np.load(base_source_path / "dir1.npz")
-        offset1_scalar = args.offset1 * info['magnitude'] / (info['grid_size']//2)
+        offset1_scalar = args.offset1 / (info['grid_size']//2)
         for a_weight, off in zip(agent_weights, offset1_data.values()):
             a_weight += off * offset1_scalar
     if args.offset2 is not None:
         offset2_data = np.load(base_source_path / "dir2.npz")
-        offset2_scalar = args.offset2 * info['magnitude'] / (info['grid_size']//2)
+        offset2_scalar = args.offset2 / (info['grid_size']//2)
+        print(offset2_scalar)
         # agent_weights += [off * args.offset2 / (info['grid_size']//2) for off in offset2_data.values()]
         for a_weight, off in zip(agent_weights, offset2_data.values()):
             a_weight += off * offset2_scalar

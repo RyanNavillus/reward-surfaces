@@ -189,8 +189,13 @@ def main():
         dir1_vec = scale_dir(dir1_vec, scale_vec)
         dir2_vec = scale_dir(dir2_vec, scale_vec)
 
+    if args.magnitude is not None:
+        info['magnitude'] = m = args.magnitude
+        dir1_vec = [m*v for v in dir1_vec]
+        dir2_vec = [m*v for v in dir2_vec]
+
     info['directions'] = args.directions if args.copy_directions is None else "copy"
-    info['magnitude'] = args.magnitude
+
 
     generate_plane_data(args.checkpoint_dir, args.output_path, dir1_vec, dir2_vec, info,
         grid_size=args.grid_size,

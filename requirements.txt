@@ -1,0 +1,7 @@
+plotly
+opencv-python
+atari-py
+stable_baselines3
+torch
+tqdm
+seaborn

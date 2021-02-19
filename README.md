@@ -28,3 +28,13 @@ scripts:
 * generate_eval_jobs.py
 * job_results_to_csv.py
 * plot_grid.py
+
+### Tests
+
+to run tests, you may have to install pybulletgym
+
+```
+git clone https://github.com/benelot/pybullet-gym.git
+cd pybullet-gym
+pip install -e .
+```

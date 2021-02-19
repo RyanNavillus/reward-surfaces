@@ -13,8 +13,16 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/weepingwillowben/reward-surfaces",
     keywords=["Machine Learning", "Job Scheduling"],
-    packages=setuptools.find_packages(where="reward_surfaces"),
-    install_requires=[],
+    packages=setuptools.find_packages(),
+    install_requires=[
+        "plotly",
+        "opencv-python",
+        "atari-py",
+        "stable_baselines3",
+        "torch",
+        "tqdm",
+        "seaborn",
+    ],
     python_requires='>=3.6',
     classifiers=[
         "Programming Language :: Python :: 3.6",

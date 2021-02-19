@@ -1,3 +1,9 @@
+### Install
+
+```
+pip install git+https://github.com/weepingwillowben/reward-surfaces.git
+```
+
 
 ### Code structure:
 

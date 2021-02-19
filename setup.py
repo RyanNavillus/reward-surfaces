@@ -22,6 +22,7 @@ setuptools.setup(
         "torch",
         "tqdm",
         "seaborn",
+        "h5py",
     ],
     python_requires='>=3.6',
     classifiers=[

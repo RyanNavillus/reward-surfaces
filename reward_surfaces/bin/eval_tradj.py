@@ -11,13 +11,7 @@ import json
 import shutil
 from pathlib import Path
 import numpy as np
-from agents.compute_results import save_results
-
-def strip_lagging_slash(f):
-    if f[-1] == '/':
-        return f[:-1]
-    else:
-        return f
+from reward_surfaces.utils.compute_results import save_results
 
 def main():
     parser = argparse.ArgumentParser(description='generate jobs for plane')

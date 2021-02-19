@@ -299,7 +299,7 @@ def isqrt(n):
     return x
 
 
-def visualize_csv(csv_fname, outname=None, key_name="episode_rewards", type="mesh", show=False, dir1_scale=1., dir2_scale=1., dir1_name="dim1", dir2_name="dim2"):
+def plot_plane(csv_fname, outname=None, key_name="episode_rewards", type="mesh", show=False, dir1_scale=1., dir2_scale=1., dir1_name="dim1", dir2_name="dim2"):
     default_outname = "vis/" + "".join([c for c in csv_fname if re.match(r'\w', c)]) + key_name + "_" + type
     outname = outname if outname is not None else default_outname
     datafname = csv_fname
@@ -324,17 +324,3 @@ def visualize_csv(csv_fname, outname=None, key_name="episode_rewards", type="mes
     plot_2d_contour(xvals,yvals,zvals,outname,vmin=vmin,vmax=vmax,vlevel=vlevel,type=type,show=show, dir1_scale=dir1_scale, dir2_scale=dir2_scale, dir1_name=dir1_name, dir2_name=dir2_name)
     if type == "all" or type == "vtp":
         generate_vtp(xvals,yvals,zvals, outname+".vtp")
-
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='generate jobs for plane')
-    parser.add_argument('datafname', type=str)
-    parser.add_argument('--outname', type=str, help="if specified, outputs file with this name (extension added onto name)")
-    parser.add_argument('--key', type=str, default="episode_rewards", help="key in csv file to plot")
-    parser.add_argument('--type', type=str, default="mesh", help="plot type. Possible types are: [all, mesh, vtp, heat, contour, contourf]")
-    parser.add_argument('--show', action='store_true', help="If true, shows plot instead of saving it (does not work for vtp output)")
-
-    args = parser.parse_args()
-
-    visualize_csv(args.datafname, args.outname, args.key, args.type, args.show)

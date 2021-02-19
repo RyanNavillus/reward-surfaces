@@ -24,16 +24,3 @@ def job_results_to_csv(job_dir):
 
     with open(job_dir / "results.csv", 'w') as file:
         file.write("\n".join(csv_rows) + "\n")
-
-
-def main():
-    parser = argparse.ArgumentParser(description='concatenate job results into csv')
-    parser.add_argument('job_dir', type=str, help="directory with info.json and results/ as a subdirectory")
-
-    args = parser.parse_args()
-
-    job_results_to_csv(args.job_dir)
-
-
-if __name__ == "__main__":
-    main()

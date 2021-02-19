@@ -5,14 +5,14 @@ os.environ['NUMEXPR_NUM_THREADS'] = '1'
 os.environ['OMP_NUM_THREADS'] = '1'
 import torch
 import argparse
-from agents.make_agent import make_agent
+from reward_surfaces.agents import make_agent
 import torch
 torch.set_num_threads(1)
 import json
 import shutil
 import numpy as np
 import pathlib
-from agents.compute_results import save_results
+from reward_surfaces.utils.compute_results import save_results
 
 
 def main():

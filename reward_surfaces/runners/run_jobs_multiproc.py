@@ -24,17 +24,3 @@ def run_job_list(jobs_fname, num_cpus=None):
 
                 job_idx += 1
         time.sleep(0.1)
-
-
-def main():
-    parser = argparse.ArgumentParser(description='run ever job in batch script on a seperate process using python multiprocessing')
-    parser.add_argument('jobs_fname', type=str)
-    parser.add_argument('--num-cpus', type=int, default=None, help="Maximum number of processes to run in parallel. Defaults to number of cpus on machine")
-
-    args = parser.parse_args()
-
-    run_job_list(args.jobs_fname, args.num_cpus)
-
-
-if __name__ == "__main__":
-    main()

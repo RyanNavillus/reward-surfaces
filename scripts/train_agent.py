@@ -1,5 +1,5 @@
 import argparse
-from agents.make_agent import make_agent
+from reward_surfaces.agents.make_agent import make_agent
 import torch
 import json
 import os

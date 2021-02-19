@@ -1,0 +1,1 @@
+{"dim0": 1.0, "dim1": -1.0, "episode_rewards": 2.460856080800295, "episode_value_ests": 11.52751294338703, "episode_values": 0.6763498819609325, "episode_td_err": 15.871911606960662, "episode_avg_len": 4.96, "step_rewards": 0.4961403388710272, "step_value_ests": 11.511930730193853, "step_values": 0.6839350455841929, "step_td_err": 15.76330843194079}

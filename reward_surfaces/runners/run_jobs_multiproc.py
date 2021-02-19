@@ -19,7 +19,7 @@ def run_job_list(jobs_fname, num_cpus=None):
                 job = job_list[job_idx]
                 try:
                     proc_list[i] = subprocess.Popen(job.strip(), shell=True)
-                    print("started: ",job)
+                    # print("started: ",job)
                 except IndexError:
                     print("job did not start:", job)
                     pass

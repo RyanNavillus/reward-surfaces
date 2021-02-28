@@ -1,3 +1,15 @@
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-5  --offset2=-5 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-5  --offset2=-4 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-5  --offset2=-3 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-5  --offset2=-2 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-5  --offset2=-1 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-5  --offset2=0 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-5  --offset2=1 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-5  --offset2=2 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-5  --offset2=3 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-5  --offset2=4 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-5  --offset2=5 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-4  --offset2=-5 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-4  --offset2=-4 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-4  --offset2=-3 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-4  --offset2=-2 
@@ -7,6 +19,8 @@ python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-4  --offset2=1
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-4  --offset2=2 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-4  --offset2=3 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-4  --offset2=4 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-4  --offset2=5 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-3  --offset2=-5 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-3  --offset2=-4 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-3  --offset2=-3 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-3  --offset2=-2 
@@ -16,6 +30,8 @@ python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-3  --offset2=1
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-3  --offset2=2 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-3  --offset2=3 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-3  --offset2=4 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-3  --offset2=5 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-2  --offset2=-5 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-2  --offset2=-4 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-2  --offset2=-3 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-2  --offset2=-2 
@@ -25,6 +41,8 @@ python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-2  --offset2=1
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-2  --offset2=2 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-2  --offset2=3 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-2  --offset2=4 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-2  --offset2=5 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-1  --offset2=-5 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-1  --offset2=-4 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-1  --offset2=-3 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-1  --offset2=-2 
@@ -34,6 +52,8 @@ python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-1  --offset2=1
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-1  --offset2=2 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-1  --offset2=3 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-1  --offset2=4 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=-1  --offset2=5 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=0  --offset2=-5 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=0  --offset2=-4 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=0  --offset2=-3 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=0  --offset2=-2 
@@ -43,6 +63,8 @@ python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=0  --offset2=1
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=0  --offset2=2 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=0  --offset2=3 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=0  --offset2=4 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=0  --offset2=5 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=1  --offset2=-5 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=1  --offset2=-4 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=1  --offset2=-3 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=1  --offset2=-2 
@@ -52,6 +74,8 @@ python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=1  --offset2=1
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=1  --offset2=2 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=1  --offset2=3 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=1  --offset2=4 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=1  --offset2=5 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=2  --offset2=-5 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=2  --offset2=-4 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=2  --offset2=-3 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=2  --offset2=-2 
@@ -61,6 +85,8 @@ python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=2  --offset2=1
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=2  --offset2=2 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=2  --offset2=3 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=2  --offset2=4 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=2  --offset2=5 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=3  --offset2=-5 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=3  --offset2=-4 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=3  --offset2=-3 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=3  --offset2=-2 
@@ -70,6 +96,8 @@ python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=3  --offset2=1
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=3  --offset2=2 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=3  --offset2=3 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=3  --offset2=4 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=3  --offset2=5 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=4  --offset2=-5 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=4  --offset2=-4 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=4  --offset2=-3 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=4  --offset2=-2 
@@ -79,3 +107,15 @@ python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=4  --offset2=1
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=4  --offset2=2 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=4  --offset2=3 
 python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=4  --offset2=4 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=4  --offset2=5 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=5  --offset2=-5 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=5  --offset2=-4 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=5  --offset2=-3 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=5  --offset2=-2 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=5  --offset2=-1 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=5  --offset2=0 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=5  --offset2=1 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=5  --offset2=2 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=5  --offset2=3 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=5  --offset2=4 
+python -m reward_surfaces.bin.eval_plane_job _temp_dir --offset1=5  --offset2=5 

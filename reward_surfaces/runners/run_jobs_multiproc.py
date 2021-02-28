@@ -3,7 +3,8 @@ import sys
 import time
 import multiprocessing
 import argparse
-from tqdm import tqdm
+from tqdm.notebook import tqdm
+
 
 def run_job_list(jobs_fname, num_cpus=None,disable_warnings=False):
     job_list = open(jobs_fname).readlines()

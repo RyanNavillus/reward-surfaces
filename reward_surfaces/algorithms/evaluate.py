@@ -26,8 +26,8 @@ def generate_data(evaluator, num_episodes, num_steps):
         if done:
             tot_eps += 1
             end_t = time.time()
-            if tot_eps % 25 == 0:
-                print("done!", (end_t - start_t)/tot_steps, (end_t - start_t)/tot_eps,tot_rew/tot_eps)
+            # if tot_eps % 25 == 0:
+            #     print("done!", (end_t - start_t)/tot_steps, (end_t - start_t)/tot_eps,tot_rew/tot_eps)
     return all_datas
 
 

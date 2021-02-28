@@ -17,6 +17,8 @@ def main():
 
     args = parser.parse_args()
 
+    torch.set_num_threads(1)
+
     #trainer = SB3HerPolicyTrainer(robo_env_fn,HER("MlpPolicy",robo_env_fn(),model_class=TD3,device="cpu",max_episode_length=100))
     agent = make_agent(args.agent_name, args.env, args.device, json.loads(args.hyperparameters))
 

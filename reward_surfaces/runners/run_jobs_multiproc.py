@@ -5,7 +5,7 @@ import multiprocessing
 import argparse
 from tqdm import tqdm
 
-def run_job_list(jobs_fname, num_cpus=None):
+def run_job_list(jobs_fname, num_cpus=None,disable_warnings=False):
     job_list = open(jobs_fname).readlines()
     job_idx = 0
     job_iterator = iter(tqdm(range(len(job_list))))
@@ -18,7 +18,10 @@ def run_job_list(jobs_fname, num_cpus=None):
             if proc_list[i] is None and job_idx < len(job_list):
                 job = job_list[job_idx]
                 try:
-                    proc_list[i] = subprocess.Popen(job.strip(), shell=True)
+                    if disable_warnings:
+                        proc_list[i] = subprocess.Popen(job.strip(), shell=True,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+                    else:
+                        proc_list[i] = subprocess.Popen(job.strip(), shell=True)
                     # print("started: ",job)
                 except IndexError:
                     print("job did not start:", job)

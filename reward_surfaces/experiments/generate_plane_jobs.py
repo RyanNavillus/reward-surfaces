@@ -35,7 +35,7 @@ def generate_plane_data(
         num_episodes = 10000000000000
 
     output_path = Path(output_path)
-    folder_argname = Path(os.path.dirname(strip_lagging_slash(checkpoint_dir)))
+    folder_argname = Path(os.path.dirname(strip_lagging_slash(str(checkpoint_dir))))
     checkpoint_dir = Path(checkpoint_dir)
     checkpoint_fname = next(fname for fname in os.listdir(checkpoint_dir) if "checkpoint" in fname)
     checkpoint_path = checkpoint_dir / checkpoint_fname

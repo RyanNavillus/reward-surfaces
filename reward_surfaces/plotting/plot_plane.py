@@ -43,14 +43,16 @@ def plot_2d_contour(x_coords,y_coords,z_values, base_name, vmin=0.1, vmax=10, vl
         fig = plt.figure()
         CS = plt.contour(X, Y, Z, cmap='summer', levels=np.arange(vmin, vmax, vlevel))
         plt.clabel(CS, inline=1, fontsize=8)
-        fig.savefig(base_name + '_2dcontour' + '.png', dpi=300,
+        out_fname = base_name + '_2dcontour.png'
+        fig.savefig(out_fname, dpi=300,
                     bbox_inches='tight', format='png')
 
     if type == 'all' or type == 'contourf':
         fig = plt.figure()
         print(base_name + '_2dcontourf' + '.png')
         CS = plt.contourf(X, Y, Z, cmap='summer', levels=np.arange(vmin, vmax, vlevel))
-        fig.savefig(base_name + '_2dcontourf' + '.png', dpi=300,
+        out_fname = base_name + '_2dcontourf.png'
+        fig.savefig(out_fname, dpi=300,
                     bbox_inches='tight', format='png')
 
     # --------------------------------------------------------------------
@@ -65,7 +67,8 @@ def plot_2d_contour(x_coords,y_coords,z_values, base_name, vmin=0.1, vmax=10, vl
                                xticklabels=labels_d1, yticklabels=labels_d2)
         sns_plot.invert_yaxis()
         sns_plot.set(xlabel=dir1_name, ylabel=dir2_name)
-        sns_plot.get_figure().savefig(base_name + '_2dheat.png',
+        out_fname = base_name + '_2dheat.png'
+        sns_plot.get_figure().savefig(out_fname,
                                       dpi=300, bbox_inches='tight', format='png')
 
     # --------------------------------------------------------------------
@@ -76,11 +79,14 @@ def plot_2d_contour(x_coords,y_coords,z_values, base_name, vmin=0.1, vmax=10, vl
         ax = Axes3D(fig)
         surf = ax.plot_surface(X, Y, Z, cmap=cm.coolwarm, linewidth=0, antialiased=False)
         fig.colorbar(surf, shrink=0.5, aspect=5)
-        fig.savefig(base_name + '_3dsurface.png', dpi=300,
+        out_fname = base_name + '_3dsurface.png'
+        fig.savefig(out_fname, dpi=300,
                     bbox_inches='tight', format='png')
 
     if show:
         plt.show()
+
+    return out_fname
 
 def generate_vtp(xcoordinates, ycoordinates, vals, vtp_file, log=False, zmax=-1, interp=-1):
     #set this to True to generate points
@@ -288,6 +294,7 @@ def generate_vtp(xcoordinates, ycoordinates, vals, vtp_file, log=False, zmax=-1,
     output_file.close()
 
     print("Done with file:{}".format(vtp_file))
+    return vtp_file
 
 
 def isqrt(n):
@@ -299,7 +306,7 @@ def isqrt(n):
     return x
 
 
-def plot_plane(csv_fname, outname=None, key_name="episode_rewards", type="mesh", show=False, dir1_scale=1., dir2_scale=1., dir1_name="dim1", dir2_name="dim2"):
+def plot_plane(csv_fname, outname=None, key_name="episode_rewards", type="mesh", show=False, dir1_scale=1., dir2_scale=1., dir1_name="dim1", dir2_name="dim2", vmin=None, vmax=None):
     default_outname = "vis/" + "".join([c for c in csv_fname if re.match(r'\w', c)]) + key_name + "_" + type
     outname = outname if outname is not None else default_outname
     datafname = csv_fname
@@ -316,11 +323,13 @@ def plot_plane(csv_fname, outname=None, key_name="episode_rewards", type="mesh",
     yvals = yvals[idxs].reshape(dsize,dsize)
     zvals = zvals[idxs].reshape(dsize,dsize)
 
-    vmin = np.min(zvals)
-    vmax = np.max(zvals)
+    if vmin is None:
+        vmin = np.min(zvals)
+    if vmax is None:
+        vmax = np.max(zvals)
 
     vlevel = (vmax-vmin)/15
     outname = outname + key_name
-    plot_2d_contour(xvals,yvals,zvals,outname,vmin=vmin,vmax=vmax,vlevel=vlevel,type=type,show=show, dir1_scale=dir1_scale, dir2_scale=dir2_scale, dir1_name=dir1_name, dir2_name=dir2_name)
+    return plot_2d_contour(xvals,yvals,zvals,outname,vmin=vmin,vmax=vmax,vlevel=vlevel,type=type,show=show, dir1_scale=dir1_scale, dir2_scale=dir2_scale, dir1_name=dir1_name, dir2_name=dir2_name)
     if type == "all" or type == "vtp":
-        generate_vtp(xvals,yvals,zvals, outname+".vtp")
+        return generate_vtp(xvals,yvals,zvals, outname+".vtp")

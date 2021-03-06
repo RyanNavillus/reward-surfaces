@@ -313,6 +313,10 @@ def plot_plane(csv_fname, outname=None, key_name="episode_rewards", type="mesh",
 
     data = pandas.read_csv(datafname)
     dsize = isqrt(len(data['dim0']))
+    if dsize <= 1 or dsize**2 != len(data['dim0']):
+        print(csv_fname,"is not complete!")
+        print("exiting")
+        return ""
     xvals = (data['dim0'].values)
     yvals = (data['dim1'].values)
 

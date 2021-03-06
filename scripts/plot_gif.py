@@ -26,7 +26,7 @@ if __name__ == "__main__":
     checkpoints = []
     for checkpoint in sorted(os.listdir(gif_data_folder)):
         check_path = gif_data_folder / checkpoint
-        if os.path.isdir(check_path):
+        if os.path.isdir(check_path) and len(os.listdir(check_path/"results/")) > 0:
             checkpoints.append(checkpoint)
 
     for checkpoint in checkpoints:
@@ -44,6 +44,6 @@ if __name__ == "__main__":
             while m > base_mag * factor:
                 base_mag = base_mag * factor
 
-            fname = plot_plane(str(csv_path), str(frames_dir+checkpoint), args.key, args.type, show=False)
+            fname = plot_plane(str(csv_path), str(frames_dir+checkpoint), args.key, args.type, vmin=0, vmax=base_mag, show=False)
             os.rename(fname, f"{frames_dir}{frame_idx:05}.png")
             frame_idx += 1

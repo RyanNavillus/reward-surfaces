@@ -9,7 +9,15 @@ import numpy as np
 from reward_surfaces.utils.path_utils import strip_lagging_slash
 
 
-def generate_eval_jobs(train_dir, out_dir, num_steps=None, num_episodes=None, est_hesh=False, calc_hesh=False, calc_grad=False, device="cpu"):
+def generate_eval_jobs(train_dir, out_dir,
+        num_steps=None,
+        num_episodes=None,
+        est_hesh=False,
+        est_grad=False,
+        calc_hesh=False,
+        calc_grad=False,
+        device="cpu"
+        ):
     assert not (est_hesh and calc_hesh), "calculating and estimating hessian cannot happen at the same time"
     assert num_steps is not None or num_episodes is not None, "one of num_steps or num_episodes must be specified"
     if num_steps is None:
@@ -28,6 +36,7 @@ def generate_eval_jobs(train_dir, out_dir, num_steps=None, num_episodes=None, es
     info['num_episodes'] = num_episodes
     info['num_steps'] = num_steps
     info['est_hesh'] = est_hesh
+    info['est_grad'] = est_grad
     info['calc_hesh'] = calc_hesh
     info['calc_grad'] = calc_grad
 

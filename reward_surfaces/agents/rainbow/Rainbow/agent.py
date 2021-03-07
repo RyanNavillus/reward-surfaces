@@ -120,7 +120,7 @@ class Agent():
 
       # TODO: check this--grad clipping!!!
       clip_norm_(grad_f, self.norm_clip)
-      return grad_f
+      return loss, grad_f
 
   def update_target_net(self):
     self.target_net.load_state_dict(self.online_net.state_dict())

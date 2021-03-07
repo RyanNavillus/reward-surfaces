@@ -16,6 +16,7 @@ def main():
     parser.add_argument('out_dir', type=str)
     parser.add_argument('--device', type=str, default='cpu')
     parser.add_argument('--est-hesh', action='store_true')
+    parser.add_argument('--est-grad', action='store_true')
     parser.add_argument('--calc-hesh', action='store_true')
     parser.add_argument('--calc-grad', action='store_true')
     parser.add_argument('--num-steps', type=int)
@@ -31,6 +32,7 @@ def main():
         est_hesh=args.est_hesh,
         calc_hesh=args.calc_hesh,
         calc_grad=args.calc_grad,
+        est_grad=args.est_grad,
         device=args.device
     )
 

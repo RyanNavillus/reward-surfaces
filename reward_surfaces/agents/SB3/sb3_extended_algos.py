@@ -31,6 +31,25 @@ class HeshCalcOnlineMixin:
         val, log_prob, entropy = self.policy.evaluate_actions(obs, act)
         return log_prob
 
+    def calc_loss_and_grad(self, num_samples):
+        max_batch_size = 1024
+        tot_loss = 0
+        tot_size = 0
+        tot_grad = [torch.zeros_like(p) for p in self.parameters()]
+        for rollout_data in self.generate_samples(batch_size=max_batch_size, max_samples=num_samples):
+            #batch_size = min(num_samples-start, max_batch_size)
+            batch_loss, batch_grad = self.calulate_grad_from_buffer(rollout_data)
+            tot_loss += batch_loss.item()
+            for t, g in zip(tot_grad, batch_grad):
+                t.data += g.detach()
+            tot_size += len(rollout_data.observations)
+        print("tot eval size:",tot_size)
+        tot_loss /= tot_size
+        for g in tot_grad:
+            g.data /= tot_size
+        return tot_loss, tot_grad
+
+
     def calculate_hesh_vec_prod(self, vec, num_samples):
         '''
         stores hessian vector dot product in params.grad
@@ -40,7 +59,7 @@ class HeshCalcOnlineMixin:
         # start = 0
         for rollout_data in self.generate_samples(batch_size=max_batch_size, max_samples=num_samples):
             #batch_size = min(num_samples-start, max_batch_size)
-            grad = self.calulate_grad_from_buffer(rollout_data)
+            _, grad = self.calulate_grad_from_buffer(rollout_data)
             loss = 0
             for g, p in zip(grad, vec):
                 loss += (g*p).sum()
@@ -54,7 +73,7 @@ class HeshCalcOnlineMixin:
         rollout_steps = num_samples//self.n_envs
         self._old_buffer = self.rollout_buffer
         self.rollout_buffer = RolloutBuffer(
-            num_samples,
+            (num_samples+self.n_envs-1)//self.n_envs,
             self.observation_space,
             self.action_space,
             self.device,
@@ -136,7 +155,7 @@ class ExtA2C(A2C, HeshCalcOnlineMixin):
         else:
             entropy_loss = -th.mean(entropy)
 
-        loss = policy_loss + self.ent_coef * entropy_loss + self.vf_coef * value_loss
+        loss = policy_loss + self.ent_coef * entropy_loss + 0*self.vf_coef * value_loss
         params = self.parameters()
         grad_f = torch.autograd.grad(loss, inputs=params, create_graph=True)
         # Optimization step
@@ -144,7 +163,7 @@ class ExtA2C(A2C, HeshCalcOnlineMixin):
         # TODO: check this--grad clipping!!!
         clip_norm_(grad_f, self.max_grad_norm)
 
-        return grad_f
+        return loss, grad_f
 
 
 class ExtPPO(PPO, HeshCalcOnlineMixin):
@@ -204,7 +223,7 @@ class ExtPPO(PPO, HeshCalcOnlineMixin):
         else:
             entropy_loss = -th.mean(entropy)
 
-        loss = policy_loss + self.ent_coef * entropy_loss + self.vf_coef * value_loss
+        loss = policy_loss + self.ent_coef * entropy_loss + 0*self.vf_coef * value_loss
         params = self.parameters()
         grad_f = torch.autograd.grad(loss, inputs=params, create_graph=True)
         # Optimization step
@@ -212,7 +231,7 @@ class ExtPPO(PPO, HeshCalcOnlineMixin):
         # TODO: check this--grad clipping!!!
         clip_norm_(grad_f, self.max_grad_norm)
 
-        return grad_f
+        return loss, grad_f
 
 
 class ExtSAC(SAC, HeshCalcOfflineMixin):
@@ -268,10 +287,10 @@ class ExtSAC(SAC, HeshCalcOfflineMixin):
         min_qf_pi, _ = th.min(q_values_pi, dim=1, keepdim=True)
         actor_loss = (ent_coef * log_prob - min_qf_pi).mean()
 
-        loss = actor_loss + critic_loss
+        loss = actor_loss + 0*critic_loss
 
         params = self.parameters()
         grad_f = torch.autograd.grad(loss, inputs=params, create_graph=True)
         # Optimization step
 
-        return grad_f
+        return loss,grad_f

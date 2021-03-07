@@ -16,6 +16,7 @@ def main():
     parser.add_argument('--device', type=str, default='cpu')
     parser.add_argument('--num-steps', type=int)
     parser.add_argument('--num-episodes', type=int)
+    parser.add_argument('--seed', type=int)
     parser.add_argument('--magnitude', type=float, default=0.2, help="scales directions by given amount")
     parser.add_argument('--grid-size', type=int, default=5)
 
@@ -29,6 +30,7 @@ def main():
         device=args.device,
         magnitude=args.magnitude,
         grid_size=args.grid_size,
+        seed=arg.seed
     )
 
 

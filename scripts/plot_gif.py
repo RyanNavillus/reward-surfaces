@@ -45,5 +45,7 @@ if __name__ == "__main__":
                 base_mag = base_mag * factor
 
             fname = plot_plane(str(csv_path), str(frames_dir+checkpoint), args.key, args.type, vmin=0, vmax=base_mag, show=False)
+            if not fname:
+                continue
             os.rename(fname, f"{frames_dir}{frame_idx:05}.png")
             frame_idx += 1

@@ -1,8 +1,7 @@
 import os
 import json
 import pathlib
-from reward_surfaces.algorithms.eval_policy_hess import gather_policy_hess_data, calculate_true_hesh_eigenvalues, compute_policy_gradient
-from reward_surfaces.algorithms.evaluate import evaluate
+from reward_surfaces.algorithms import evaluate,gather_policy_hess_data, calculate_true_hesh_eigenvalues, compute_policy_gradient, calculate_policy_ests
 import numpy as np
 
 
@@ -11,6 +10,16 @@ def save_results(agent, info, out_dir, results, job_name):
         print(f"estimating hesh with {info['num_steps']} steps")
         assert info['num_episodes'] > 100000000, "hesh calculation only takes in steps, not episodes"
         results = agent.calculate_eigenvalues(info['num_steps'])
+
+    if info['est_grad']:
+        print(f"estimating est grad with {info['num_steps']} steps")
+        assert info['num_episodes'] > 100000000, "calculation only takes in steps, not episodes"
+        action_evalutor = agent.action_evalutor()
+        loss, grad = calculate_policy_ests(action_evalutor,info['num_steps'])
+        vec_folder = out_dir/f"results/{job_name}"
+        os.makedirs(vec_folder,exist_ok=True)
+        np.savez(vec_folder/ f"est_grad.npz", *grad)
+        results['est_loss'] = loss
 
     if info['calc_hesh'] or info['calc_grad']:
         print(f"computing rollout with {info['num_steps']} steps, {info['num_episodes']} episodes")
@@ -35,7 +44,7 @@ def save_results(agent, info, out_dir, results, job_name):
         np.savez(vec_folder/"maxeigvec.npz", *maxeigvec)
         np.savez(vec_folder/"mineigvec.npz", *mineigvec)
 
-    if not info['calc_hesh'] and not info['est_hesh'] and not info['calc_grad']:
+    if not info['calc_hesh'] and not info['est_hesh']:
         evaluator = agent.evaluator()
         eval_results = evaluate(evaluator, info['num_episodes'], info['num_steps'])
         results.update(eval_results)

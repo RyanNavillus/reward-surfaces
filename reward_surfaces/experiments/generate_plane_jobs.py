@@ -22,6 +22,7 @@ def generate_plane_data(
     device="cpu",
     use_offset_critic=False,
     est_hesh=False,
+    est_grad=False,
     calc_hesh=False,
     calc_grad=False):
 
@@ -58,6 +59,7 @@ def generate_plane_data(
     info['device'] = device
     info['calc_hesh'] = calc_hesh
     info['est_hesh'] = est_hesh
+    info['est_grad'] = est_grad
     info['calc_grad'] = calc_grad
 
     json.dump(info, open((output_path / info_fname),'w'), indent=4)

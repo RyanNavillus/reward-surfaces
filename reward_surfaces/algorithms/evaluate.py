@@ -2,12 +2,6 @@ import time
 import torch
 import numpy as np
 
-class Evaluator:
-    def _next_state(self):
-        '''
-        return rew, done, value
-        '''
-
 def generate_data(evaluator, num_episodes, num_steps):
     gamma = evaluator.gamma
 
@@ -65,10 +59,12 @@ def calculate_stats(all_datas, gamma):
     episode_lens = np.array(episode_lens,dtype=np.float64)
     return {
         "episode_rewards": float(np.mean(episode_rewards)),
+        "episode_std_rewards": float(np.std(episode_rewards/episode_lens)),
         "episode_value_ests": float(np.mean(episode_value_ests/episode_lens)),
         "episode_values": float(np.mean(episode_values/episode_lens)),
         "episode_td_err": float(np.mean(episode_td_err/episode_lens)),
         "episode_avg_len": float(np.mean(episode_lens)),
+        "episode_std_avg_len": float(np.std(episode_lens)),
         "step_rewards": float(np.sum(episode_rewards)/tot_steps),
         "step_value_ests": float(np.sum(episode_value_ests)/tot_steps),
         "step_values": float(np.sum(episode_values)/tot_steps),

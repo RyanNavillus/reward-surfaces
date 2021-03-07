@@ -4,7 +4,7 @@ os.environ['MKL_NUM_THREADS'] = '1'
 os.environ['NUMEXPR_NUM_THREADS'] = '1'
 os.environ['OMP_NUM_THREADS'] = '1'
 import argparse
-from agents.make_agent import make_agent
+from reward_surfaces.agents import make_agent
 import torch
 torch.set_num_threads(1)
 import json

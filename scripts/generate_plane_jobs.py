@@ -35,6 +35,7 @@ def main():
     parser.add_argument('--device', type=str, default='cpu')
     parser.add_argument('--use_offset_critic', action='store_true', help="use critic at center or at offset for value estimation")
     parser.add_argument('--est-hesh', action='store_true')
+    parser.add_argument('--est-grad', action='store_true')
     parser.add_argument('--calc-hesh', action='store_true')
     parser.add_argument('--calc-grad', action='store_true')
 
@@ -89,6 +90,7 @@ def main():
         device=args.device,
         use_offset_critic=args.use_offset_critic,
         est_hesh=args.est_hesh,
+        est_grad=args.est_grad,
         calc_hesh=args.calc_hesh,
         calc_grad=args.calc_grad,
     )

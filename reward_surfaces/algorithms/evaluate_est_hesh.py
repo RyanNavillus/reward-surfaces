@@ -5,6 +5,20 @@ from torch.nn import functional as F
 from gym import spaces
 from scipy.sparse.linalg import LinearOperator, eigsh
 
+
+def calculate_policy_ests(estimator, num_samples):
+    estimator.setup_buffer(num_samples)
+    print("finished collecting data for ests")
+
+    loss, grad = estimator.calc_loss_and_grad(num_samples)
+
+    grad_npy = [g.cpu().detach().numpy() for g in grad]
+
+    estimator.cleanup_buffer()
+
+    return loss, grad_npy
+
+
 def gradtensor_to_npvec(params, include_bn=True):
     """ Extract gradients from net, and return a concatenated numpy vector.
 

@@ -3,8 +3,10 @@ import sys
 import matplotlib.pyplot as plt
 import numpy as np
 import re
+import os
 import argparse
 from reward_surfaces.plotting import plot_traj
+from reward_surfaces.utils import job_results_to_csv
 
 
 def main():
@@ -14,7 +16,14 @@ def main():
 
     args = parser.parse_args()
 
-    plot_traj(args.csv_file, key=args.key)
+    if os.path.isdir(args.csv_file):
+        job_results_to_csv(args.csv_file)
+        csv_path = os.path.join(args.csv_file,"results.csv")
+    else:
+        csv_path = args.csv_file
+
+    plot_traj(csv_path, key=args.key)
+
 
 if __name__ == "__main__":
     main()

@@ -11,7 +11,7 @@ def save_results(agent, info, out_dir, results, job_name):
         assert info['num_episodes'] > 100000000, "hesh calculation only takes in steps, not episodes"
         results = agent.calculate_eigenvalues(info['num_steps'])
 
-    if info['est_grad']:
+    if info.get('est_grad', False):
         print(f"estimating est grad with {info['num_steps']} steps")
         assert info['num_episodes'] > 100000000, "calculation only takes in steps, not episodes"
         action_evalutor = agent.action_evalutor()

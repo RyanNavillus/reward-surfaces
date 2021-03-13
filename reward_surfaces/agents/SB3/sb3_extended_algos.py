@@ -11,6 +11,7 @@ from gym import spaces
 from scipy.sparse.linalg import LinearOperator, eigsh
 from stable_baselines3.common.buffers import RolloutBuffer, ReplayBuffer
 from stable_baselines3.common.callbacks import BaseCallback
+from stable_baselines3.common.type_aliases import TrainFreq, TrainFrequencyUnit
 from ..utils import clip_norm_
 
 
@@ -111,10 +112,11 @@ class HeshCalcOfflineMixin(HeshCalcOnlineMixin):
             self.action_space,
             self.device,
         )
+        self.env.reset()
+        train_freq = TrainFreq(num_samples, TrainFrequencyUnit("step"))
         self.collect_rollouts(
             self.env,
-            n_episodes=num_samples,
-            n_steps=num_samples,
+            train_freq=train_freq,
             action_noise=self.action_noise,
             callback=callback,
             learning_starts=0,

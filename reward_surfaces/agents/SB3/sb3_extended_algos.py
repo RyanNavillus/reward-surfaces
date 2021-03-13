@@ -242,8 +242,10 @@ class ExtSAC(SAC, HeshCalcOfflineMixin):
         return list(self.policy.actor.parameters()) + list(self.policy.critic.parameters())
 
     def eval_log_prob(self, obs, act):
-        mean_actions, log_std, kwargs = self.policy.critic.get_action_dist_params(obs)
-        return self.policy.critic.action_dist.actions_from_params()
+        mean_actions, log_std, kwargs = self.policy.actor.get_action_dist_params(obs)
+        # return action and associated log prob
+        dist = self.policy.actor.action_dist.proba_distribution(mean_actions, log_std)
+        return dist.log_prob(act)
 
     def calulate_grad_from_buffer(self, replay_data):
         # We need to sample because `log_std` may have changed between two gradient steps

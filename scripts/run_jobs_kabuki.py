@@ -21,6 +21,7 @@ def main():
     parser.add_argument('--machines', nargs='*', help='machine id', required=True)
     parser.add_argument('--device', type=str, default="cpu")
     parser.add_argument('--is-eval', action="store_true", help="is evaluation job")
+    parser.add_argument('--dry-run', action="store_true", help="kabuki dry run")
 
     args = parser.parse_args()
 
@@ -40,7 +41,8 @@ def main():
         else:
             requirements_args = " --no-gpu-required --memory-required=2000 --num-cpus=1 "
 
-        exec_command = f"execute_batch --copy-forward {jobs_folder} --copy-backwards . --machines {' '.join(machine_names)} {requirements_args} {shfile.name} {'--kabuki-commands' if args.is_eval else ''}"
+        dry_run_args = "" if not args.dry_run else "--dry-run"
+        exec_command = f"execute_batch --copy-forward {jobs_folder} --copy-backwards . --machines {' '.join(machine_names)} {requirements_args} {shfile.name} {'--kabuki-commands' if args.is_eval else ''} {dry_run_args} "
         print(exec_command)
         subprocess.run(exec_command,shell=True)
 

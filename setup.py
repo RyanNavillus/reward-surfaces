@@ -13,7 +13,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/weepingwillowben/reward-surfaces",
     keywords=["Machine Learning", "Job Scheduling"],
-    packages=setuptools.find_packages(),
+    packages=["reward_surfaces"]+["reward_surfaces."+pkg for pkg in setuptools.find_packages("reward_surfaces")],
     install_requires=[
         "plotly",
         "opencv-python",

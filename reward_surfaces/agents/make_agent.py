@@ -71,7 +71,8 @@ def make_agent(agent_name, env_name, device, hyperparams):
         env = env_fn()
         algo = SB3_OFF_ALGOS[hyperparams.pop('ALGO')]
         model = "MlpPolicy" if len(env.observation_space.shape) != 3 else "CnnPolicy"
-        return SB3OffPolicyTrainer(env_fn,algo(model,env,device=device,**hyperparams))
+        alg = algo(model,env,device=device,**hyperparams)
+        return SB3OffPolicyTrainer(env_fn,alg)
     elif "SB3_ON" == agent_name:
         env_fn = make_vec_env_fn(env_name)
         num_envs = hyperparams.pop('num_envs', 16)

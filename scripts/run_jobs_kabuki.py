@@ -43,8 +43,8 @@ def main():
 
         dry_run_args = "" if not args.dry_run else "--dry-run"
         exec_command = f"execute_batch --copy-forward {jobs_folder} --copy-backwards . --machines {' '.join(machine_names)} {requirements_args} {shfile.name} {'--kabuki-commands' if args.is_eval else ''} {dry_run_args} "
-        print(exec_command)
-        subprocess.run(exec_command,shell=True)
+        # print(exec_command)
+        # subprocess.run(exec_command,shell=True)
 
 if __name__ == "__main__":
     main()

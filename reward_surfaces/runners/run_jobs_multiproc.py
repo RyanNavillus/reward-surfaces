@@ -6,8 +6,7 @@ import argparse
 from tqdm import tqdm
 
 
-def run_job_list(jobs_fname, num_cpus=None,disable_warnings=False):
-    job_list = open(jobs_fname).readlines()
+def run_job_list_list(job_list, num_cpus=None,disable_warnings=False):
     job_idx = 0
     job_iterator = iter(tqdm(range(len(job_list))))
     num_procs = multiprocessing.cpu_count() if num_cpus is None else num_cpus
@@ -31,3 +30,8 @@ def run_job_list(jobs_fname, num_cpus=None,disable_warnings=False):
                 job_idx += 1
                 next(job_iterator)
         time.sleep(0.1)
+
+
+def run_job_list(jobs_fname, num_cpus=None,disable_warnings=False):
+    job_list = open(jobs_fname).readlines()
+    run_job_list_list(job_list, num_cpus=num_cpus,disable_warnings=disable_warnings)

@@ -31,7 +31,7 @@ def main():
 
     checkpoints = sorted([checkpoint for checkpoint in os.listdir(train_path) if os.path.isdir(train_path/checkpoint)])
     commands = []
-    for checkpoint in checkpoints[:1]:
+    for checkpoint in checkpoints:
         params = train_path/checkpoint/"parameters.th"
         grad = grad_path/checkpoint/"grad.npz"
         out_fname = str(out_path/"results"/checkpoint)+".json"
@@ -46,8 +46,10 @@ def main():
 
     json.dump(info, open(out_path/"info.json",'w'))
 
-    run_job_list_list(commands)
-    job_results_to_csv(out_path)
+    with open(out_path/"jobs.sh", 'w') as file:
+        file.write("\n".join(commands))
+    # run_job_list_list(commands)
+    # job_results_to_csv(out_path)
 
 if __name__ == "__main__":
     main()

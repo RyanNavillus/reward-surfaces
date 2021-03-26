@@ -13,6 +13,7 @@ def main():
     parser = argparse.ArgumentParser(description='plot csv data via matplotlib')
     parser.add_argument('csv_file', type=str)
     parser.add_argument('--key', type=str, default='episode_rewards')
+    parser.add_argument('--log-plot', action="store_true")
 
     args = parser.parse_args()
 
@@ -22,7 +23,7 @@ def main():
     else:
         csv_path = args.csv_file
 
-    plot_traj(csv_path, key=args.key)
+    plot_traj(csv_path, key=args.key, log_plot=args.log_plot)
 
 
 if __name__ == "__main__":

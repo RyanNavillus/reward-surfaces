@@ -33,7 +33,8 @@ def main():
 
     for i in range(args.length):
         mm = args.max_magnitude
-        weights = [p+d*mm for p,d in zip(params, dir)]
+        l = args.length
+        weights = [p+d*i*mm/l for p,d in zip(params, dir)]
         agent.set_weights(weights)
         evaluator = agent.evaluator()
         eval_results = evaluate(evaluator, args.num_episodes, args.num_steps)

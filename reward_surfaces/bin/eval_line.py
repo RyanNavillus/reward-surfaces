@@ -7,6 +7,7 @@ from pathlib import Path, PurePath
 from reward_surfaces.algorithms import evaluate
 from reward_surfaces.agents import make_agent
 import numpy as np
+from reward_surfaces.utils.surface_utils import filter_normalize
 torch.set_num_threads(1)
 
 
@@ -32,8 +33,12 @@ def main():
 
     params = [v.cpu().detach().numpy() for v in torch.load(args.params,map_location=torch.device('cpu')).values()]
     dir = readz(args.dir)
+    if info['random_dir_seed'] is not None:
+        seed = info['random_dir_seed']
+        np.random.seed(seed+hash(args.outputfile)%(1<<30))
+        dir = [filter_normalize(p) for p in params]
 
-    if info['scale_dir']:
+    elif info['scale_dir']:
         dir_sum = sum(np.sum(x) for x in dir)
         dir = [d/dir_sum for d in dir]
 

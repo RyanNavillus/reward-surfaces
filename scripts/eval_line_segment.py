@@ -21,6 +21,7 @@ def main():
     parser.add_argument('--length', type=int, default=5)
     parser.add_argument('--max-magnitude', type=float, default=0.1)
     parser.add_argument('--scale-dir', action="store_true")
+    parser.add_argument('--random-dir-seed', type=int, help="if set, specified the seed for the random direction")
 
     args = parser.parse_args()
 
@@ -49,6 +50,7 @@ def main():
     info['grad_loc'] = args.grads_dir
     info['params_loc'] = args.train_dir
     info['scale_dir'] = args.scale_dir
+    info['random_dir_seed'] = args.random_dir_seed
 
     json.dump(info, open(out_path/"info.json",'w'))
 

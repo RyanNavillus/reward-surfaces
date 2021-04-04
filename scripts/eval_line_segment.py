@@ -20,6 +20,7 @@ def main():
     parser.add_argument('--device', type=str, default="cpu")
     parser.add_argument('--length', type=int, default=5)
     parser.add_argument('--max-magnitude', type=float, default=0.1)
+    parser.add_argument('--scale-dir', action="store_true")
 
     args = parser.parse_args()
 
@@ -47,6 +48,7 @@ def main():
     info['draw_max_magnitude'] = args.max_magnitude
     info['grad_loc'] = args.grads_dir
     info['params_loc'] = args.train_dir
+    info['scale_dir'] = args.scale_dir
 
     json.dump(info, open(out_path/"info.json",'w'))
 

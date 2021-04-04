@@ -6,6 +6,7 @@ from reward_surfaces.utils.surface_utils import readz
 from pathlib import Path, PurePath
 from reward_surfaces.algorithms import evaluate
 from reward_surfaces.agents import make_agent
+import numpy as np
 
 
 bigint = 1000000000000
@@ -30,6 +31,10 @@ def main():
 
     params = [v.cpu().detach().numpy() for v in torch.load(args.params,map_location=torch.device('cpu')).values()]
     dir = readz(args.dir)
+
+    if info['scale_dir']:
+        dir_sum = sum(np.sum(x) for x in dir)
+        dir = [d/dir_sum for d in dir]
 
     for i in range(args.length):
         mm = args.max_magnitude

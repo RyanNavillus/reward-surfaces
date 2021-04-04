@@ -5,7 +5,7 @@ import multiprocessing
 import tempfile
 import os
 import argparse
-from pathlib import Path
+from pathlib import Path,PurePath
 
 def modify_job(job, is_eval, is_search):
     job = job.strip()
@@ -16,9 +16,9 @@ def modify_job(job, is_eval, is_search):
     if is_search:
         _, _, _, params, grad, out_file = job.split()[:6]
         checkpoint_path = Path(params).parent
-        info_path = Path(params).parent.parent/"info.json"
-        out_dir = Path(out_file).parent
-        new_job = f'execute_remote --copy-forward {checkpoint_path} {info_path} {grad} {out_dir} --copy-backwards {out_file} --verbose "{new_job}" '
+        out_dir = PurePath(out_file).parent
+        info_path = out_dir.parent/"info.json"
+        new_job = f'execute_remote --copy-forward {checkpoint_path} {info_path} {grad} {out_dir} --copy-backwards {out_dir} --verbose "{new_job}" '
     return  new_job + "\n"
 
 def main():

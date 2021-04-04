@@ -4,7 +4,7 @@ from .Rainbow.main import main, get_parser
 from .Rainbow.memory import ReplayMemory
 import torch
 import numpy as np
-from reward_surfaces.algorithms.evaluate_est_hesh import calculate_est_hesh_eigenvalues
+# from reward_surfaces.algorithms.evaluate_est_hesh import calculate_est_hesh_eigenvalues
 
 
 class RainbowEvaluator:

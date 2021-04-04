@@ -7,6 +7,7 @@ from pathlib import Path, PurePath
 from reward_surfaces.algorithms import evaluate
 from reward_surfaces.agents import make_agent
 import numpy as np
+torch.set_num_threads(1)
 
 
 bigint = 1000000000000

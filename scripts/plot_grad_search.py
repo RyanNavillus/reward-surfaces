@@ -46,6 +46,7 @@ def plot_grad_search(csv_fname, outname=None, key_name="episode_rewards"):
         indexes = np.argsort(yvals[boolmask])
         ax.plot(xvals[boolmask][indexes], yvals[boolmask][indexes], zvals[boolmask][indexes])#, rstride=1, cstride=1)
 
+    ax.set_title(csv_fname)
     ax.set_xlabel('Training time')
     ax.set_ylabel('Gradient step size')
     ax.set_zlabel('Rewards')

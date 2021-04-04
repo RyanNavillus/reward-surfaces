@@ -30,7 +30,7 @@ def main():
         device=args.device,
         magnitude=args.magnitude,
         grid_size=args.grid_size,
-        seed=arg.seed
+        seed=args.seed
     )
 
 

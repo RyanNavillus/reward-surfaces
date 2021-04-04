@@ -7,7 +7,7 @@ from collections import OrderedDict
 from stable_baselines3.common.vec_env import DummyVecEnv
 from stable_baselines3.common.vec_env.obs_dict_wrapper import ObsDictWrapper
 import os
-from reward_surfaces.algorithms.evaluate_est_hesh import calculate_est_hesh_eigenvalues
+# from reward_surfaces.algorithms.evaluate_est_hesh import calculate_est_hesh_eigenvalues
 
 
 class CheckpointCallback(BaseCallback):

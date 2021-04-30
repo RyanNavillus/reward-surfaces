@@ -37,15 +37,18 @@ if __name__ == "__main__":
     frame_idx = 0
     for checkpoint in checkpoints:
         csv_path = gif_data_folder / checkpoint / "results.csv"
-        m = np.max(pandas.read_csv(csv_path)[args.key])
+        row_dat = pandas.read_csv(csv_path)[args.key]
+        m = max(0.1,np.max(row_dat))
+        mini = min(0,np.min(row_dat))
+        print(m)
         if base_mag is None:
             base_mag = m
         else:
-            while m > base_mag * factor:
+            while m > base_mag:
                 base_mag = base_mag * factor
 
-            fname = plot_plane(str(csv_path), str(frames_dir+checkpoint), args.key, args.type, vmin=0, vmax=base_mag, show=False)
-            if not fname:
-                continue
-            os.rename(fname, f"{frames_dir}{frame_idx:05}.png")
-            frame_idx += 1
+        fname = plot_plane(str(csv_path), str(frames_dir+checkpoint), args.key, args.type, vmin=mini, vmax=base_mag, show=False)
+        if not fname:
+            continue
+        os.rename(fname, f"{frames_dir}{frame_idx:05}.png")
+        frame_idx += 1

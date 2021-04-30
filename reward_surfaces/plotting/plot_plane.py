@@ -78,6 +78,9 @@ def plot_2d_contour(x_coords,y_coords,z_values, base_name, vmin=0.1, vmax=10, vl
         fig = plt.figure()
         ax = Axes3D(fig)
         surf = ax.plot_surface(X, Y, Z, cmap=cm.coolwarm, linewidth=0, antialiased=False)
+        ax.plot([0.], [0.], [vmax], markerfacecolor='k', markeredgecolor='k', marker='o', markersize=5, alpha=1.0)
+        ax.plot([0.], [0.], [vmin], markerfacecolor='k', markeredgecolor='k', marker='o', markersize=5, alpha=1.0)
+        print(vmin, vmax)
         fig.colorbar(surf, shrink=0.5, aspect=5)
         out_fname = base_name + '_3dsurface.png'
         fig.savefig(out_fname, dpi=300,

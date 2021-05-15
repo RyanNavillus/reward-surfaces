@@ -1,7 +1,7 @@
 ### Install
 
 ```
-pip install git+https://github.com/weepingwillowben/reward-surfaces.git
+pip install git+https://github.com/benblack769/reward-surfaces.git
 ```
 
 

@@ -1,0 +1,309 @@
+%You can leave alone everything before Line 84.
+\documentclass{article}
+\usepackage{url,amsfonts, amsmath, amssymb, amsthm}
+\usepackage{pict2e}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+
+
+
+
+% Page layout
+\setlength{\textheight}{8.75in}
+\setlength{\columnsep}{2.0pc}
+\setlength{\textwidth}{6.5in}
+\setlength{\topmargin}{0in}
+\setlength{\headheight}{0.0in}
+\setlength{\headsep}{0.0in}
+\setlength{\oddsidemargin}{0in}
+\setlength{\evensidemargin}{0in}
+\setlength{\parindent}{1pc}
+\newcommand{\shortbar}{\begin{center}\rule{5ex}{0.1pt}\end{center}}
+%\renewcommand{\baselinestretch}{1.1}
+% Macros for course info
+\newcommand{\courseNumber}{CMSC 657}
+\newcommand{\courseTitle}{Introduction to Quantum Information Processing}
+\newcommand{\semester}{Fall 2019}
+% Theorem-like structures are numbered within SECTION units
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{statement}[theorem]{Statement}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{fact}{Fact}
+%definition style
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}{Example}
+%\newtheorem{problem}{Problem}
+\newtheorem{exercise}{Exercise}
+%\newtheorem{algorithm}{Algorithm}
+%remark style
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{reduction}[theorem]{Reduction}
+%\newtheorem{question}[theorem]{Question}
+\newtheorem{question}{Question}
+%\newtheorem{claim}[theorem]{Claim}
+%
+% Proof-making commands and environments
+\newcommand{\beginproof}{\medskip\noindent{\bf Proof.~}}
+\newcommand{\beginproofof}[1]{\medskip\noindent{\bf Proof of #1.~}}
+\newcommand{\finishproof}{\hspace{0.2ex}\rule{1ex}{1ex}}
+\newenvironment{problem}[1]{\medskip\noindent{\bf Problem #1.~}}{\shortbar}
+\newenvironment{solution}[1]{\medskip\noindent{\bf Solution #1.~}}{\shortbar}
+%====header======
+%\newcommand{\solutions}[3]{
+%\renewcommand{\thesolution}{{\large #2}.\arabic{problem}}
+%\vspace{-2ex}
+%\begin{center}
+%{\small  \courseNumber, \courseTitle
+%\hfill {\large \bf {Due: #1} }\\
+%\semester, University of Maryland \hfill
+%{\em Date: #3}}\\
+%\vspace{-1ex}
+%\hrulefill\\
+%\vspace{4ex}
+%{\Large #2}\\
+%\vspace{2ex}
+%\end{center}
+%\shortbar
+%\vspace{3ex}
+%}
+
+\newcommand{\points}[1]{\textit{(#1 points)}}
+\newcommand{\bonus}[1]{\textit{(Bonus: #1 points)}}
+
+%\input{Qcircuit}
+
+\newcommand{\E}{\mathbb{E}}
+\usepackage{colonequals}
+%\newcommand{\<}{\langle}
+%\renewcommand{\>}{\rangle}
+
+\begin{document}
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%\solutions{September 26th, 2019}{Assignment 2}{\today}
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%
+	% Begin the solution for each problem by
+	% \begin{solution}{Problem Number} and ends it with \end{solution}
+	%
+	% the solution for Problem 1v
+	\begin{center} 
+		\huge Finding curvature in RL objective surfaces
+	\end{center}
+	
+	\begin{center} 
+		\large Ben Black
+	\end{center}
+	
+	\section{Outline}
+	
+	The first step to understanding curvature in the objective surface is to compute the Hessian of that surface around a point. The first section derives a formula to estimate that local Hessian. The formalism follows the derivation of the policy gradient very closely.
+	
+	The second step is to create an algorithm that computes the Hessian linear operation (i.e. can compute a Hessian-vector dot product) efficiently. In particular, it should allow for dense, batched estimation on a GPU.
+	
+	The third step is to identify the maximally curved directions in the space, by computing the minimum and maximum eigenvalues and their corresponding eigenvectors. 
+	
+	\section{Policy Hessian Theorem}
+	
+
+	
+	Notation taken from \url{https://sites.google.com/view/icml17deeprl}
+	
+	In particular, $J$ is the objective function, $\theta$ are the parameters of the RL policy, $\tau$ is all the states and actions in an episode trajectory, $S_i$ is the state at timestep $i$, $a_i$ is the action at step $i$. 
+	%$H$, $P$, and $\nabla$ stand for the usual Hessian, probabilty, and gradient, respectively.
+	
+	Def: The policy hessian is 
+	$$
+	\begin{aligned}
+	H_\theta(J(\theta)) &= \nabla_\theta \nabla_\theta J(\theta)
+	\end{aligned}
+	$$
+	
+	In order to derive an efficient algorithm we will use the following two lemmas:
+	
+	\subsection{calculus trick lemma}
+	$$\nabla_x P(x) = P(x) \nabla_x \log(P(x))$$
+	proof:
+	$$P(x) \nabla_x \log(P(x)) = P(x) \frac{1}{P(x)}\nabla_x P(x) = \nabla_x P(x)$$
+	\subsection{Policy gradient lemma}
+	$$\nabla_\theta \log(P(\tau)) = \sum_{t=0}^{t_\tau} \nabla_\theta \log(\pi_\theta(s,a))$$
+	$$
+	\begin{aligned}
+	\nabla_\theta \log(P(\tau)) &= \nabla_\theta(\log(P(S_0))) + \sum_{t=0}^{t_\tau} \nabla_\theta(\log(P(a_t|S_t))) + \nabla_\theta(\log(P(S_{t+1}|a_t,S_t))) \\
+	& \text{buf the transition function does not depend on theta, so the gradient is zero}\\
+	&=  \sum_{t=0}^{t_\tau} \nabla_\theta(\log(P(a_t|S_t))) \\
+	&=  \sum_{t=0}^{t_\tau} \nabla_\theta \log(\pi(a_t,S_t)) \\
+	\end{aligned}$$
+	
+	\subsection{Full derivation of formula}
+	Def: The policy hessian is 
+	$$
+	\begin{aligned}
+	H_\theta(J(\theta)) &= \nabla_\theta \nabla_\theta J(\theta) \\
+	&= \nabla_\theta \nabla_\theta \mathbb{E}_{\tau \sim \pi_\theta} R(\tau) \\
+	&= \nabla_\theta \nabla_\theta \sum_\tau P_\theta(\tau) R(\tau) \\
+	&= \text{applying calculus trick lemma} \\
+	&= \nabla_\theta  \sum_\tau P_\theta(\tau)\nabla_\theta \log(P_\theta(\tau))  R(\tau) \\
+	&=  \sum_\tau ((\nabla_\theta P_\theta(\tau))\nabla_\theta \log(P_\theta(\tau))  + P_\theta(\tau) \nabla_\theta \nabla_\theta \log(P_\theta(\tau))) R(\tau) \\
+	&= \text{applying calculus trick lemma} \\
+	&=  \sum_\tau ( P_\theta(\tau) \nabla_\theta \log( P_\theta(\tau))\nabla_\theta \log(P_\theta(\tau))  + P_\theta(\tau) \nabla_\theta \nabla_\theta \log(P_\theta(\tau))) R(\tau) \\
+	&=  \sum_\tau P_\theta(\tau) ((\nabla_\theta \log( P_\theta(\tau)))^2  + \nabla_\theta \nabla_\theta \log(P_\theta(\tau))) R(\tau) \\
+	&= \mathbb{E}_{\tau \sim \pi_\theta} ((\nabla_\theta \log( P_\theta(\tau)))^2  + \nabla_\theta \nabla_\theta \log(P_\theta(\tau))) R(\tau) \\
+	&\text{policy gradient lemma} \\
+	&= \mathbb{E}_{\tau \sim \pi_\theta} \left( \left(\sum_{t=0}^{t_\tau} \nabla_\theta \log(\pi_\theta(s,a))\right)^2  + \nabla_\theta \left(\sum_{t=0}^{t_\tau} \nabla_\theta \log(\pi_\theta(s,a))\right) \right) R(\tau) \\
+	&= \mathbb{E}_{\tau \sim \pi_\theta} \left( \left(\sum_{t=0}^{t_\tau} \nabla_\theta \log(\pi_\theta(s,a))\right)^2  +  \left(\sum_{t=0}^{t_\tau} \nabla_\theta \nabla_\theta \log(\pi_\theta(s,a))\right) \right) R(\tau) \\		\end{aligned}	$$	
+	
+	Reformatting the function to a useful format for estimation:
+	$$
+	\begin{aligned}
+	& \ \ \mathbb{E}_{\tau \sim \pi_\theta} \left( \left(\sum_{t=0}^{t_\tau} \nabla_\theta \log(\pi_\theta(s,a))\right)^2  + \nabla_\theta \left(\sum_{t=0}^{t_\tau} \nabla_\theta \log(\pi_\theta(s,a))\right) \right)R(\tau)   \\
+	&= \mathbb{E}_{\tau \sim \pi_\theta} \left(\sum_{t=0}^{t_\tau} \nabla_\theta \log(\pi_\theta(s,a))\right)\left(\sum_{t=0}^{t_\tau} \nabla_\theta \log(\pi_\theta(s,a))R(\tau)\right)  + \nabla_\theta \left(\sum_{t=0}^{t_\tau} \nabla_\theta \log(\pi_\theta(s,a))R(\tau)\right)  \\
+	\end{aligned}
+	$$
+	
+	This formula will be used to create the policy hessian vector dot product algorithm below.
+	
+	\section{Policy Hessian vector dot product}
+	Now, like all hessians over neural networks, it is large and inefficient to compute. Except worse because it is over an expectation of possibly sparse samples.
+	
+	So instead, we can learn something about the Hessian by computing the Hessian vector dot product i.e. for vector $v$ of the same shape as the parameter vector $\theta$, compute
+	$$H(J(\theta))v$$
+	
+	Given the rearranged version of the policy gradient above we have
+	$$
+	\begin{aligned}
+	H(J(\theta))v	&= \mathbb{E}_{\tau \sim \pi_\theta} \left(\sum_{t=0}^{t_\tau} \nabla_\theta \log(\pi_\theta(s,a))\right)\left(\sum_{t=0}^{t_\tau} \nabla_\theta \log(\pi_\theta(s,a))vR(\tau)\right)  + \nabla_\theta \left(\sum_{t=0}^{t_\tau} \nabla_\theta \log(\pi_\theta(s,a))vR(\tau)\right)  \\
+	\end{aligned}
+	$$
+	Which gives a natural, efficient batchable (within episodes) evaluation algorithm
+		
+	\begin{algorithm}
+		\caption{Policy Hessian vector dot product}
+		\begin{algorithmic}[1]
+			\Procedure{DotHJ}{$\theta,v$}       
+			\State $\text{acc} = 0 \cdot \theta$
+			\For{$\tau \sim \pi_\theta$}
+				\State gradacc $= 0 \cdot \theta$
+				\State gradvecacc $= 0$
+				\State heshvecacc $= 0 \cdot \theta$
+				\For{Batched $S,a,\text{ret}$ in $\tau$}
+					\State logprobs $ = \log(\pi_\theta(a,S))$
+					\State grad $ = \nabla_\theta \sum_b^\text{batch}\text{logprobs}_b$
+					\State gradvec $ = (\nabla_\theta \sum_b^\text{batch} \text{logprobs}_b\text{ret}_b)) \cdot v$ 
+					\State heshvec $ = \nabla_\theta \text{gradvec}$ \Comment{During implementation, make sure to compute gradient using autograds's create\_graph=true so this line is computed correctly}
+					\State gradacc $+=$ grad 
+					\State gradvecacc $+=$ gradvec
+					\State heshvecacc $+=$ heshvec
+				\EndFor{}
+				\State acc $ +=$ gradvecacc $\cdot$ gradacc $ + $ heshvecacc
+			\EndFor{}
+			\Return acc / num\_episodes
+			\EndProcedure
+			
+		\end{algorithmic}
+	\end{algorithm}
+
+	\section{Eigenvalue/Eigenvector estimation}
+	
+	The next step is to estimate the eigenvectors and eigenvalues of the Hessian using the hessian vector dot product algorithm above. Note that Hessian is a linear operation that we can compute. Since we can compute this linear operation, standard linear algebra methods of finding the eigenvectors and eigenvalues of linear operations can be used
+		
+	The ARPACK library\cite{arpack} implements a number of efficient methods to solve linear algebra problems on arbitrary linear operations without a full matrix. In particular it can find estimates of the eigenvectors and eigenvalues of a linear operation using the Implicitly Restarted Lanczos Method, without having to compute all the entries of the matrix defining the linear operation. Scipy's python based \texttt{eigsh} interface offers a convenient way of accessing ARPACK functionality. Also note that
+	\cite{visualloss}'s code \footnote{\url{https://github.com/tomgoldstein/loss-landscape/blob/master/hess_vec_prod.py}} was helpful to develop this method of finding the eigenvectors and eigenvalues.
+	
+	Note that this method does not guarantee an unbiased estimate of the eigenvector, in particular since we only have estimates of the actual linear operation under study. So the results should be treated with some care.
+	
+%	\section{Information matrix}
+%	
+%	
+%	\subsection{Optimization Surface Visualization in Machine Learning}
+%	
+%	Visualizing the surface of anything you're optimizing is a common practice, and has clear benefits. This has historically not been done in machine learning, because creating visualizations that are actually representative of surfaces over $10^5$ or more dimensions turns out to be very challenging. This was first done by \cite{visualloss}, with additional metrics to show the validity of these results in \cite{ronny2019generalization}. These concepts were first adapted from classifier loss surfaces to reward surfaces in reinforcement learning in \cite{mitpolicylandscape}, though we introduce extensions to these methods. 
+%	
+%	\section{Experiments}
+%	
+%	We seek to understand how variations of the parameters of the policy affect the resulting reward. To understand this, we will be making a visualization of the surface where each set of parameters gives some specific reward. The challenge of this sort of visualization is that the neural network that defines the policy has a huge number of parameters (at least 1e5). Despite this challenge, prior work has successfully employed visualizations to understand the parameter space of neural networks by carefully choosing a projection of this high dimensional space onto a 2 dimensional space.
+%	
+%	The first work to do so successfully was \cite{visualloss} which projected along filter normalized random directions. Filter normalization is a technique where the impact a parameter has on the function is assumed to be relative to the filter it is in. So it is normalized by the average magnitude of the parameters that make up the filter. In particular, take $\theta_{i,j}$ to be the $j$th filter of the $i$th layer of neural network with parameters $\theta$. Now we produce a random Guassian direction vectors $d{i,j}$ with the same dimensions as $\theta_{i,j}$. To apply filter normalization, the filters of these random direction vectors will be made the same magnitude as the filters in theta as follows:
+%	
+%	$$ d^\prime_{i,j} = \frac{d_{i,j}}{\|d_{i,j}\|}\|\theta_{i,j}\|$$
+%	
+%	Using this technique \cite{visualloss} were able to identify the smoothness of neural network surfaces on supervised learning tasks using 3d visualizations. Later this same method was used to visualize the volume of the optimal space of a policy\cite{ronny2019generalization}. Another work \cite{mitpolicylandscape} applied this technique to reinforcement learning, projecting the space onto the gradient direction on one axis and a random direction along another axis to act as a sanity check. The plots shown use this method to generate the projections. 
+%	
+%	We found that filter normalized random directions are not as suitable for the sort of neural networks typically used in RL because some filters are much more important than others in determining the outcome of the policy. So instead, we had to use a more sophisticated information based normalization technique which makes fewer assumptions about the structure of the function. 
+%	
+%	Recall that in order to properly visualize the local space of the surface, we must not only look at the impact of a handful of parameters on the function, but all of them. In order to do that, they should be equally weighted. The importance of a weight on the result of the function can be fully described by the Fisher information of the parameters $\theta$ on the outcome $X$.
+%	
+%	$ F_{ij} = \mathbb{E}\Big[\frac{\partial}{\partial \theta_i}\log(f(X|\theta)) \frac{\partial}{\partial \theta_j}\log(f(X|\theta))\Big]$
+%	The objective $f$ is hard to compute and differentiate, so we estimate it by choosing a similar, but distinct information matrix that looks at the information between the parameters and the action probabilities generated by the parameterized policy $\pi_\theta$.  
+%	$ F_{ij} = \mathbb{E}\Big[\frac{\partial}{\partial \theta_i}\log(\pi(a|\theta)) \frac{\partial}{\partial \theta_j}\log(\pi(a|\theta))\Big]$
+%	In order to argue the similarity of the two matrices, we need to assume that actions generally affect the objective to a similar degree in expectation. Typical policies have a small number of actions, so this assumption is reasonable.
+%	
+%	The importance of a weight can be estimated just from the diagonal element of this matrix \cite{kirk2016ewc}.
+%	
+%	Which leaves
+%	
+%	$\text{importance}_{\theta_i} = \mathbb{E}\Big[\frac{\partial}{\partial \theta_i}\log(\pi(a|\theta)) \frac{\partial}{\partial \theta_i}\log(\pi(a|\theta))\Big]$
+%	
+%	And then this value, rather than the magnitude of the weights, can be the value that is filter-normalized. 
+%	
+
+%
+%@article{kirk2016ewc,
+%	author    = {James Kirkpatrick and
+%		Razvan Pascanu and
+%		Neil C. Rabinowitz and
+%		Joel Veness and
+%		Guillaume Desjardins and
+%		Andrei A. Rusu and
+%		Kieran Milan and
+%		John Quan and
+%		Tiago Ramalho and
+%		Agnieszka Grabska{-}Barwinska and
+%		Demis Hassabis and
+%		Claudia Clopath and
+%		Dharshan Kumaran and
+%		Raia Hadsell},
+%	title     = {Overcoming catastrophic forgetting in neural networks},
+%	journal   = {CoRR},
+%	volume    = {abs/1612.00796},
+%	year      = {2016},
+%	url       = {http://arxiv.org/abs/1612.00796},
+%	archivePrefix = {arXiv},
+%	eprint    = {1612.00796},
+%	timestamp = {Mon, 13 Aug 2018 16:46:13 +0200},
+%	biburl    = {https://dblp.org/rec/journals/corr/KirkpatrickPRVD16.bib},
+%	bibsource = {dblp computer science bibliography, https://dblp.org}
+%}
+%
+%@article{ronny2019generalization,
+%	author    = {W. Ronny Huang and
+%		Zeyad Emam and
+%		Micah Goldblum and
+%		Liam Fowl and
+%		Justin K. Terry and
+%		Furong Huang and
+%		Tom Goldstein},
+%	title     = {Understanding Generalization through Visualizations},
+%	journal   = {CoRR},
+%	volume    = {abs/1906.03291},
+%	year      = {2019},
+%	url       = {http://arxiv.org/abs/1906.03291},
+%	archivePrefix = {arXiv},
+%	eprint    = {1906.03291},
+%	timestamp = {Fri, 14 Jun 2019 09:38:24 +0200},
+%	biburl    = {https://dblp.org/rec/journals/corr/abs-1906-03291.bib},
+%	bibsource = {dblp computer science bibliography, https://dblp.org}
+%}
+
+%	
+	\bibliographystyle{plain}
+	
+	\bibliography{main}{} 
+%	
+%	
+\end{document}

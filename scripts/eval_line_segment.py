@@ -3,7 +3,7 @@ import json
 import os
 import torch
 from reward_surfaces.utils.surface_utils import readz
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from reward_surfaces.algorithms import search
 from reward_surfaces.runners.run_jobs_multiproc import run_job_list_list
 from reward_surfaces.utils.job_results_to_csv import job_results_to_csv
@@ -29,7 +29,7 @@ def main():
 
     out_path = Path(args.output_dir)
     train_path = Path(args.train_dir)
-    grad_path = Path(args.grads_dir)
+    grad_path = PurePosixPath(args.grads_dir)
     os.mkdir(out_path)
     os.mkdir(out_path/"results")
 

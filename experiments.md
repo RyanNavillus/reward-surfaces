@@ -109,6 +109,43 @@ Interestingly, while the gradient direction is the fastest direction to improve 
 Code to generate this plot, and many others is in [this ipython notebook](https://github.com/benblack769/reward-surfaces/blob/master/demo/optimization_issues_rand.ipynb).
 
 
+### Sharp edges in reward surface
+
+
+One of the key insights from visualizing the gradient direction is that there is a steep dropoff in performance if you travel too far along the gradient direction. Perhaps how close this dropoff is indicates how big of a learning step is appropriate, and so it may have implications about the learning speed of any gradient descent method.
+
+To study this question, we perform a line search to find the distance to travel along the gradient so that the at which the value is the same as the original value. Note that if the point is at a local maximum, this distance will be 0 and it is at a global minimum, it may be infinite.
+
+![](https://github.com/benblack769/reward-surfaces/raw/master/docs/plot2.png)
+
+To compare how this metric relates to training, I show the training curve and the reward curve side by side.
+
+Environment | Episodic Rewards | Maximum learning rate
+--- | --- | ---
+Hopper | ![](demo/linesearch/generated_dirsmuj_sachopperresultscsvepisode_rewards.png) | ![](demo/linesearch/generated_dirsmuj_sac_searchhopperresultscsvoffset.png)
+Ant | ![](demo/linesearch/generated_dirsmuj_sacantresultscsvepisode_rewards.png) | ![](demo/linesearch/generated_dirsmuj_sac_searchantresultscsvoffset.png)
+HalfCheetah | ![](demo/linesearch/generated_dirsmuj_sachalf_cheetahresultscsvepisode_rewards.png) | ![](demo/linesearch/generated_dirsmuj_sac_searchhalf_cheetahresultscsvoffset.png)
+InvertedDoublePendulum | ![](demo/linesearch/generated_dirsmuj_sacinv_double_pendulumresultscsvepisode_rewards.png) | ![](demo/linesearch/generated_dirsmuj_sac_searchinv_double_pendulumresultscsvoffset.png)
+
+Code to generate the plots with Hopper specifically is:
+
+```
+mkdir train eval_line eval_reward eval_grad
+python scripts/train_agent.py train/hopper 1000000 SB3_OFF InvertedDoublePendulumPyBulletEnv-v0 cuda ' {"ALGO": "SAC", "policy_kwargs": {"net_arch": [256, 256]}}' --save_freq=10000
+python scripts/generate_eval_jobs.py --calc-grad --num-steps=1000000 ./train/hopper/ ./eval_grad/hopper/
+python scripts/grad_search_experiment.py --episode-rewards=200 --device=cpu --tolerance=0.05 ./train/hopper/ ./eval_grad/hopper/  ./eval_line/hopper/
+python scripts/run_jobs_multiproc.py ./eval_line/hopper/jobs.sh
+python scripts/job_results_to_csv.py ./eval_line/hopper/
+python scripts/plot_traj.py  ./eval_line/hopper/results.csv --log-plot
+
+# generate training curve plot
+python scripts/generate_eval_jobs.py --num-episodes=200 ./train/hopper/ ./eval_reward/hopper/
+python scripts/run_jobs_multiproc.py ./eval_reward/hopper/jobs.sh
+python scripts/job_results_to_csv.py ./eval_reward/hopper/
+python scripts/plot_traj.py  ./eval_reward/hopper/results.csv
+```
+
+
 ### Investigating curvature of surfaces
 
 One of the key assumptions of gradient ascent optimization (and most improvements upon it) is convexity. While neural networks are not globally convex, optimization is often dominated by locally convex features, which makes learning efficient despite global non-convexity. One measure of local convexity is to what degree a point has curvature in the wrong direction. To investigate questions about the nature of this non-convexity, the we derived an algorithm to estimate the hessian-vector product. Then standard tools were to estimate the minimum and maximum eigenvalues of the estimate of the hessian. A PDF with formal mathematical derivation is included [here](https://github.com/benblack769/reward-surfaces/raw/master/docs/mathnotes/main.pdf).

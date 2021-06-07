@@ -45,6 +45,8 @@ Note that the average episodic reward is not necessarily the objective, due to d
 
 As you can tell, this plot is very similar, but has a different Y axis, and also is shaped a bit differently, because it is a bit smoother.
 
+
+
 All of the plots are stored [here](https://github.com/benblack769/old-reward-surfaces/tree/main/vis) in the github repo for the old loss landscapes codebase.
 
 ### Visualizing surfaces over training
@@ -56,7 +58,7 @@ To study this, we visualized the landscape over training. To do this, a [thoroug
 
 The following gif visualizes the average return of the HalfCheetah pybullet environment as trained over 1 million timesteps by PPO (using original PPO hyperparameters from paper).
 
-![change over training gif](demo/half_cheetah_ppo_training.gif)
+![change over training gif](https://github.com/benblack769/reward-surfaces/raw/master/demo/half_cheetah_ppo_training.gif)
 
 Code to create gif:
 
@@ -122,10 +124,10 @@ To compare how this metric relates to training, I show the training curve and th
 
 Environment | Episodic Rewards | Maximum learning rate
 --- | --- | ---
-Hopper | ![](demo/linesearch/generated_dirsmuj_sachopperresultscsvepisode_rewards.png) | ![](demo/linesearch/generated_dirsmuj_sac_searchhopperresultscsvoffset.png)
-Ant | ![](demo/linesearch/generated_dirsmuj_sacantresultscsvepisode_rewards.png) | ![](demo/linesearch/generated_dirsmuj_sac_searchantresultscsvoffset.png)
-HalfCheetah | ![](demo/linesearch/generated_dirsmuj_sachalf_cheetahresultscsvepisode_rewards.png) | ![](demo/linesearch/generated_dirsmuj_sac_searchhalf_cheetahresultscsvoffset.png)
-InvertedDoublePendulum | ![](demo/linesearch/generated_dirsmuj_sacinv_double_pendulumresultscsvepisode_rewards.png) | ![](demo/linesearch/generated_dirsmuj_sac_searchinv_double_pendulumresultscsvoffset.png)
+Hopper | ![](https://github.com/benblack769/reward-surfaces/raw/master/demo/linesearch/generated_dirsmuj_sachopperresultscsvepisode_rewards.png) | ![](https://github.com/benblack769/reward-surfaces/raw/master/demo/linesearch/generated_dirsmuj_sac_searchhopperresultscsvoffset.png)
+Ant | ![](https://github.com/benblack769/reward-surfaces/raw/master/demo/linesearch/generated_dirsmuj_sacantresultscsvepisode_rewards.png) | ![](https://github.com/benblack769/reward-surfaces/raw/master/demo/linesearch/generated_dirsmuj_sac_searchantresultscsvoffset.png)
+HalfCheetah | ![](https://github.com/benblack769/reward-surfaces/raw/master/demo/linesearch/generated_dirsmuj_sachalf_cheetahresultscsvepisode_rewards.png) | ![](https://github.com/benblack769/reward-surfaces/raw/master/demo/linesearch/generated_dirsmuj_sac_searchhalf_cheetahresultscsvoffset.png)
+InvertedDoublePendulum | ![](https://github.com/benblack769/reward-surfaces/raw/master/demo/linesearch/generated_dirsmuj_sacinv_double_pendulumresultscsvepisode_rewards.png) | ![](https://github.com/benblack769/reward-surfaces/raw/master/demo/linesearch/generated_dirsmuj_sac_searchinv_double_pendulumresultscsvoffset.png)
 
 Code to generate the plots with Hopper specifically is:
 

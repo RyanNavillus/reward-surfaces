@@ -9,11 +9,11 @@ import json
 import os
 import shutil
 
-trained_checkpoint = "train_results/bullet/hopper/0010000/"
+trained_checkpoint = "train_results/bullet/hopper/0040000/"
 generated_dirs_dir = "generated_dirs/test_script/"
 
-dir1_fname = "generated_dirs/hopper_eig_vecs/results/0010000/mineigvec.npz"
-dir2_fname = "generated_dirs/hopper_eig_vecs/results/0010000/maxeigvec.npz"
+dir1_fname = "generated_dirs/hopper_eig_vecs/results/0040000/mineigvec.npz"
+dir2_fname = "generated_dirs/hopper_eig_vecs/results/0040000/maxeigvec.npz"
 
 dir1 = readz(dir1_fname)
 dir2 = readz(dir2_fname)

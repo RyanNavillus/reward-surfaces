@@ -45,6 +45,32 @@ Note that the average episodic reward is not necessarily the objective, due to d
 
 As you can tell, this plot is very similar, but has a different Y axis, and also is shaped a bit differently, because it is a bit smoother.
 
+Now, in RL, an agent estimates its future value. One interesting question is how does this estimate of its future value change when its policy parameters change randomly? Now, each state has a distict estimate. So in order to plot the parameters vs the estimated value, the value is averaged over all states the agent reaches. In other words, this is the agent's average estimate of its current value. One interesting (but possibly misleading) interpretation is that this is the agent's estimate of its average value. This interpretation is misleading because an RL agent is not trained to estimate its average value, and it is also not typically optimizing its estimate of its average value. None the less, these plots are deeply strange looking.
+
+![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/BeamRiderNoFrameskip-v4a2cmean_est_values_%3C17%2C17%3E_50_10000_3dsurface.png)
+
+
+A table of these plots for various environments trained with A2C is shown below:
+
+Environment | Averate Total Episodic Return | Mean Return | Mean estimate of value
+--- | --- | --- | ---
+Beam rider (shown above) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/BeamRiderNoFrameskip-v4a2ctrue_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/BeamRiderNoFrameskip-v4a2cmean_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/BeamRiderNoFrameskip-v4a2cmean_est_values_%3C17%2C17%3E_50_10000_3dsurface.png)
+Breakout | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/BreakoutNoFrameskip-v4a2ctrue_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/BreakoutNoFrameskip-v4a2cmean_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/BreakoutNoFrameskip-v4a2cmean_est_values_%3C17%2C17%3E_50_10000_3dsurface.png)
+Enduro | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/EnduroNoFrameskip-v4a2ctrue_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/EnduroNoFrameskip-v4a2ctrue_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/EnduroNoFrameskip-v4a2cmean_est_values_%3C17%2C17%3E_50_10000_3dsurface.png)
+MsPacman | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/MsPacmanNoFrameskip-v4a2ctrue_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/MsPacmanNoFrameskip-v4a2cmean_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/MsPacmanNoFrameskip-v4a2cmean_est_values_%3C17%2C17%3E_50_10000_3dsurface.png)
+Pong | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/PongNoFrameskip-v4a2ctrue_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/PongNoFrameskip-v4a2cmean_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/PongNoFrameskip-v4a2cmean_est_values_%3C17%2C17%3E_50_10000_3dsurface.png)
+
+And the same environments, but trained with PPO:
+
+Environment | Averate Total Episodic Return | Mean Return | Mean estimate of value
+--- | --- | --- | ---
+Beam rider (shown above) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/BeamRiderNoFrameskip-v4ppo2true_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/BeamRiderNoFrameskip-v4ppo2mean_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/BeamRiderNoFrameskip-v4ppo2mean_est_values_%3C17%2C17%3E_50_10000_3dsurface.png)
+Breakout | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/BreakoutNoFrameskip-v4ppo2true_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/BreakoutNoFrameskip-v4ppo2mean_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/BreakoutNoFrameskip-v4ppo2mean_est_values_%3C17%2C17%3E_50_10000_3dsurface.png)
+Enduro | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/EnduroNoFrameskip-v4ppo2true_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/EnduroNoFrameskip-v4ppo2true_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/EnduroNoFrameskip-v4ppo2mean_est_values_%3C17%2C17%3E_50_10000_3dsurface.png)
+MsPacman | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/MsPacmanNoFrameskip-v4ppo2true_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/MsPacmanNoFrameskip-v4ppo2mean_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/MsPacmanNoFrameskip-v4ppo2mean_est_values_%3C17%2C17%3E_50_10000_3dsurface.png)
+Pong | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/PongNoFrameskip-v4ppo2true_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/PongNoFrameskip-v4ppo2mean_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/PongNoFrameskip-v4ppo2mean_est_values_%3C17%2C17%3E_50_10000_3dsurface.png)
+
+Interestingly, in the two tables above, even though one is trained with PPO, and the other with A2C, which have slightly different objectives and learning dynamics, the broad shape of the reward surface is similar (with the notable exception of Enduro, which suffered from policy collapse when training on Enduro with A2C).
 
 
 All of the plots are stored [here](https://github.com/benblack769/old-reward-surfaces/tree/main/vis) in the github repo for the old loss landscapes codebase.
@@ -75,9 +101,9 @@ While interesting, this gif was very expensive to compute (about a CPU year, or 
 
 So another visualization was created that plots a random direction on one axis and the time across another.
 
-For example, below is InvertedDoublePendulumPyBulletEnv environment trained with SAC over its 1 million training steps and showing different random directions at each time step.
+For example, below is InvertedDoublePendulumPyBulletEnv environment trained with SAC over its 1 million training steps and showing different random directions at each time step (ignore the part of the image where it says "Gradient step size". That should be "Random offset").
 
-![rand directions inv inv_double_pendulum](https://github.com/benblack769/reward-surfaces/raw/master/demo/inv_double_pendulum_lines.png)
+![rand directions inv inv_double_pendulum](https://github.com/benblack769/reward-surfaces/raw/master/demo/muj_sac_line_rand_l/inv_double_pendulum.png)
 
 Code to generate this plot:
 
@@ -91,6 +117,15 @@ python scripts/plot_eval_line_segement.py eval_line/inv_double_pendulum/results.
 ```
 
 This plot shows that some directions at some points in training are very sensitive to noise. We know this because the plot shows that movement in some random directions will result in a striking decrease in performance. This is a strong argument for trust region based methods, which keep performance from falling too far in a single update.
+
+However, other environments give very different looking results in this experiment:
+
+Environment | Plot | Notable features
+--- | --- | ---
+InvertedDoublePendulum (above) | ![](https://github.com/benblack769/reward-surfaces/raw/master/demo/muj_sac_line_rand_l/inv_double_pendulum.png) | Sudden dropoffs encountered in a mostly flat surface.
+Ant | ![](https://github.com/benblack769/reward-surfaces/raw/master/demo/muj_sac_line_rand_l/ant.png) | Moving in random directions does not lead to clear gains or losses, rather the landscape is dominated by small wiggles in performance. This might make training difficult as there may be lots of local "canyons" in the optimization surface.
+Hopper | ![](https://github.com/benblack769/reward-surfaces/raw/master/demo/muj_sac_line_rand_l/hopper.png) | Hopper becomes more sensitive to noise as training continues. This indicates the development of an increasingly fragile policy.
+
 
 ### Investigating the gradient direction
 
@@ -109,6 +144,36 @@ Here is a plot of the surface of the Hopper environment trained for 32000 timest
 Interestingly, while the gradient direction is the fastest direction to improve performance from the center, as expected, the absolute best direction is not in the direction of the gradient, because traveling too far in the gradient direction results in a steep dropoff in performance.
 
 Code to generate this plot, and many others is in [this ipython notebook](https://github.com/benblack769/reward-surfaces/blob/master/demo/optimization_issues_rand.ipynb).
+
+
+In order to more easily see how this gradient direction changes over training, we used the earlier visualization of direction vs training time, except this uses the unnormalized gradient.
+
+For example, below is InvertedDoublePendulumPyBulletEnv environment trained with SAC over its 1 million training steps and showing the gradient direction at each time step. Note that at different timesteps, the surface, and therefore the gradient direction, will be differnet.
+
+![rand directions inv inv_double_pendulum](https://github.com/benblack769/reward-surfaces/raw/master/demo/muj_sac_line_sl/inv_double_pendulum.png)
+
+Code to generate this plot:
+
+```
+mkdir train eval_line eval_grad
+python scripts/train_agent.py train/inv_double_pendulum 1000000 SB3_OFF InvertedDoublePendulumPyBulletEnv-v0 cuda ' {"ALGO": "SAC", "policy_kwargs": {"net_arch": [256, 256]}}' --save_freq=10000
+python scripts/generate_eval_jobs.py --calc-grad --num-steps=1000000 ./train/inv_double_pendulum/ ./eval_grad/inv_double_pendulum/
+python scripts/eval_line_segment.py train/inv_double_pendulum/ ./eval_grad/inv_double_pendulum/ eval_line/inv_double_pendulum/ --num-episodes=50 --device=cpu --length=15 --max-magnitude=1.0 --scale-dir
+python scripts/run_jobs_multiproc.py eval_line/inv_double_pendulum/jobs.sh
+python scripts/job_results_to_csv.py eval_line/inv_double_pendulum/
+python scripts/plot_eval_line_segement.py eval_line/inv_double_pendulum/results.csv inv_double_pendulum_lines.png
+```
+
+This plot shows that updating in the gradient direction can be dangerous as well as beneficial. If a gradient update goes too far in the wrong part of the surface, there can be a catastrophic collapse in performance.
+
+Other environments give very different looking results in this experiment:
+
+Environment | Plot | Notable features
+--- | --- | ---
+InvertedDoublePendulum (above) | ![](https://github.com/benblack769/reward-surfaces/raw/master/demo/muj_sac_line_sl/inv_double_pendulum.png) | Sudden dropoffs encountered in a mostly flat surface.
+Ant | ![](https://github.com/benblack769/reward-surfaces/raw/master/demo/muj_sac_line_sl/ant.png) | Moving in the gradient direction does not lead to clear gains or losses (after the initial gains), rather the landscape is dominated by small wiggles in performance. This might make training
+Hopper | ![](https://github.com/benblack769/reward-surfaces/raw/master/demo/muj_sac_line_sl/hopper.png) | Sudden droppoff, smooth droppoffs, and no dropoffs are all present.
+
 
 
 ### Sharp edges in reward surface

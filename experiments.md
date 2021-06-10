@@ -45,20 +45,21 @@ Note that the average episodic reward is not necessarily the objective, due to d
 
 As you can tell, this plot is very similar, but has a different Y axis, and also is shaped a bit differently, because it is a bit smoother.
 
+<!--
 Now, in RL, an agent estimates its future value. One interesting question is how does this estimate of its future value change when its policy parameters change randomly? Now, each state has a distict estimate. So in order to plot the parameters vs the estimated value, the value is averaged over all states the agent reaches. In other words, this is the agent's average estimate of its current value. One interesting (but possibly misleading) interpretation is that this is the agent's estimate of its average value. This interpretation is misleading because an RL agent is not trained to estimate its average value, and it is also not typically optimizing its estimate of its average value. None the less, these plots are deeply strange looking.
 
 ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/BeamRiderNoFrameskip-v4a2cmean_est_values_%3C17%2C17%3E_50_10000_3dsurface.png)
-
+-->
 
 A table of these plots for various environments trained with A2C is shown below:
 
-Environment | Averate Total Episodic Return | Mean Return | Mean estimate of value
---- | --- | --- | ---
-Beam rider (shown above) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/BeamRiderNoFrameskip-v4a2ctrue_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/BeamRiderNoFrameskip-v4a2cmean_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/BeamRiderNoFrameskip-v4a2cmean_est_values_%3C17%2C17%3E_50_10000_3dsurface.png)
-Breakout | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/BreakoutNoFrameskip-v4a2ctrue_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/BreakoutNoFrameskip-v4a2cmean_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/BreakoutNoFrameskip-v4a2cmean_est_values_%3C17%2C17%3E_50_10000_3dsurface.png)
-Enduro | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/EnduroNoFrameskip-v4a2ctrue_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/EnduroNoFrameskip-v4a2ctrue_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/EnduroNoFrameskip-v4a2cmean_est_values_%3C17%2C17%3E_50_10000_3dsurface.png)
-MsPacman | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/MsPacmanNoFrameskip-v4a2ctrue_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/MsPacmanNoFrameskip-v4a2cmean_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/MsPacmanNoFrameskip-v4a2cmean_est_values_%3C17%2C17%3E_50_10000_3dsurface.png)
-Pong | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/PongNoFrameskip-v4a2ctrue_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/PongNoFrameskip-v4a2cmean_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/PongNoFrameskip-v4a2cmean_est_values_%3C17%2C17%3E_50_10000_3dsurface.png)
+Environment | Averate Total Episodic Return | Mean Return
+--- | --- | ---
+Beam rider (shown above) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/BeamRiderNoFrameskip-v4a2ctrue_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/BeamRiderNoFrameskip-v4a2cmean_values_%3C17%2C17%3E_50_10000_3dsurface.png)
+Breakout | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/BreakoutNoFrameskip-v4a2ctrue_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/BreakoutNoFrameskip-v4a2cmean_values_%3C17%2C17%3E_50_10000_3dsurface.png)
+Enduro | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/EnduroNoFrameskip-v4a2ctrue_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/EnduroNoFrameskip-v4a2ctrue_values_%3C17%2C17%3E_50_10000_3dsurface.png)
+MsPacman | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/MsPacmanNoFrameskip-v4a2ctrue_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/MsPacmanNoFrameskip-v4a2cmean_values_%3C17%2C17%3E_50_10000_3dsurface.png)
+Pong | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/PongNoFrameskip-v4a2ctrue_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/PongNoFrameskip-v4a2cmean_values_%3C17%2C17%3E_50_10000_3dsurface.png)
 
 And the same environments, but trained with PPO:
 

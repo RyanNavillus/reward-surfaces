@@ -234,12 +234,31 @@ python scripts/job_results_to_csv.py ./hopper_eig_vecs_plane/
 python scripts/plot_plane.py ./hopper_eig_vecs_plane/results.csv --outname=curvature_plot.png
 ```
 
+### Estimating the local curvature of RL objective surfaces
 
+One question of interest is to what degree are these locally non-convex surfaces are present in reward surfaces during training. If we can measure this local non-convexity, then perhaps we can correlate this measure with learning behavior. If there is some strong connection between local non-convexity and learning behavior, then that could inspire some better RL methods for dealing with the problem of local non-convexity.
 
+First, we need a metric for local non-convexity. The Loss Landscapes paper suggests such a metric in "A note of caution: Are we really seeing convexity?".
+This metric is very simple. An optimization surface is locally convex if it is curved upwards in every direction, i.e. all the eigenvalues of the hessian are non-negative. Negative eigenvalues are indicative of concavity, or non-convexity. Note that typically, optimization is dominated by the largest magnitude eigenvalues.
 
+This intuition inspires the following metric of non-convexity:
 
+$$ \text{Local Non-convexity} = -\tfrac{\max(0,e_\min)}{e_\max}) $$
 
+Where $e_\min$ and $e_\max$ are the minimum and maximum eigenvalues of the Hessian.
 
+Note that since RL is a maximization problem, as opposed to a minimization problem, this ratio measures convexity, not non-convexity. So higher values are better.
+
+$$ \text{Local Convexity for RL} = -\tfrac{e_\max}{e_\min}) $$
+
+In the plots below, the X axis is training steps. The Y axis on the episodic reward plots is episodic reward. The Y axis on the convexity plots is convexity.
+
+Environment | Episodic reward over training | Convexity over training
+--- | --- | ---
+Ant | ![](demo/eig_vals/generated_dirsbullet_evalant_resultscsv.png) | ![](demo/eig_vals/generated_dirsant_calc_heshresultscsv.png)
+Hopper | ![](demo/eig_vals/generated_dirsbullet_evalhopper_resultscsv.png) | ![](demo/eig_vals/generated_dirshopper_calc_heshresultscsv.png)
+Half Cheetah | ![](demo/eig_vals/generated_dirsbullet_evalhalf_cheetah_resultscsv.png) | ![](demo/eig_vals/generated_dirshalf_cheetah_calc_heshresultscsv.png)
+Humanoid | ![](demo/eig_vals/generated_dirsbullet_evalhumanoid_resultscsv.png) | ![](demo/eig_vals/generated_dirshumanoid_calc_heshresultscsv.png)
 
 
 

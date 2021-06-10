@@ -236,7 +236,7 @@ python scripts/plot_plane.py ./hopper_eig_vecs_plane/results.csv --outname=curva
 
 ### Estimating the local curvature of RL objective surfaces
 
-One question of interest is to what degree are these locally non-convex surfaces are present in reward surfaces during training. If we can measure this local non-convexity, then perhaps we can correlate this measure with learning behavior. If there is some strong connection between local non-convexity and learning behavior, then that could inspire some better RL methods for dealing with the problem of local non-convexity.
+One question of interest is to what degree are these locally non-convex surfaces are present in reward surfaces during training. If we can measure this local non-convexity, then perhaps we can correlate this measure with learning behavior. If there is some strong connection between local non-convexity and learning behavior, then that could inspire some better RL methods for dealing with the problem of local non-convexity, or for better exploiting convexity when it is present.
 
 First, we need a metric for local non-convexity. The Loss Landscapes paper suggests such a metric in "A note of caution: Are we really seeing convexity?".
 This metric is very simple. An optimization surface is locally convex if it is curved upwards in every direction, i.e. all the eigenvalues of the hessian are non-negative. Negative eigenvalues are indicative of concavity, or non-convexity. Note that typically, optimization is dominated by the largest magnitude eigenvalues.
@@ -250,6 +250,8 @@ Where $e_\min$ and $e_\max$ are the minimum and maximum eigenvalues of the Hessi
 Note that since RL is a maximization problem, as opposed to a minimization problem, this ratio measures convexity, not non-convexity. So higher values are better.
 
 $$ \text{Local Convexity for RL} = -\tfrac{e_\max}{e_\min}) $$
+
+Unfortunately, estimating the eigenvalues of the Hessian as described in section 4 of the [derivation document](https://github.com/benblack769/reward-surfaces/raw/master/docs/mathnotes/main.pdf) is a noisy, and not necessarily unbiased process (the hessian estimation is unbiased, but not the eigenvalue estimation). This means that sampling eigenvalues multiple times may not lead to convergence to the true eigenvalues. It also means that error bounds on the eigenvalue estimates are hard to generate. So specific values of the plots below should be taken with a grain of salt. However, broad trends in the plots most likely are not due to algorithmic bias, but due to real changes in the optimization surface.
 
 In the plots below, the X axis is training steps. The Y axis on the episodic reward plots is episodic reward. The Y axis on the convexity plots is convexity.
 

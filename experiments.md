@@ -64,7 +64,7 @@ Pong | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/Po
 And the same environments, but trained with PPO:
 
 Environment | Averate Total Episodic Return | Mean Return
---- | --- | --- 
+--- | --- | ---
 Beam rider (shown above) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/BeamRiderNoFrameskip-v4ppo2true_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/BeamRiderNoFrameskip-v4ppo2mean_values_%3C17%2C17%3E_50_10000_3dsurface.png)
 Breakout | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/BreakoutNoFrameskip-v4ppo2true_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/BreakoutNoFrameskip-v4ppo2mean_values_%3C17%2C17%3E_50_10000_3dsurface.png)
 Enduro | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/EnduroNoFrameskip-v4ppo2true_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/EnduroNoFrameskip-v4ppo2true_values_%3C17%2C17%3E_50_10000_3dsurface.png)
@@ -204,7 +204,7 @@ python scripts/generate_eval_jobs.py --calc-grad --num-steps=1000000 ./train/hop
 python scripts/grad_search_experiment.py --episode-rewards=200 --device=cpu --tolerance=0.05 ./train/hopper/ ./eval_grad/hopper/  ./eval_line/hopper/
 python scripts/run_jobs_multiproc.py ./eval_line/hopper/jobs.sh
 python scripts/job_results_to_csv.py ./eval_line/hopper/
-python scripts/plot_traj.py  ./eval_line/hopper/results.csv --log-plot
+python scripts/plot_traj.py  ./eval_line/hopper/results.csv --log-plot --key=offset
 
 # generate training curve plot
 python scripts/generate_eval_jobs.py --num-episodes=200 ./train/hopper/ ./eval_reward/hopper/
@@ -263,8 +263,15 @@ Hopper | ![](demo/eig_vals/generated_dirsbullet_evalhopper_resultscsv.png) | ![]
 Half Cheetah | ![](demo/eig_vals/generated_dirsbullet_evalhalf_cheetah_resultscsv.png) | ![](demo/eig_vals/generated_dirshalf_cheetah_calc_heshresultscsv.png)
 Humanoid | ![](demo/eig_vals/generated_dirsbullet_evalhumanoid_resultscsv.png) | ![](demo/eig_vals/generated_dirshumanoid_calc_heshresultscsv.png)
 
+Code to generate the convexity plot for the Hopper environment is:
 
-
+```
+python scripts/train_agent.py ./hopper_checkpoints 1000000 SB3_ON HopperPyBulletEnv-v0 cpu '{"ALGO": "PPO", "num_envs": 1, "n_epochs": 1, "gamma": 0.99, "gae_lambda": 0.95, "clip_range": 0.2, "ent_coef": 0.0, "vf_coef": 0.5, "max_grad_norm": 0.5, "learning_rate": 0.0003, "batch_size": 64}' --save_freq=10000
+python scripts/generate_eval_jobs.py --calc-hesh --num-steps=900000 ./hopper_checkpoints/ ./hopper_eig_vals/
+python scripts/run_jobs_multiproc.py ./hopper_eig_vals/jobs.sh
+python scripts/job_results_to_csv.py ./hopper_eig_vals/
+python scripts/plot_traj.py  ./hopper_eig_vals/results.csv --key=ratio
+```
 
 
 

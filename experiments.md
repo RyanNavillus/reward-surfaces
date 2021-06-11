@@ -53,7 +53,7 @@ Now, in RL, an agent estimates its future value. One interesting question is how
 
 A table of these plots for various environments trained with A2C is shown below:
 
-Environment | Averate Total Episodic Return | Mean Return
+Environment | Average Total Episodic Return | Mean Return
 --- | --- | ---
 Beam rider (shown above) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/BeamRiderNoFrameskip-v4a2ctrue_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/BeamRiderNoFrameskip-v4a2cmean_values_%3C17%2C17%3E_50_10000_3dsurface.png)
 Breakout | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/BreakoutNoFrameskip-v4a2ctrue_values_%3C17%2C17%3E_50_10000_3dsurface.png) | ![arg](https://github.com/benblack769/old-reward-surfaces/raw/main/vis/BreakoutNoFrameskip-v4a2cmean_values_%3C17%2C17%3E_50_10000_3dsurface.png)
@@ -258,10 +258,10 @@ In the plots below, the X axis is training steps. The Y axis on the episodic rew
 
 Environment | Episodic reward over training | Convexity over training
 --- | --- | ---
-Ant | ![](demo/eig_vals/generated_dirsbullet_evalant_resultscsv.png) | ![](demo/eig_vals/generated_dirsant_calc_heshresultscsv.png)
-Hopper | ![](demo/eig_vals/generated_dirsbullet_evalhopper_resultscsv.png) | ![](demo/eig_vals/generated_dirshopper_calc_heshresultscsv.png)
-Half Cheetah | ![](demo/eig_vals/generated_dirsbullet_evalhalf_cheetah_resultscsv.png) | ![](demo/eig_vals/generated_dirshalf_cheetah_calc_heshresultscsv.png)
-Humanoid | ![](demo/eig_vals/generated_dirsbullet_evalhumanoid_resultscsv.png) | ![](demo/eig_vals/generated_dirshumanoid_calc_heshresultscsv.png)
+Ant | ![](https://github.com/benblack769/reward-surfaces/raw/master/demo/eig_vals/generated_dirsbullet_evalant_resultscsv.png) | ![](https://github.com/benblack769/reward-surfaces/raw/master/demo/eig_vals/generated_dirsant_calc_heshresultscsv.png)
+Hopper | ![](https://github.com/benblack769/reward-surfaces/raw/master/demo/eig_vals/generated_dirsbullet_evalhopper_resultscsv.png) | ![](https://github.com/benblack769/reward-surfaces/raw/master/demo/eig_vals/generated_dirshopper_calc_heshresultscsv.png)
+Half Cheetah | ![](https://github.com/benblack769/reward-surfaces/raw/master/demo/eig_vals/generated_dirsbullet_evalhalf_cheetah_resultscsv.png) | ![](https://github.com/benblack769/reward-surfaces/raw/master/demo/eig_vals/generated_dirshalf_cheetah_calc_heshresultscsv.png)
+Humanoid | ![](https://github.com/benblack769/reward-surfaces/raw/master/demo/eig_vals/generated_dirsbullet_evalhumanoid_resultscsv.png) | ![](https://github.com/benblack769/reward-surfaces/raw/master/demo/eig_vals/generated_dirshumanoid_calc_heshresultscsv.png)
 
 Code to generate the convexity plot for the Hopper environment is:
 

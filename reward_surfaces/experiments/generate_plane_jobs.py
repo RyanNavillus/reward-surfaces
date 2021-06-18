@@ -10,21 +10,20 @@ from reward_surfaces.utils.surface_utils import readz
 from reward_surfaces.utils.path_utils import strip_lagging_slash
 
 
-def generate_plane_data(
-    checkpoint_dir,
-    output_path,
-    dir1_vec,
-    dir2_vec,
-    info,
-    grid_size=5,
-    num_steps=None,
-    num_episodes=None,
-    device="cpu",
-    use_offset_critic=False,
-    est_hesh=False,
-    est_grad=False,
-    calc_hesh=False,
-    calc_grad=False):
+def generate_plane_data(checkpoint_dir,
+                        output_path,
+                        dir1_vec,
+                        dir2_vec,
+                        info,
+                        grid_size=5,
+                        num_steps=None,
+                        num_episodes=None,
+                        device="cpu",
+                        use_offset_critic=False,
+                        est_hesh=False,
+                        est_grad=False,
+                        calc_hesh=False,
+                        calc_grad=False):
 
     assert isinstance(dir1_vec, list) and isinstance(dir1_vec[0], np.ndarray), "dir1 and dir2 must be a list of numpy vectors. Use `from surface_utils import readz; readz(fname)` to read a numpy vector into this format"
     assert isinstance(dir2_vec, list) and isinstance(dir2_vec[0], np.ndarray), "dir1 and dir2 must be a list of numpy vectors. Use `from surface_utils import readz; readz(fname)` to read a numpy vector into this format"

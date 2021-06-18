@@ -1,23 +1,16 @@
-import argparse
-from reward_surfaces.agents import make_agent
-import torch
 import json
 import os
-import shutil
 from pathlib import Path
-import numpy as np
-from reward_surfaces.utils.path_utils import strip_lagging_slash
 
 
 def generate_eval_jobs(train_dir, out_dir,
-        num_steps=None,
-        num_episodes=None,
-        est_hesh=False,
-        est_grad=False,
-        calc_hesh=False,
-        calc_grad=False,
-        device="cpu"
-        ):
+                       num_steps=None,
+                       num_episodes=None,
+                       est_hesh=False,
+                       est_grad=False,
+                       calc_hesh=False,
+                       calc_grad=False,
+                       device="cpu"):
     assert not (est_hesh and calc_hesh), "calculating and estimating hessian cannot happen at the same time"
     assert num_steps is not None or num_episodes is not None, "one of num_steps or num_episodes must be specified"
     if num_steps is None:
@@ -27,12 +20,12 @@ def generate_eval_jobs(train_dir, out_dir,
 
     train_dir = Path(train_dir)
     out_dir = Path(out_dir)
+    # TODO: Should we set exist_ok=True?
     os.makedirs(out_dir / "results")
 
     info_fname = "info.json"
     info = json.load(open((train_dir / info_fname)))
 
-    device = device
     info['num_episodes'] = num_episodes
     info['num_steps'] = num_steps
     info['est_hesh'] = est_hesh
@@ -40,7 +33,7 @@ def generate_eval_jobs(train_dir, out_dir,
     info['calc_hesh'] = calc_hesh
     info['calc_grad'] = calc_grad
 
-    json.dump(info, open((out_dir / info_fname),'w'), indent=4)
+    json.dump(info, open((out_dir / info_fname), 'w'), indent=4)
 
     checkpoints = [dir for dir in os.listdir(train_dir) if os.path.isdir(train_dir / dir) and dir.isdigit()]
     all_jobs = []
@@ -49,4 +42,4 @@ def generate_eval_jobs(train_dir, out_dir,
         all_jobs.append(job)
 
     jobs = "\n".join(all_jobs)+"\n"
-    open((out_dir / "jobs.sh"),'w').write(jobs)
+    open((out_dir / "jobs.sh"), 'w').write(jobs)

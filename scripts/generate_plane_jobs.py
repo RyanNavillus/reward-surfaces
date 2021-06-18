@@ -1,20 +1,18 @@
 import argparse
 from reward_surfaces.agents.make_agent import make_agent
-import torch
 import json
 import os
-import shutil
 from pathlib import Path
-import numpy as np
-from reward_surfaces.utils.surface_utils import readz, filter_normalized_params
+from reward_surfaces.utils.surface_utils import readz, filter_normalized_params, scale_dir
 from reward_surfaces.utils.path_utils import strip_lagging_slash
 from reward_surfaces.experiments import generate_plane_data
+
 
 def find_unscaled_alts(agent, method):
     if method == "filter":
         return filter_normalized_params(agent)
     elif method == "fischer":
-        raise NotImplemenetedError()
+        raise NotImplementedError()
     else:
         raise ValueError(f"bad directions argument {method}, must be 'filter' or `fischer`")
 
@@ -55,7 +53,7 @@ def main():
     agent = make_agent(info['agent_name'], info['env'], device, info['hyperparameters'])
     agent.load_weights(checkpoint_path)
 
-    # generate directions normally
+    # Generate directions normally
     dir1_vec, dir2_vec = find_unscaled_alts(agent, args.directions)
 
     # copy directions
@@ -82,18 +80,16 @@ def main():
 
     info['directions'] = args.directions if args.copy_directions is None else "copy"
 
-
     generate_plane_data(args.checkpoint_dir, args.output_path, dir1_vec, dir2_vec, info,
-        grid_size=args.grid_size,
-        num_steps=args.num_steps,
-        num_episodes=args.num_episodes,
-        device=args.device,
-        use_offset_critic=args.use_offset_critic,
-        est_hesh=args.est_hesh,
-        est_grad=args.est_grad,
-        calc_hesh=args.calc_hesh,
-        calc_grad=args.calc_grad,
-    )
+                        grid_size=args.grid_size,
+                        num_steps=args.num_steps,
+                        num_episodes=args.num_episodes,
+                        device=args.device,
+                        use_offset_critic=args.use_offset_critic,
+                        est_hesh=args.est_hesh,
+                        est_grad=args.est_grad,
+                        calc_hesh=args.calc_hesh,
+                        calc_grad=args.calc_grad)
 
 
 if __name__ == "__main__":

@@ -1,18 +1,16 @@
 import os
+import torch
+import argparse
+import json
+import numpy as np
+import pathlib
+from reward_surfaces.agents import make_agent
+from reward_surfaces.utils.compute_results import save_results
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 os.environ['MKL_NUM_THREADS'] = '1'
 os.environ['NUMEXPR_NUM_THREADS'] = '1'
 os.environ['OMP_NUM_THREADS'] = '1'
-import torch
-import argparse
-from reward_surfaces.agents import make_agent
-import torch
 torch.set_num_threads(1)
-import json
-import shutil
-import numpy as np
-import pathlib
-from reward_surfaces.utils.compute_results import save_results
 
 
 def main():
@@ -65,7 +63,6 @@ def main():
         "dim1": offset2_scalar,
     }
     save_results(agent, info, base_source_path, cur_results, job_name)
-
 
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def readz(fname):
     outvecs = []
     with np.load(fname) as data:
@@ -7,11 +8,12 @@ def readz(fname):
             outvecs.append(data[item])
     return outvecs
 
-def scale_dir(dir, scale):
+
+def scale_dir(direction, scale):
     try:
-        return [d * s for d,s in zip(dir, scale)]
+        return [d * s for d, s in zip(direction, scale)]
     except TypeError:
-        return [d * scale for d in dir]
+        return [d * scale for d in direction]
 
 
 def filter_normalize(param):
@@ -21,15 +23,15 @@ def filter_normalize(param):
         # don't do any random direction for scalars
         return np.zeros_like(param)
     elif ndims == 2:
-        dir = np.random.normal(size=param.shape)
-        dir /= np.sqrt(np.sum(np.square(dir),axis=0,keepdims=True))
-        dir *= np.sqrt(np.sum(np.square(param),axis=0,keepdims=True))
-        return dir
+        direction = np.random.normal(size=param.shape)
+        direction /= np.sqrt(np.sum(np.square(direction), axis=0, keepdims=True))
+        direction *= np.sqrt(np.sum(np.square(param), axis=0, keepdims=True))
+        return direction
     elif ndims == 4:
-        dir = np.random.normal(size=param.shape)
-        dir /= np.sqrt(np.sum(np.square(dir),axis=(0,1,2),keepdims=True))
-        dir *= np.sqrt(np.sum(np.square(param),axis=(0,1,2),keepdims=True))
-        return dir
+        direction = np.random.normal(size=param.shape)
+        direction /= np.sqrt(np.sum(np.square(direction), axis=(0, 1, 2), keepdims=True))
+        direction *= np.sqrt(np.sum(np.square(param), axis=(0, 1, 2), keepdims=True))
+        return direction
     else:
         assert False, "only 1, 2, 4 dimentional filters allowed, got {}".format(param.shape)
 

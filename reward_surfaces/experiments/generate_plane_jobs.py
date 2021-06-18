@@ -61,7 +61,7 @@ def generate_plane_data(checkpoint_dir,
     info['est_grad'] = est_grad
     info['calc_grad'] = calc_grad
 
-    json.dump(info, open((output_path / info_fname),'w'), indent=4)
+    json.dump(info, open((output_path / info_fname), 'w'), indent=4)
 
     job_out_path = os.mkdir((output_path / "results"))
     seperate_eval_arg = " --use_offset_critic " if use_offset_critic else ""
@@ -76,4 +76,4 @@ def generate_plane_data(checkpoint_dir,
             job_list.append(job)
 
     jobs = "\n".join(job_list)+"\n"
-    open((output_path / "jobs.sh"),'w').write(jobs)
+    open((output_path / "jobs.sh"), 'w').write(jobs)

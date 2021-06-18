@@ -50,7 +50,6 @@ def main():
     if args.offset2 is not None:
         offset2_data = np.load(base_source_path / "dir2.npz")
         offset2_scalar = args.offset2 / (info['grid_size']//2)
-        print(offset2_scalar)
         # agent_weights += [off * args.offset2 / (info['grid_size']//2) for off in offset2_data.values()]
         for a_weight, off in zip(agent_weights, offset2_data.values()):
             a_weight += off * offset2_scalar

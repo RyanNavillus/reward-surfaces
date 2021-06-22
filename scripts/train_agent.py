@@ -1,4 +1,7 @@
 import argparse
+import sys
+print(sys.path)
+import reward_surfaces
 from reward_surfaces.agents.make_agent import make_agent
 import torch
 import json

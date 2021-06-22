@@ -1,0 +1,31 @@
+{
+    "agent_name": "SB3_ON",
+    "env": "HalfCheetahPyBulletEnv-v0",
+    "hyperparameters": {
+        "ALGO": "PPO",
+        "num_envs": 1,
+        "n_epochs": 1,
+        "gamma": 0.99,
+        "gae_lambda": 0.95,
+        "clip_range": 0.2,
+        "ent_coef": 0.0,
+        "vf_coef": 0.5,
+        "max_grad_norm": 0.5,
+        "learning_rate": 0.0003,
+        "batch_size": 64
+    },
+    "dir1": "./halfcheetah_eig_vecs/results/1000000/maxeigvec.npz",
+    "dir2": "./halfcheetah_eig_vecs/results/1000000/mineigvec.npz",
+    "magnitude": 1.0,
+    "directions": "filter",
+    "experiment_type": "plane",
+    "checkpoint_dir": "halfcheetah_checkpoints/1000000",
+    "grid_size": 31,
+    "num_episodes": 10000000000000,
+    "num_steps": 200000,
+    "device": "cpu",
+    "calc_hesh": false,
+    "est_hesh": false,
+    "est_grad": false,
+    "calc_grad": false
+}

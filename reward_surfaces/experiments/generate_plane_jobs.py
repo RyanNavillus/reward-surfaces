@@ -71,7 +71,7 @@ def generate_plane_data(checkpoint_dir,
         for j in range(grid_size):
             x = i - grid_size // 2
             y = j - grid_size // 2
-            job = f"python -m reward_surfaces.bin.eval_plane_job {output_path} --offset1={x}  --offset2={y} {seperate_eval_arg}"
+            job = f"python3 -m reward_surfaces.bin.eval_plane_job {output_path} --offset1={x}  --offset2={y} {seperate_eval_arg}"
             #print(job)
             job_list.append(job)
 

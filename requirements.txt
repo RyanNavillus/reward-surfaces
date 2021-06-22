@@ -6,3 +6,4 @@ torch
 tqdm
 seaborn
 h5py
+pathlib

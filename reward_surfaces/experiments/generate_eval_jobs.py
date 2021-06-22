@@ -38,7 +38,7 @@ def generate_eval_jobs(train_dir, out_dir,
     checkpoints = [dir for dir in os.listdir(train_dir) if os.path.isdir(train_dir / dir) and dir.isdigit()]
     all_jobs = []
     for checkpoint in checkpoints:
-        job = f"python -m reward_surfaces.bin.eval_tradj {train_dir} {checkpoint} {out_dir} --device={device}"
+        job = f"python3 -m reward_surfaces.bin.eval_tradj {train_dir} {checkpoint} {out_dir} --device={device}"
         all_jobs.append(job)
 
     jobs = "\n".join(all_jobs)+"\n"

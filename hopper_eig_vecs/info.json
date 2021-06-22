@@ -15,7 +15,7 @@
         "batch_size": 64
     },
     "num_episodes": 10000000000000,
-    "num_steps": 1000000,
+    "num_steps": 1000,
     "est_hesh": false,
     "est_grad": false,
     "calc_hesh": true,

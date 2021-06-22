@@ -65,6 +65,32 @@ def plot_2d_contour(x_coords, y_coords, z_values, base_name, vmin=0.1, vmax=10, 
         surf = ax.plot_surface(X, Y, Z, cmap=cm.coolwarm, linewidth=0, antialiased=False)
         ax.plot([0.], [0.], [vmax], markerfacecolor='k', markeredgecolor='k', marker='o', markersize=5, alpha=1.0)
         ax.plot([0.], [0.], [vmin], markerfacecolor='k', markeredgecolor='k', marker='o', markersize=5, alpha=1.0)
+
+        def get_axes(tick_count, scale):
+            ticks = []
+            tick_labels = []
+            tick_rate = float(1) / (tick_count // 2)
+            label_rate = float(scale) / (tick_count // 2)
+            current_tick = float(-1)
+            current_label = float(-scale)
+            for i in range(tick_count):
+                if current_label < 0.000001 and current_label > -0.000001:
+                    ticks.append(0)
+                    tick_labels.append(0)
+                else:
+                    ticks.append(current_tick)
+                    tick_labels.append(current_label)
+                current_tick += tick_rate
+                current_label += label_rate
+            return ticks, tick_labels
+
+        print(get_axes(9, dir1_scale))
+        x_ticks, x_labels = get_axes(9, dir1_scale)
+        y_ticks, y_labels = get_axes(9, dir2_scale)
+        ax.set_xticks(x_ticks)
+        ax.set_yticks(y_ticks)
+        ax.set_xticklabels(x_labels)
+        ax.set_yticklabels(y_labels)
         print(vmin, vmax)
         fig.colorbar(surf, shrink=0.5, aspect=5)
         out_fname = base_name + '_3dsurface.png'
@@ -315,8 +341,10 @@ def plot_plane(csv_fname, outname=None, key_name="episode_rewards", plot_type="m
 
     vlevel = (vmax-vmin)/15
     outname = outname + key_name
+    # TODO: Find a cleaner way to integrate this
+    scale = data.iloc[0]['scale']
     return plot_2d_contour(xvals, yvals, zvals, outname, vmin=vmin, vmax=vmax, vlevel=vlevel, plot_type=plot_type,
-                           show=show, dir1_scale=dir1_scale, dir2_scale=dir2_scale,
+                           show=show, dir1_scale=scale, dir2_scale=scale,
                            dir1_name=dir1_name, dir2_name=dir2_name)
     if plot_type == "all" or plot_type == "vtp":
         return generate_vtp(xvals, yvals, zvals, outname+".vtp")

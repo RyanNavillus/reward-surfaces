@@ -84,13 +84,13 @@ def plot_2d_contour(x_coords, y_coords, z_values, base_name, vmin=0.1, vmax=10, 
                 current_label += label_rate
             return ticks, tick_labels
 
-        print(get_axes(9, dir1_scale))
-        x_ticks, x_labels = get_axes(9, dir1_scale)
-        y_ticks, y_labels = get_axes(9, dir2_scale)
-        ax.set_xticks(x_ticks)
-        ax.set_yticks(y_ticks)
-        ax.set_xticklabels(x_labels)
-        ax.set_yticklabels(y_labels)
+        #print(get_axes(9, dir1_scale))
+        #x_ticks, x_labels = get_axes(9, dir1_scale)
+        #y_ticks, y_labels = get_axes(9, dir2_scale)
+        #ax.set_xticks(x_ticks)
+        #ax.set_yticks(y_ticks)
+        #ax.set_xticklabels(x_labels)
+        #ax.set_yticklabels(y_labels)
         print(vmin, vmax)
         fig.colorbar(surf, shrink=0.5, aspect=5)
         out_fname = base_name + '_3dsurface.png'

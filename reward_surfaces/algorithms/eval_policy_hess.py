@@ -76,7 +76,7 @@ def gather_policy_hess_data(evaluator, num_episodes, num_steps, gamma, returns_m
     start_t = time.time()
     done = False
     while not done or (len(episode_rewards) < num_episodes and tot_steps < num_steps):
-        rew, done, value, state, act = evaluator._next_state_act()#, deterministic=True)
+        rew, done, value, state, act = evaluator._next_state_act() #, deterministic=True)
         ep_states.append(state)
         ep_actions.append(act)
         ep_rews.append(rew)

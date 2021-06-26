@@ -4,6 +4,7 @@ from stable_baselines3.ddpg import DDPG
 from stable_baselines3.td3 import TD3
 from stable_baselines3.sac import SAC
 from stable_baselines3.her import HER
+from stable_baselines3.common.utils import constant_fn
 from .SB3 import SB3OnPolicyTrainer, SB3OffPolicyTrainer, SB3HerPolicyTrainer
 from .rainbow.rainbow_trainer import RainbowTrainer
 import gym
@@ -64,8 +65,48 @@ def make_vec_env_fn(env_name, simple_obs=True):
     return env_fn_v
 
 
+def linear_schedule(initial_value):
+    """
+    Linear learning rate schedule.
+    :param initial_value: (float or str)
+    :return: (function)
+    """
+    if isinstance(initial_value, str):
+        initial_value = float(initial_value)
+
+    def func(progress_remaining: float) -> float:
+        """
+        Progress will decrease from 1 (beginning) to 0
+        :param progress_remaining: (float)
+        :return: (float)
+        """
+        return progress_remaining * initial_value
+
+    return func
+
+
+def _preprocess_schedules(hyperparams):
+    # Create schedules
+    for key in ["learning_rate", "clip_range", "clip_range_vf"]:
+        if key not in hyperparams:
+            continue
+        if isinstance(hyperparams[key], str):
+            schedule, initial_value = hyperparams[key].split("_")
+            initial_value = float(initial_value)
+            hyperparams[key] = linear_schedule(initial_value)
+        elif isinstance(hyperparams[key], (float, int)):
+            # Negative value: ignore (ex: for clipping)
+            if hyperparams[key] < 0:
+                continue
+            hyperparams[key] = constant_fn(float(hyperparams[key]))
+        else:
+            raise ValueError(f"Invalid value for {key}: {hyperparams[key]}")
+    return hyperparams
+
+
 def make_agent(agent_name, env_name, device, hyperparams):
     hyperparams = dict(**hyperparams)
+    hyperparams = _preprocess_schedules(hyperparams)
     if 'rainbow' == agent_name:
         return RainbowTrainer(env_name, device=device, **hyperparams)
     elif "SB3_OFF" == agent_name:

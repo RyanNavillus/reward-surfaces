@@ -97,7 +97,7 @@ class SB3OnPolicyTrainer:
         save_prefix = f'sb3_{type(self.algorithm).__name__}'
         checkpoint_callback = CheckpointCallback(save_freq=save_freq, save_path=save_dir,
                                                  name_prefix=save_prefix)
-        self.algorithm.learn(num_steps,callback=checkpoint_callback)
+        self.algorithm.learn(num_steps, callback=checkpoint_callback)
         return checkpoint_callback.save_folders
 
     def get_weights(self):

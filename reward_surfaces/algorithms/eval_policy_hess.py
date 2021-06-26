@@ -86,7 +86,7 @@ def gather_policy_hess_data(evaluator, num_episodes, num_steps, gamma, returns_m
             episode_states.append(ep_states)
             episode_actions.append(ep_actions)
             episode_rewards.append(ep_rews)
-            episode_value_ests.append((ep_values))
+            #episode_value_ests.append((ep_values))
 
             ep_rews = []
             ep_values = []

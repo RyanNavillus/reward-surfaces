@@ -10,7 +10,8 @@ def generate_eval_jobs(train_dir, out_dir,
                        est_grad=False,
                        calc_hesh=False,
                        calc_grad=False,
-                       device="cpu"):
+                       device="cpu",
+                       checkpoint=None):
     assert not (est_hesh and calc_hesh), "calculating and estimating hessian cannot happen at the same time"
     assert num_steps is not None or num_episodes is not None, "one of num_steps or num_episodes must be specified"
     if num_steps is None:
@@ -37,9 +38,13 @@ def generate_eval_jobs(train_dir, out_dir,
 
     checkpoints = [dir for dir in os.listdir(train_dir) if os.path.isdir(train_dir / dir) and dir.isdigit()]
     all_jobs = []
-    for checkpoint in checkpoints:
+    if checkpoint:
         job = f"python3 -m reward_surfaces.bin.eval_tradj {train_dir} {checkpoint} {out_dir} --device={device}"
         all_jobs.append(job)
+    else:
+        for checkpt in checkpoints:
+            job = f"python3 -m reward_surfaces.bin.eval_tradj {train_dir} {checkpt} {out_dir} --device={device}"
+            all_jobs.append(job)
 
     jobs = "\n".join(all_jobs)+"\n"
     open((out_dir / "jobs.sh"), 'w').write(jobs)

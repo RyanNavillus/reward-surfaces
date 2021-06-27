@@ -29,6 +29,7 @@ class HeshCalcOnlineMixin:
         returns action, logprob
         logprob should be differentialble to allow for backprop
         '''
+        #print(self.policy)
         val, log_prob, entropy = self.policy.evaluate_actions(obs, act)
         return log_prob
 

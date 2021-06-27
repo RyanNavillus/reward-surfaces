@@ -119,9 +119,11 @@ def make_agent(agent_name, env_name, device, hyperparams):
     elif "SB3_ON" == agent_name:
         env_fn = make_vec_env_fn(env_name)
         num_envs = hyperparams.pop('num_envs', 16)
+        print(num_envs)
         env = env_fn(num_envs)
         algo = SB3_ON_ALGOS[hyperparams.pop('ALGO')]
         model = "MlpPolicy" if len(env.observation_space.shape) != 3 else "CnnPolicy"
+        print(model)
         return SB3OnPolicyTrainer(env_fn, algo(model, env, device=device, **hyperparams))
     elif "SB3_HER" == agent_name:
         env_fn = make_vec_env_fn(env_name, simple_obs=False)

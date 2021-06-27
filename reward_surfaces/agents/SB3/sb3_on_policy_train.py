@@ -91,6 +91,7 @@ class SB3OnPolicyTrainer:
     def __init__(self, env_fn, sb3_algorithm):
         self.env_fn = env_fn
         self.algorithm = sb3_algorithm
+        print(self.algorithm)
         self.device = sb3_algorithm.device
 
     def train(self, num_steps, save_dir, save_freq=1000):
@@ -123,7 +124,7 @@ class SB3OnPolicyTrainer:
         self.algorithm.save(save_file)
 
     def calculate_eigenvalues(self, num_steps, tol=1e-2):
-        maxeig,mineig = calculate_est_hesh_eigenvalues(self.algorithm,num_steps,tol)
+        maxeig, mineig = calculate_est_hesh_eigenvalues(self.algorithm,num_steps,tol)
         buffer_stats = self.algorithm.buffer_stats
         buffer_stats['maxeig'] = maxeig
         buffer_stats['mineig'] = mineig

@@ -3,15 +3,12 @@
     "env": "BeamRiderNoFrameskip-v0",
     "hyperparameters": {
         "ALGO": "PPO",
-        "num_envs": 1,
-        "n_epochs": 1,
-        "gamma": 0.99,
-        "gae_lambda": 0.95,
-        "clip_range": 0.2,
-        "ent_coef": 0.0,
+        "num_envs": 8,
+        "n_epochs": 4,
+        "clip_range": "lin_0.1",
+        "ent_coef": 0.001,
         "vf_coef": 0.5,
-        "max_grad_norm": 0.5,
-        "learning_rate": 0.0003,
-        "batch_size": 64
+        "learning_rate": "lin_0.00025",
+        "batch_size": 256
     }
 }

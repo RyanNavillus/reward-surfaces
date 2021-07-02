@@ -1,13 +1,11 @@
-from stable_baselines3.common.callbacks import CheckpointCallback, BaseCallback
+from stable_baselines3.common.callbacks import BaseCallback, EvalCallback, CallbackList
 from .extract_params import ParamLoader
 import tempfile
-import time
 import torch
 from collections import OrderedDict
-from stable_baselines3.common.vec_env import DummyVecEnv
 from stable_baselines3.common.vec_env.obs_dict_wrapper import ObsDictWrapper
 import os
-# from reward_surfaces.algorithms.evaluate_est_hesh import calculate_est_hesh_eigenvalues
+from reward_surfaces.algorithms.evaluate_est_hesh import calculate_est_hesh_eigenvalues
 
 
 class CheckpointCallback(BaseCallback):
@@ -40,17 +38,19 @@ class CheckpointCallback(BaseCallback):
             print(f"saved checkpoint {self.n_calls}")
             path = os.path.join(self.save_path, f"{self.num_timesteps-1:07}")
             os.makedirs(path, exist_ok=True)
-            save_path = os.path.join(path,"checkpoint")
+            save_path = os.path.join(path, "checkpoint")
             self.model.save(save_path)
             self.save_folders.append(save_path)
             model_parameters = self.model.policy.state_dict()
             grads = OrderedDict([(name, param.grad) for name, param in model_parameters.items()])
-            torch.save(model_parameters,os.path.join(path,"parameters.th"))
-            torch.save(grads,os.path.join(path,"grads.th"))
+            torch.save(model_parameters, os.path.join(path, "parameters.th"))
+            torch.save(grads, os.path.join(path, "grads.th"))
 
             if self.old_params is not None:
-                delta = OrderedDict([(name, param - old_param) for old_param, (name, param) in zip(self.old_params, model_parameters.items())])
-                torch.save(delta,os.path.join(path,"prev_step.th"))
+                delta = OrderedDict([
+                    (name, param - old_param) for old_param, (name, param) in zip(self.old_params, model_parameters.items())
+                ])
+                torch.save(delta, os.path.join(path, "prev_step.th"))
 
             if self.verbose > 1:
                 print(f"Saving model checkpoint to {path}")
@@ -88,17 +88,32 @@ class OnPolicyEvaluator:
 
 
 class SB3OnPolicyTrainer:
-    def __init__(self, env_fn, sb3_algorithm):
+    def __init__(self, env_fn, sb3_algorithm, eval_env_fn=None):
         self.env_fn = env_fn
+        self.eval_env_fn = eval_env_fn
         self.algorithm = sb3_algorithm
         print(self.algorithm)
         self.device = sb3_algorithm.device
 
     def train(self, num_steps, save_dir, save_freq=1000):
         save_prefix = f'sb3_{type(self.algorithm).__name__}'
+        callbacks = []
         checkpoint_callback = CheckpointCallback(save_freq=save_freq, save_path=save_dir,
                                                  name_prefix=save_prefix)
-        self.algorithm.learn(num_steps, callback=checkpoint_callback)
+        callbacks.append(checkpoint_callback)
+
+        if eval_env_fn:
+            # Separate evaluation env
+            eval_env = self.eval_env_fn()
+
+            # Use deterministic actions for evaluation
+            eval_callback = EvalCallback(eval_env, best_model_save_path=save_dir + '/best/',
+                                         log_path=save_dir + '/best/', eval_freq=10000,
+                                         deterministic=True, render=False)
+            callbacks.append(eval_callback)
+
+        callback = CallbackList(callbacks)
+        self.algorithm.learn(num_steps, callback=callback)
         return checkpoint_callback.save_folders
 
     def get_weights(self):
@@ -124,11 +139,11 @@ class SB3OnPolicyTrainer:
         self.algorithm.save(save_file)
 
     def calculate_eigenvalues(self, num_steps, tol=1e-2):
-        maxeig, mineig = calculate_est_hesh_eigenvalues(self.algorithm,num_steps,tol)
+        maxeig, mineig = calculate_est_hesh_eigenvalues(self.algorithm, num_steps, tol)
         buffer_stats = self.algorithm.buffer_stats
         buffer_stats['maxeig'] = maxeig
         buffer_stats['mineig'] = mineig
-        buffer_stats['ratio'] = -min(0,mineig)/maxeig
+        buffer_stats['ratio'] = -min(0, mineig)/maxeig
         return buffer_stats
 
     def evaluator(self, eval_trainer=None):

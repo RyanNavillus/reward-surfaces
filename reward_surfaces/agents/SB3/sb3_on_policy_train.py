@@ -1,4 +1,10 @@
-from stable_baselines3.common.callbacks import BaseCallback, EvalCallback, CallbackList
+from stable_baselines3.common.callbacks import CheckpointCallback, EvalCallback, CallbackList, BaseCallback
+from stable_baselines3.common.evaluation import evaluate_policy
+from typing import Any, Dict, Optional, Union
+import gym
+import numpy as np
+from stable_baselines3.common.vec_env import DummyVecEnv, VecEnv, sync_envs_normalization
+import warnings
 from .extract_params import ParamLoader
 import tempfile
 import torch
@@ -9,7 +15,7 @@ import os
 #from reward_surfaces.algorithms.evaluate_est_hesh import calculate_est_hesh_eigenvalues
 
 
-class CheckpointCallback(BaseCallback):
+class CheckpointParamCallback(CheckpointCallback):
     """
     Callback for saving a model every ``save_freq`` steps
 
@@ -20,17 +26,9 @@ class CheckpointCallback(BaseCallback):
     """
 
     def __init__(self, save_freq: int, save_path: str, name_prefix: str = "rl_model", verbose: int = 0):
-        super(CheckpointCallback, self).__init__(verbose)
-        self.save_freq = save_freq
-        self.save_path = save_path
-        self.name_prefix = name_prefix
+        super(CheckpointParamCallback, self).__init__(save_freq, save_path, name_prefix=name_prefix, verbose=verbose)
         self.old_params = None
         self.save_folders = []
-
-    def _init_callback(self) -> None:
-        # Create folder if needed
-        if self.save_path is not None:
-            os.makedirs(self.save_path, exist_ok=True)
 
     def _on_step(self) -> bool:
         if self.n_calls > 0 and (self.n_calls - 1) % self.save_freq == 0:
@@ -40,8 +38,8 @@ class CheckpointCallback(BaseCallback):
             path = os.path.join(self.save_path, f"{self.num_timesteps-1:07}")
             os.makedirs(path, exist_ok=True)
             save_path = os.path.join(path, "checkpoint")
-            self.model.save(save_path)
             self.save_folders.append(save_path)
+            self.model.save(save_path)
             model_parameters = self.model.policy.state_dict()
             grads = OrderedDict([(name, param.grad) for name, param in model_parameters.items()])
             torch.save(model_parameters, os.path.join(path, "parameters.th"))
@@ -55,6 +53,71 @@ class CheckpointCallback(BaseCallback):
 
             if self.verbose > 1:
                 print(f"Saving model checkpoint to {path}")
+
+        return True
+
+
+class EvalParamCallback(EvalCallback):
+    """
+    Callback for evaluating an agent.
+    .. warning::
+      When using multiple environments, each call to  ``env.step()``
+      will effectively correspond to ``n_envs`` steps.
+      To account for that, you can use ``eval_freq = max(eval_freq // n_envs, 1)``
+    :param eval_env: The environment used for initialization
+    :param callback_on_new_best: Callback to trigger
+        when there is a new best model according to the ``mean_reward``
+    :param n_eval_episodes: The number of episodes to test the agent
+    :param eval_freq: Evaluate the agent every ``eval_freq`` call of the callback.
+    :param log_path: Path to a folder where the evaluations (``evaluations.npz``)
+        will be saved. It will be updated at each evaluation.
+    :param best_model_save_path: Path to a folder where the best model
+        according to performance on the eval env will be saved.
+    :param deterministic: Whether the evaluation should
+        use a stochastic or deterministic actions.
+    :param render: Whether to render or not the environment during evaluation
+    :param verbose:
+    :param warn: Passed to ``evaluate_policy`` (warns if ``eval_env`` has not been
+        wrapped with a Monitor wrapper)
+    """
+
+    def __init__(
+        self,
+        eval_env: Union[gym.Env, VecEnv],
+        callback_on_new_best: Optional[BaseCallback] = None,
+        n_eval_episodes: int = 5,
+        eval_freq: int = 10000,
+        log_path: str = None,
+        best_model_save_path: str = None,
+        deterministic: bool = True,
+        render: bool = False,
+        verbose: int = 1,
+        warn: bool = True,
+    ):
+        super(EvalParamCallback, self).__init__(eval_env, callback_on_new_best, n_eval_episodes, eval_freq, log_path,
+                                                best_model_save_path, deterministic, render, verbose, warn)
+        self.old_params = None
+        self.save_folders = []
+
+    def _on_step(self) -> bool:
+        EvalCallback._on_step(self)
+        if self.n_calls > 0 and (self.n_calls - 1) % self.eval_freq == 0:
+            self.old_params = [param.clone() for param in self.model.policy.parameters()]
+        if self.eval_freq > 0 and self.n_calls % self.eval_freq == 0:
+            os.makedirs(self.log_path, exist_ok=True)
+            save_path = os.path.join(self.log_path, "checkpoint")
+            self.save_folders.append(save_path)
+            model_parameters = self.model.policy.state_dict()
+            grads = OrderedDict([(name, param.grad) for name, param in model_parameters.items()])
+            torch.save(model_parameters, os.path.join(self.log_path, "parameters.th"))
+            torch.save(grads, os.path.join(self.log_path, "grads.th"))
+
+            if self.old_params is not None:
+                delta = OrderedDict([
+                    (name, param - old_param) for old_param, (name, param) in zip(self.old_params, model_parameters.items())
+                ])
+                torch.save(delta, os.path.join(self.log_path, "prev_step.th"))
+
         return True
 
 
@@ -99,7 +162,7 @@ class SB3OnPolicyTrainer:
     def train(self, num_steps, save_dir, save_freq=1000):
         save_prefix = f'sb3_{type(self.algorithm).__name__}'
         callbacks = []
-        checkpoint_callback = CheckpointCallback(save_freq=save_freq, save_path=save_dir,
+        checkpoint_callback = CheckpointParamCallback(save_freq=save_freq, save_path=save_dir,
                                                  name_prefix=save_prefix)
         callbacks.append(checkpoint_callback)
 
@@ -108,7 +171,7 @@ class SB3OnPolicyTrainer:
             eval_env = self.eval_env_fn
 
             # Use deterministic actions for evaluation
-            eval_callback = EvalCallback(eval_env, best_model_save_path=save_dir + '/best/',
+            eval_callback = EvalParamCallback(eval_env, best_model_save_path=save_dir + '/best/',
                                          log_path=save_dir + '/best/', eval_freq=10000,
                                          n_eval_episodes=5, deterministic=True, render=False)
             callbacks.append(eval_callback)

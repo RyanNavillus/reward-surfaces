@@ -85,7 +85,6 @@ def make_agent(agent_name, env_name, device, hyperparams):
         env_fn = make_vec_env_fn(env_name)
         eval_env_fn = make_vec_env_fn(env_name, is_eval_env=True)
         num_envs = hyperparams.pop('num_envs', 16)
-        print(num_envs)
         env = env_fn(num_envs)
         eval_env = eval_env_fn(1)
         algo_name = hyperparams.pop('ALGO')
@@ -93,7 +92,6 @@ def make_agent(agent_name, env_name, device, hyperparams):
         manager = HyperparameterManager(algo_name.lower(), env_name, custom_hyperparams=hyperparams)
         model = "MlpPolicy" if len(env.observation_space.shape) != 3 else "CnnPolicy"
         hyperparams = manager.get_hyperparams()
-        print(hyperparams)
         return SB3OnPolicyTrainer(env_fn, algo(model, env, device=device, **hyperparams), eval_env_fn=eval_env)
     elif "SB3_HER" == agent_name:
         env_fn = make_vec_env_fn(env_name, simple_obs=False)

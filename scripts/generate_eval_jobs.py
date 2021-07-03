@@ -13,6 +13,7 @@ def main():
     parser.add_argument('--calc-grad', action='store_true')
     parser.add_argument('--num-steps', type=int)
     parser.add_argument('--num-episodes', type=int)
+    parser.add_argument('--checkpoint', type=str)
 
     args = parser.parse_args()
 
@@ -25,7 +26,8 @@ def main():
         calc_hesh=args.calc_hesh,
         calc_grad=args.calc_grad,
         est_grad=args.est_grad,
-        device=args.device
+        device=args.device,
+        checkpoint=args.checkpoint
     )
 
 

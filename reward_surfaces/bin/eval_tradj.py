@@ -32,7 +32,7 @@ def main():
 
     checkpoint = args.checkpoint
     path = train_dir / str(checkpoint)
-    checkpoint_fname = next(fname for fname in os.listdir(path) if "checkpoint" in fname)
+    checkpoint_fname = next(fname for fname in os.listdir(path) if "checkpoint" in fname or "best" in fname)
     checkpoint_path = path / checkpoint_fname
 
     # Create agent

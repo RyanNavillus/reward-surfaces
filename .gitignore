@@ -10,6 +10,5 @@ trained_agents/
 .git/
 .pytype/
 generated_dirs
-hyperparams
 *.th
 *.zip

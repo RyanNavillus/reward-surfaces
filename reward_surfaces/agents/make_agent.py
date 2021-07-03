@@ -9,6 +9,7 @@ from .SB3.sb3_extended_algos import ExtA2C, ExtPPO, ExtSAC
 from stable_baselines3.common.atari_wrappers import AtariWrapper
 from stable_baselines3.common.vec_env import DummyVecEnv, VecFrameStack, VecNormalize, VecTransposeImage
 from stable_baselines3.common.monitor import Monitor
+from .utils import HyperparameterManager
 
 
 SB3_ON_ALGOS = {
@@ -69,48 +70,8 @@ def make_vec_env_fn(env_name, simple_obs=True, is_eval_env=False):
     return env_fn_v
 
 
-def linear_schedule(initial_value):
-    """
-    Linear learning rate schedule.
-    :param initial_value: (float or str)
-    :return: (function)
-    """
-    if isinstance(initial_value, str):
-        initial_value = float(initial_value)
-
-    def func(progress_remaining: float) -> float:
-        """
-        Progress will decrease from 1 (beginning) to 0
-        :param progress_remaining: (float)
-        :return: (float)
-        """
-        return progress_remaining * initial_value
-
-    return func
-
-
-def _preprocess_schedules(hyperparams):
-    # Create schedules
-    for key in ["learning_rate", "clip_range", "clip_range_vf"]:
-        if key not in hyperparams:
-            continue
-        if isinstance(hyperparams[key], str):
-            schedule, initial_value = hyperparams[key].split("_")
-            initial_value = float(initial_value)
-            hyperparams[key] = linear_schedule(initial_value)
-        elif isinstance(hyperparams[key], (float, int)):
-            # Negative value: ignore (ex: for clipping)
-            if hyperparams[key] < 0:
-                continue
-            hyperparams[key] = constant_fn(float(hyperparams[key]))
-        else:
-            raise ValueError(f"Invalid value for {key}: {hyperparams[key]}")
-    return hyperparams
-
-
 def make_agent(agent_name, env_name, device, hyperparams):
     hyperparams = dict(**hyperparams)
-    hyperparams = _preprocess_schedules(hyperparams)
     if 'rainbow' == agent_name:
         return RainbowTrainer(env_name, device=device, **hyperparams)
     elif "SB3_OFF" == agent_name:
@@ -127,9 +88,12 @@ def make_agent(agent_name, env_name, device, hyperparams):
         print(num_envs)
         env = env_fn(num_envs)
         eval_env = eval_env_fn(1)
-        algo = SB3_ON_ALGOS[hyperparams.pop('ALGO')]
+        algo_name = hyperparams.pop('ALGO')
+        algo = SB3_ON_ALGOS[algo_name]
+        manager = HyperparameterManager(algo_name.lower(), env_name, custom_hyperparams=hyperparams)
         model = "MlpPolicy" if len(env.observation_space.shape) != 3 else "CnnPolicy"
-        print(model)
+        hyperparams = manager.get_hyperparams()
+        print(hyperparams)
         return SB3OnPolicyTrainer(env_fn, algo(model, env, device=device, **hyperparams), eval_env_fn=eval_env)
     elif "SB3_HER" == agent_name:
         env_fn = make_vec_env_fn(env_name, simple_obs=False)

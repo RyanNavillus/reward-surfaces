@@ -5,7 +5,8 @@ import torch
 from collections import OrderedDict
 from stable_baselines3.common.vec_env.obs_dict_wrapper import ObsDictWrapper
 import os
-from reward_surfaces.algorithms.evaluate_est_hesh import calculate_est_hesh_eigenvalues
+# Circular import here? Fix this
+#from reward_surfaces.algorithms.evaluate_est_hesh import calculate_est_hesh_eigenvalues
 
 
 class CheckpointCallback(BaseCallback):
@@ -102,14 +103,14 @@ class SB3OnPolicyTrainer:
                                                  name_prefix=save_prefix)
         callbacks.append(checkpoint_callback)
 
-        if eval_env_fn:
+        if self.eval_env_fn:
             # Separate evaluation env
-            eval_env = self.eval_env_fn()
+            eval_env = self.eval_env_fn
 
             # Use deterministic actions for evaluation
             eval_callback = EvalCallback(eval_env, best_model_save_path=save_dir + '/best/',
                                          log_path=save_dir + '/best/', eval_freq=10000,
-                                         deterministic=True, render=False)
+                                         n_eval_episodes=5, deterministic=True, render=False)
             callbacks.append(eval_callback)
 
         callback = CallbackList(callbacks)
@@ -189,8 +190,8 @@ class HERPolicyEvaluator(OnPolicyEvaluator):
 
 
 class SB3HerPolicyTrainer(SB3OffPolicyTrainer):
-    def __init__(self, env_fn, sb3_algorithm):
-        super().__init__(env_fn, sb3_algorithm.model)
+    def __init__(self, env_fn, sb3_algorithm, eval_env_fn=None):
+        super().__init__(env_fn, sb3_algorithm.model, eval_env_fn=eval_env_fn)
         self.her_algo = sb3_algorithm
         self._base_model = sb3_algorithm.model
 

@@ -57,6 +57,7 @@ class HyperparameterManager:
         self._hyperparams = {}
         self.verbose = verbose
         self.normalize = False
+        self.normalize_kwargs={}
 
     def get_hyperparams(self):
         hyperparams, saved_hyperparams = self.read_hyperparameters()
@@ -174,9 +175,9 @@ class HyperparameterManager:
 
         # Pre-process policy/buffer keyword arguments
         # Convert to python object if needed
-        for kwargs_key in {"policy_kwargs", "replay_buffer_class", "replay_buffer_kwargs"}:
-            if kwargs_key in hyperparams.keys() and isinstance(hyperparams[kwargs_key], str):
-                hyperparams[kwargs_key] = eval(hyperparams[kwargs_key])
+        #for kwargs_key in {"policy_kwargs", "replay_buffer_class", "replay_buffer_kwargs"}:
+        #    if kwargs_key in hyperparams.keys() and isinstance(hyperparams[kwargs_key], str):
+        #        hyperparams[kwargs_key] = eval(hyperparams[kwargs_key])
 
         if "frame_stack" in hyperparams.keys():
             del hyperparams["frame_stack"]

@@ -239,7 +239,7 @@ class SB3OnPolicyTrainer:
             # Use deterministic actions for evaluation
             eval_callback = EvalParamCallback(eval_env, best_model_save_path=save_dir + '/best/',
                                               log_path=save_dir + '/best/', eval_freq=10000,
-                                              n_eval_episodes=5, deterministic=True, render=False)
+                                              n_eval_episodes=25, deterministic=True, render=False)
             callbacks.append(eval_callback)
 
         callback = CallbackList(callbacks)

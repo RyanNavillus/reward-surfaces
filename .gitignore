@@ -10,5 +10,9 @@ trained_agents/
 .git/
 .pytype/
 generated_dirs
+runs
+train.sh
+eval.sh
+plot.sh
 *.th
 *.zip

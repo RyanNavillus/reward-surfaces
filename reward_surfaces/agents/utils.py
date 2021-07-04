@@ -60,7 +60,7 @@ class HyperparameterManager:
 
     def get_hyperparams(self):
         hyperparams, saved_hyperparams = self.read_hyperparameters()
-        hyperparams = self._preprocess_hyperparams(self.custom_hyperparams)
+        hyperparams = self._preprocess_hyperparams(hyperparams)
         return hyperparams
 
     @staticmethod
@@ -177,5 +177,20 @@ class HyperparameterManager:
         for kwargs_key in {"policy_kwargs", "replay_buffer_class", "replay_buffer_kwargs"}:
             if kwargs_key in hyperparams.keys() and isinstance(hyperparams[kwargs_key], str):
                 hyperparams[kwargs_key] = eval(hyperparams[kwargs_key])
+
+        if "frame_stack" in hyperparams.keys():
+            del hyperparams["frame_stack"]
+
+        if "env_wrapper" in hyperparams.keys():
+            del hyperparams["env_wrapper"]
+
+        if "callback" in hyperparams.keys():
+            del hyperparams["callback"]
+
+        if "policy" in hyperparams.keys():
+            del hyperparams["policy"]
+
+        if "policy_kwargs" in hyperparams.keys():
+            del hyperparams["policy_kwargs"]
 
         return hyperparams

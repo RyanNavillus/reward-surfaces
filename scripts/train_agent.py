@@ -25,16 +25,19 @@ def main():
     #trainer = SB3HerPolicyTrainer(robo_env_fn,HER("MlpPolicy",robo_env_fn(),model_class=TD3,device="cpu",max_episode_length=100))
     agent = make_agent(args.agent_name, args.env, args.device, json.loads(args.hyperparameters))
 
-    os.makedirs(args.save_dir,exist_ok=False)
+    os.makedirs(args.save_dir, exist_ok=False)
 
+    hyperparams = json.loads(args.hyperparameters)
     run_info = {
         "agent_name": args.agent_name,
         "env": args.env,
-        "hyperparameters": json.loads(args.hyperparameters),
+        "hyperparameters": hyperparams,
     }
+    print(hyperparams)
+    n_envs = hyperparams.get('num_envs')
     run_info_fname = os.path.join(args.save_dir, "info.json")
     with open(run_info_fname, 'w') as file:
-        file.write(json.dumps(run_info,indent=4))
+        file.write(json.dumps(run_info, indent=4))
 
     agent.train(args.num_steps, args.save_dir, save_freq=args.save_freq)
 

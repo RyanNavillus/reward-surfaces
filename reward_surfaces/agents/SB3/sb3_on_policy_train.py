@@ -229,7 +229,7 @@ class SB3OnPolicyTrainer:
         save_prefix = f'sb3_{type(self.algorithm).__name__}'
         callbacks = []
         checkpoint_callback = CheckpointParamCallback(save_freq=save_freq, save_path=save_dir,
-                                                 name_prefix=save_prefix)
+                                                      name_prefix=save_prefix)
         callbacks.append(checkpoint_callback)
 
         if self.eval_env_fn:
@@ -238,8 +238,8 @@ class SB3OnPolicyTrainer:
 
             # Use deterministic actions for evaluation
             eval_callback = EvalParamCallback(eval_env, best_model_save_path=save_dir + '/best/',
-                                         log_path=save_dir + '/best/', eval_freq=10000,
-                                         n_eval_episodes=5, deterministic=True, render=False)
+                                              log_path=save_dir + '/best/', eval_freq=10000,
+                                              n_eval_episodes=5, deterministic=True, render=False)
             callbacks.append(eval_callback)
 
         callback = CallbackList(callbacks)

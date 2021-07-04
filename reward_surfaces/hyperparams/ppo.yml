@@ -156,7 +156,7 @@ HalfCheetahBulletEnv-v0: &pybullet-defaults
                        net_arch=[dict(pi=[256, 256], vf=[256, 256])]
                        )"
 # Copied
-HalfCheetah-v2: &pybullet-defaults
+HalfCheetah-v2:
   env_wrapper: sb3_contrib.common.wrappers.TimeFeatureWrapper
   normalize: true
   n_envs: 16
@@ -214,6 +214,17 @@ Walker2DBulletEnv-v0:
                        net_arch=[dict(pi=[256, 256], vf=[256, 256])]
                        )"
 
+# Copied
+Walker2D-v2:
+  <<: *pybullet-defaults
+  learning_rate: !!float 3e-5
+  clip_range: lin_0.4
+  policy_kwargs: "dict(log_std_init=-2,
+                       ortho_init=False,
+                       activation_fn=nn.ReLU,
+                       net_arch=[dict(pi=[256, 256], vf=[256, 256])]
+                       )"
+
 # Tuned
 HopperBulletEnv-v0:
   <<: *pybullet-defaults
@@ -237,6 +248,31 @@ Hopper-v2:
 
 # Tuned
 ReacherBulletEnv-v0:
+  env_wrapper: sb3_contrib.common.wrappers.TimeFeatureWrapper
+  normalize: true
+  n_envs: 8
+  n_timesteps: !!float 1e6
+  policy: 'MlpPolicy'
+  batch_size: 64
+  n_steps: 512
+  gamma: 0.99
+  gae_lambda: 0.9
+  n_epochs: 20
+  ent_coef: 0.0
+  sde_sample_freq: 4
+  max_grad_norm: 0.5
+  vf_coef: 0.5
+  learning_rate: !!float 3e-5
+  use_sde: True
+  clip_range: lin_0.4
+  policy_kwargs: "dict(log_std_init=-2.7,
+                       ortho_init=False,
+                       activation_fn=nn.ReLU,
+                       net_arch=[dict(pi=[256, 256], vf=[256, 256])]
+                       )"
+
+# Copied
+Reacher-v2:
   env_wrapper: sb3_contrib.common.wrappers.TimeFeatureWrapper
   normalize: true
   n_envs: 8
@@ -303,6 +339,21 @@ HumanoidBulletEnv-v0:
   learning_rate: 2.5e-4
   clip_range: 0.2
 
+# Copied
+Humanoid-v2:
+  normalize: true
+  n_envs: 8
+  n_timesteps: !!float 1e7
+  policy: 'MlpPolicy'
+  n_steps: 2048
+  batch_size: 64
+  gae_lambda: 0.95
+  gamma: 0.99
+  n_epochs: 10
+  ent_coef: 0.0
+  learning_rate: 2.5e-4
+  clip_range: 0.2
+
 InvertedDoublePendulumBulletEnv-v0:
   normalize: true
   n_envs: 8
@@ -317,7 +368,37 @@ InvertedDoublePendulumBulletEnv-v0:
   learning_rate: 2.5e-4
   clip_range: 0.2
 
+# Copied
+InvertedDoublePendulum-v2:
+  normalize: true
+  n_envs: 8
+  n_timesteps: !!float 2e6
+  policy: 'MlpPolicy'
+  n_steps: 2048
+  batch_size: 64
+  gae_lambda: 0.95
+  gamma: 0.99
+  n_epochs: 10
+  ent_coef: 0.0
+  learning_rate: 2.5e-4
+  clip_range: 0.2
+
 InvertedPendulumSwingupBulletEnv-v0:
+  normalize: true
+  n_envs: 8
+  n_timesteps: !!float 2e6
+  policy: 'MlpPolicy'
+  n_steps: 2048
+  batch_size: 64
+  gae_lambda: 0.95
+  gamma: 0.99
+  n_epochs: 10
+  ent_coef: 0.0
+  learning_rate: 2.5e-4
+  clip_range: 0.2
+
+# Copied
+InvertedPendulum-v2:
   normalize: true
   n_envs: 8
   n_timesteps: !!float 2e6

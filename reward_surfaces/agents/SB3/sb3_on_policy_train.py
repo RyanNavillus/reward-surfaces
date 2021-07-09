@@ -119,7 +119,7 @@ class EvalParamCallback(EvalCallback):
         self,
         eval_env: Union[gym.Env, VecEnv],
         callback_on_new_best: Optional[BaseCallback] = None,
-        n_eval_episodes: int = 5,
+        n_eval_episodes: int = 25,
         eval_freq: int = 10000,
         log_path: str = None,
         best_model_save_path: str = None,
@@ -253,7 +253,7 @@ class OnPolicyEvaluator:
 
 class SB3OnPolicyTrainer:
     def __init__(self, env_fn, sb3_algorithm, n_envs, env_id, deterministic_eval=False, eval_env_fn=None,
-                 eval_freq=10000, n_eval_episodes=5, n_eval_envs=5):
+                 eval_freq=10000, n_eval_episodes=25, n_eval_envs=5):
         self.env_fn = env_fn
         self.eval_env_fn = eval_env_fn
         self.algorithm = sb3_algorithm

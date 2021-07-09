@@ -22,9 +22,9 @@ def main():
     torch.set_num_threads(1)
 
     #trainer = SB3HerPolicyTrainer(robo_env_fn,HER("MlpPolicy",robo_env_fn(),model_class=TD3,device="cpu",max_episode_length=100))
-    agent, steps = make_agent(args.agent_name, args.env, args.device, json.loads(args.hyperparameters))
+    agent, steps = make_agent(args.agent_name, args.env, args.device, args.save_dir, json.loads(args.hyperparameters))
 
-    os.makedirs(args.save_dir, exist_ok=False)
+    os.makedirs(args.save_dir, exist_ok=True)
 
     hyperparams = json.loads(args.hyperparameters)
     run_info = {

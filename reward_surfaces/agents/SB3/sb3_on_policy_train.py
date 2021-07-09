@@ -1,18 +1,51 @@
 from stable_baselines3.common.callbacks import CheckpointCallback, EvalCallback, CallbackList, BaseCallback
 from stable_baselines3.common.evaluation import evaluate_policy
-from typing import Any, Dict, Optional, Union
+from typing import Optional, Union
 import gym
 import numpy as np
-from stable_baselines3.common.vec_env import DummyVecEnv, VecEnv, sync_envs_normalization
-import warnings
+from stable_baselines3.common.vec_env import VecEnv, sync_envs_normalization
 from .extract_params import ParamLoader
 import tempfile
 import torch
 from collections import OrderedDict
 from stable_baselines3.common.vec_env.obs_dict_wrapper import ObsDictWrapper
 import os
+
 # Circular import here? Fix this
 #from reward_surfaces.algorithms.evaluate_est_hesh import calculate_est_hesh_eigenvalues
+
+
+class SaveVecNormalizeCallback(BaseCallback):
+    """
+    Callback for saving a VecNormalize wrapper every ``save_freq`` steps
+    :param save_freq: (int)
+    :param save_path: (str) Path to the folder where ``VecNormalize`` will be saved, as ``vecnormalize.pkl``
+    :param name_prefix: (str) Common prefix to the saved ``VecNormalize``, if None (default)
+        only one file will be kept.
+    """
+
+    def __init__(self, save_freq: int, save_path: str, name_prefix: Optional[str] = None, verbose: int = 0):
+        super(SaveVecNormalizeCallback, self).__init__(verbose)
+        self.save_freq = save_freq
+        self.save_path = save_path
+        self.name_prefix = name_prefix
+
+    def _init_callback(self) -> None:
+        # Create folder if needed
+        if self.save_path is not None:
+            os.makedirs(self.save_path, exist_ok=True)
+
+    def _on_step(self) -> bool:
+        if self.n_calls % self.save_freq == 0:
+            if self.name_prefix is not None:
+                path = os.path.join(self.save_path, f"{self.name_prefix}_{self.num_timesteps}_steps.pkl")
+            else:
+                path = os.path.join(self.save_path, "vecnormalize.pkl")
+            if self.model.get_vec_normalize_env() is not None:
+                self.model.get_vec_normalize_env().save(path)
+                if self.verbose > 1:
+                    print(f"Saving VecNormalize to {path}")
+        return True
 
 
 class CheckpointParamCallback(CheckpointCallback):
@@ -29,6 +62,8 @@ class CheckpointParamCallback(CheckpointCallback):
         super(CheckpointParamCallback, self).__init__(save_freq, save_path, name_prefix=name_prefix, verbose=verbose)
         self.old_params = None
         self.save_folders = []
+
+
 
     def _on_step(self) -> bool:
         if self.n_calls > 0 and (self.n_calls - 1) % self.save_freq == 0:
@@ -91,7 +126,7 @@ class EvalParamCallback(EvalCallback):
         best_model_save_path: str = None,
         deterministic: bool = True,
         render: bool = False,
-        verbose: int = 1,
+        verbose: int = 0,
         warn: bool = True,
     ):
         super(EvalParamCallback, self).__init__(eval_env, callback_on_new_best, n_eval_episodes, eval_freq, log_path,
@@ -218,32 +253,59 @@ class OnPolicyEvaluator:
 
 
 class SB3OnPolicyTrainer:
-    def __init__(self, env_fn, sb3_algorithm, eval_env_fn=None):
+    def __init__(self, env_fn, sb3_algorithm, n_envs, env_id, deterministic_eval=False, eval_env_fn=None, eval_freq=10000, n_eval_episodes=5, n_eval_envs=5):
         self.env_fn = env_fn
         self.eval_env_fn = eval_env_fn
         self.algorithm = sb3_algorithm
         print(self.algorithm)
         self.device = sb3_algorithm.device
 
-    def train(self, num_steps, save_dir, save_freq=1000):
-        save_prefix = f'sb3_{type(self.algorithm).__name__}'
-        callbacks = []
-        checkpoint_callback = CheckpointParamCallback(save_freq=save_freq, save_path=save_dir,
-                                                      name_prefix=save_prefix)
-        callbacks.append(checkpoint_callback)
+        # Callbacks
+        self.callbacks = []
+        self.eval_freq = eval_freq
+        self.n_eval_episodes = n_eval_episodes
+        self.n_eval_envs = n_eval_envs
+        self.n_envs = n_envs
+        self.env_id = env_id
+        self.deterministic_eval = deterministic_eval
 
-        if self.eval_env_fn:
-            # Separate evaluation env
+    def create_callbacks(self, save_dir, save_freq=10000, prefix='rl_model'):
+        checkpoint_callback = None
+        if save_freq > 0:
+            # Account for the number of parallel environments
+            self.save_freq = max(save_freq // self.n_envs, 1)
+            checkpoint_callback = CheckpointParamCallback(save_freq=save_freq,
+                                                          save_path=save_dir,
+                                                          name_prefix=prefix,
+                                                          verbose=0)
+            self.callbacks.append(checkpoint_callback)
+
+        # Create test env if needed, do not normalize reward
+        if self.eval_freq > 0:
+            # Account for the number of parallel environments
+            self.eval_freq = max(self.eval_freq // self.n_envs, 1)
+
+            print("Creating test environment")
+
+            # save_vec_normalize = SaveVecNormalizeCallback(save_freq=1, save_path=f"{save_dir}/{self.env_id}")
             eval_env = self.eval_env_fn
+            eval_callback = EvalParamCallback(
+                eval_env,
+                best_model_save_path=save_dir + '/best/',
+                n_eval_episodes=self.n_eval_episodes,
+                log_path=save_dir + '/best/',
+                eval_freq=self.eval_freq,
+                deterministic=self.deterministic_eval,
+            )
 
-            # Use deterministic actions for evaluation
-            eval_callback = EvalParamCallback(eval_env, best_model_save_path=save_dir + '/best/',
-                                              log_path=save_dir + '/best/', eval_freq=10000,
-                                              n_eval_episodes=25, deterministic=True, render=False)
-            callbacks.append(eval_callback)
+            self.callbacks.append(eval_callback)
+        return checkpoint_callback
 
-        callback = CallbackList(callbacks)
-        self.algorithm.learn(num_steps, callback=callback)
+    def train(self, num_steps, save_dir, save_freq=10000):
+        save_prefix = f'sb3_{type(self.algorithm).__name__}'
+        checkpoint_callback = self.create_callbacks(save_dir, save_freq=save_freq, prefix=save_prefix)
+
+        self.algorithm.learn(num_steps, callback=self.callbacks)
         return checkpoint_callback.save_folders
 
     def get_weights(self):

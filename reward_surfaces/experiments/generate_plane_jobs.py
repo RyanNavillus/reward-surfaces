@@ -1,5 +1,4 @@
 import argparse
-from reward_surfaces.agents import make_agent
 import torch
 import json
 import os
@@ -42,7 +41,7 @@ def generate_plane_data(checkpoint_dir,
     info_fname = "info.json"
     params_fname = "parameters.th"
 
-    os.makedirs(output_path, exist_ok=False)
+    os.makedirs(output_path, exist_ok=True)
     shutil.copy(checkpoint_path, (output_path / checkpoint_fname))
     shutil.copy((checkpoint_dir / params_fname), (output_path / params_fname))
 

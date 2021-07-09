@@ -15,7 +15,7 @@ def gen_bounds(lower, upper, exp):
 
 
 def calc_result(offset, params, info, dir, device, key, num_steps, num_episodes):
-    agent = make_agent(info['agent_name'], info['env'], device, info['hyperparameters'])
+    agent, steps = make_agent(info['agent_name'], info['env'], device, dir, info['hyperparameters'])
 
     weights = [p+g*offset for p,g in zip(params, dir)]
     agent.set_weights(weights)

@@ -33,12 +33,12 @@ def main():
 
     info = json.load(open(base_source_path / info_fname))
 
-    agent, steps = make_agent(info['agent_name'], info['env'], info['device'], info['hyperparameters'])
+    agent, steps = make_agent(info['agent_name'], info['env'], info['device'], args.job_dir, info['hyperparameters'])
     agent.load_weights(checkpoint_path)
 
     eval_agent = None
     if args.use_offset_critic:
-        eval_agent = make_agent(info['agent_name'], info['env'], info['device'], info['hyperparameters'])
+        eval_agent = make_agent(info['agent_name'], info['env'], info['device'], args.job_dir, info['hyperparameters'])
         eval_agent.load_weights(checkpoint_path)
 
     agent_weights = agent.get_weights()

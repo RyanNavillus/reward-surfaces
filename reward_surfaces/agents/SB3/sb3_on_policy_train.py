@@ -58,18 +58,17 @@ class CheckpointParamCallback(CheckpointCallback):
     :param verbose:
     """
 
-    def __init__(self, save_freq: int, save_path: str, name_prefix: str = "rl_model", verbose: int = 0):
+    def __init__(self, save_freq: int, save_path: str, name_prefix: str = "rl_model", n_envs: int = 1, verbose: int = 0):
         super(CheckpointParamCallback, self).__init__(save_freq, save_path, name_prefix=name_prefix, verbose=verbose)
         self.old_params = None
         self.save_folders = []
-
-
+        self.n_envs=n_envs
 
     def _on_step(self) -> bool:
         if self.n_calls > 0 and (self.n_calls - 1) % self.save_freq == 0:
             self.old_params = [param.clone() for param in self.model.policy.parameters()]
         if self.n_calls % self.save_freq == 1:
-            print(f"saved checkpoint {self.n_calls}")
+            print(f"saved checkpoint {self.n_calls * self.n_envs}")
             path = os.path.join(self.save_path, f"{self.num_timesteps-1:07}")
             os.makedirs(path, exist_ok=True)
             save_path = os.path.join(path, "checkpoint")
@@ -253,7 +252,8 @@ class OnPolicyEvaluator:
 
 
 class SB3OnPolicyTrainer:
-    def __init__(self, env_fn, sb3_algorithm, n_envs, env_id, deterministic_eval=False, eval_env_fn=None, eval_freq=10000, n_eval_episodes=5, n_eval_envs=5):
+    def __init__(self, env_fn, sb3_algorithm, n_envs, env_id, deterministic_eval=False, eval_env_fn=None,
+                 eval_freq=10000, n_eval_episodes=5, n_eval_envs=5):
         self.env_fn = env_fn
         self.eval_env_fn = eval_env_fn
         self.algorithm = sb3_algorithm
@@ -273,10 +273,11 @@ class SB3OnPolicyTrainer:
         checkpoint_callback = None
         if save_freq > 0:
             # Account for the number of parallel environments
-            self.save_freq = max(save_freq // self.n_envs, 1)
+            save_freq = max(save_freq // self.n_envs, 1)
             checkpoint_callback = CheckpointParamCallback(save_freq=save_freq,
                                                           save_path=save_dir,
                                                           name_prefix=prefix,
+                                                          n_envs=self.n_envs,
                                                           verbose=0)
             self.callbacks.append(checkpoint_callback)
 
@@ -296,6 +297,7 @@ class SB3OnPolicyTrainer:
                 log_path=save_dir + '/best/',
                 eval_freq=self.eval_freq,
                 deterministic=self.deterministic_eval,
+                verbose=1
             )
 
             self.callbacks.append(eval_callback)

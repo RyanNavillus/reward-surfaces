@@ -9,6 +9,7 @@ from typing import Any, Callable, Dict, Optional, Tuple, Union
 import gym
 import numpy as np
 import yaml
+import pybulletgym
 
 # For using HER with GoalEnv
 from stable_baselines3.common.base_class import BaseAlgorithm
@@ -160,7 +161,7 @@ class ExperimentManager:
         trained_agent: str = "",
         truncate_last_trajectory: bool = False,
         uuid_str: str = "",
-        seed: int = 0,
+        seed: int = None,
         log_interval: int = 0,
         save_replay_buffer: bool = False,
         verbose: int = 1,
@@ -224,6 +225,7 @@ class ExperimentManager:
         env = self.create_envs(self.n_envs, no_log=False)
 
         self._hyperparams = self._preprocess_action_noise(hyperparams, saved_hyperparams, env)
+        print(self._hyperparams)
 
         if self.continue_training:
             model = self._load_pretrained_agent(self._hyperparams, env)
@@ -438,6 +440,7 @@ class ExperimentManager:
             local_normalize_kwargs = self.normalize_kwargs.copy()
             # Do not normalize reward for env used for evaluation
             if eval_env:
+                print("Eval normalize")
                 if len(local_normalize_kwargs) > 0:
                     local_normalize_kwargs["norm_reward"] = False
                 else:

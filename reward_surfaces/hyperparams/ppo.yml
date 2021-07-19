@@ -70,7 +70,8 @@ MountainCarContinuous-v0:
   use_sde: True
   policy_kwargs: "dict(log_std_init=-3.29, ortho_init=False)"
 
-Acrobot-v1:
+  #Acrobot-v1:
+HalfCheetahPyBulletEnv-v0:
   normalize: true
   n_envs: 16
   n_timesteps: !!float 1e6
@@ -132,7 +133,7 @@ LunarLanderContinuous-v2:
   ent_coef: 0.01
 
 # Tuned
-HalfCheetahBulletEnv-v0: &pybullet-defaults
+HalfCheetahPyBulletEnv-v0_REAL: &pybullet-defaults
   env_wrapper: sb3_contrib.common.wrappers.TimeFeatureWrapper
   normalize: true
   n_envs: 16
@@ -182,7 +183,7 @@ HalfCheetah-v2:
 
 
 # Tuned
-AntBulletEnv-v0:
+AntPyBulletEnv-v0_REAL:
   <<: *pybullet-defaults
   env_wrapper: sb3_contrib.common.wrappers.TimeFeatureWrapper
   learning_rate: !!float 3e-5
@@ -191,6 +192,19 @@ AntBulletEnv-v0:
                        activation_fn=nn.ReLU,
                        net_arch=[dict(pi=[256, 256], vf=[256, 256])]
                        )"
+
+AntPyBulletEnv-v0:
+  n_envs: 8
+  n_timesteps: !!float 2e6
+  policy: 'MlpPolicy'
+  n_steps: 2048
+  batch_size: 64
+  gae_lambda: 0.95
+  gamma: 0.99
+  n_epochs: 10
+  ent_coef: 0.0
+  learning_rate: !!float 3e-4
+  clip_range: 0.2
 
 # Copied
 Ant-v2:

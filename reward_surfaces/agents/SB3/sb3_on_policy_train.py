@@ -201,22 +201,23 @@ class EvalParamCallback(EvalCallback):
                 if self.best_model_save_path is not None:
                     self.model.save(os.path.join(self.best_model_save_path, "checkpoint"))
                 self.best_mean_reward = mean_reward
+                os.makedirs(self.log_path, exist_ok=True)
+                save_path = os.path.join(self.log_path, "checkpoint")
+                self.save_folders.append(save_path)
+                model_parameters = self.model.policy.state_dict()
+                grads = OrderedDict([(name, param.grad) for name, param in model_parameters.items()])
+                torch.save(model_parameters, os.path.join(self.log_path, "parameters.th"))
+                torch.save(grads, os.path.join(self.log_path, "grads.th"))
+
+                if self.old_params is not None:
+                    delta = OrderedDict([
+                        (name, param - old_param) for old_param, (name, param) in zip(self.old_params, model_parameters.items())
+                    ])
+                    torch.save(delta, os.path.join(self.log_path, "prev_step.th"))
+
                 # Trigger callback if needed
                 if self.callback is not None:
                     return self._on_event()
-            os.makedirs(self.log_path, exist_ok=True)
-            save_path = os.path.join(self.log_path, "checkpoint")
-            self.save_folders.append(save_path)
-            model_parameters = self.model.policy.state_dict()
-            grads = OrderedDict([(name, param.grad) for name, param in model_parameters.items()])
-            torch.save(model_parameters, os.path.join(self.log_path, "parameters.th"))
-            torch.save(grads, os.path.join(self.log_path, "grads.th"))
-
-            if self.old_params is not None:
-                delta = OrderedDict([
-                    (name, param - old_param) for old_param, (name, param) in zip(self.old_params, model_parameters.items())
-                ])
-                torch.save(delta, os.path.join(self.log_path, "prev_step.th"))
 
         return True
 
@@ -257,7 +258,6 @@ class SB3OnPolicyTrainer:
         self.env_fn = env_fn
         self.eval_env_fn = eval_env_fn
         self.algorithm = sb3_algorithm
-        print(self.algorithm)
         self.device = sb3_algorithm.device
 
         # Callbacks
@@ -286,12 +286,11 @@ class SB3OnPolicyTrainer:
             # Account for the number of parallel environments
             self.eval_freq = max(self.eval_freq // self.n_envs, 1)
 
-            print("Creating test environment")
-
-            # save_vec_normalize = SaveVecNormalizeCallback(save_freq=1, save_path=f"{save_dir}/{self.env_id}")
-            eval_env = self.eval_env_fn
+            save_vec_normalize = SaveVecNormalizeCallback(save_freq=1, save_path=save_dir)
+            eval_env = self.eval_env_fn()
             eval_callback = EvalParamCallback(
                 eval_env,
+                callback_on_new_best=save_vec_normalize,
                 best_model_save_path=save_dir + '/best/',
                 n_eval_episodes=self.n_eval_episodes,
                 log_path=save_dir + '/best/',
@@ -327,7 +326,7 @@ class SB3OnPolicyTrainer:
             self.load_weights(fname)
 
     def load_weights(self, load_file):
-        self.algorithm = type(self.algorithm).load(load_file, self.env_fn(), self.device)
+        self.algorithm = type(self.algorithm).load(load_file, self.eval_env_fn(), self.device)
 
     def save_weights(self, save_file):
         self.algorithm.save(save_file)
@@ -341,7 +340,7 @@ class SB3OnPolicyTrainer:
         return buffer_stats
 
     def evaluator(self, eval_trainer=None):
-        return OnPolicyEvaluator(self.env_fn(), self.algorithm.gamma, self.algorithm, eval_trainer)
+        return OnPolicyEvaluator(self.eval_env_fn(), self.algorithm.gamma, self.algorithm, eval_trainer)
 
     def action_evalutor(self):
         return self.algorithm
@@ -364,7 +363,7 @@ class OffPolicyEvaluator(OnPolicyEvaluator):
 
 class SB3OffPolicyTrainer(SB3OnPolicyTrainer):
     def evaluator(self, eval_trainer=None):
-        return OffPolicyEvaluator(self.env_fn(), self.algorithm.gamma, self.algorithm, eval_trainer)
+        return OffPolicyEvaluator(self.eval_env_fn(), self.algorithm.gamma, self.algorithm, eval_trainer)
 
 
 class HERPolicyEvaluator(OnPolicyEvaluator):

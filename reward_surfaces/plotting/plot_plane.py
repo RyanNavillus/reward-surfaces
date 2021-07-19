@@ -62,9 +62,29 @@ def plot_2d_contour(x_coords, y_coords, z_values, base_name, vmin=0.1, vmax=10, 
     if plot_type == 'all' or plot_type == 'mesh':
         fig = plt.figure()
         ax = Axes3D(fig)
-        surf = ax.plot_surface(X, Y, Z, cmap=cm.coolwarm, linewidth=0, antialiased=False)
-        ax.plot([0.], [0.], [vmax], markerfacecolor='k', markeredgecolor='k', marker='o', markersize=5, alpha=1.0)
-        ax.plot([0.], [0.], [vmin], markerfacecolor='k', markeredgecolor='k', marker='o', markersize=5, alpha=1.0)
+        Z = np.clip(Z, np.max(Z)-10, np.max(Z))
+
+        # Plot surface
+        surf = ax.plot_surface(X, Y, Z, cmap=cm.coolwarm, linewidth=0, antialiased=False, zorder=5)
+
+        # Plot min/max markers
+        ax.plot([0.], [0.], [np.max(Z)], markerfacecolor='k', markeredgecolor='k', marker="_", markersize=5, alpha=1.0,
+                zorder=6)
+        ax.plot([0.], [0.], [np.min(Z)], markerfacecolor='k', markeredgecolor='k', marker="_", markersize=5, alpha=1.0,
+                zorder=1)
+
+        # Plot center line above surface
+        Z_range = abs(np.max(Z) - np.min(Z))
+        zline_above = np.linspace(Z[len(Z) // 2][len(Z[0]) // 2], np.max(Z) + (Z_range * 0.1), 4)
+        xline_above = 0 * zline_above
+        yline_above = 0 * zline_above
+        ax.plot3D(xline_above, yline_above, zline_above, 'black', zorder=10)
+
+        # Plot center line below surface
+        zline_below = np.linspace(Z[len(Z) // 2][len(Z[0]) // 2], np.min(Z) - (Z_range * 0.1), 4)
+        xline_below = 0 * zline_below
+        yline_below = 0 * zline_below
+        ax.plot3D(xline_below, yline_below, zline_below, 'black', zorder=0)
 
         def get_axes(tick_count, scale):
             ticks = []
@@ -84,14 +104,6 @@ def plot_2d_contour(x_coords, y_coords, z_values, base_name, vmin=0.1, vmax=10, 
                 current_label += label_rate
             return ticks, tick_labels
 
-        #print(get_axes(9, dir1_scale))
-        #x_ticks, x_labels = get_axes(9, dir1_scale)
-        #y_ticks, y_labels = get_axes(9, dir2_scale)
-        #ax.set_xticks(x_ticks)
-        #ax.set_yticks(y_ticks)
-        #ax.set_xticklabels(x_labels)
-        #ax.set_yticklabels(y_labels)
-        print(vmin, vmax)
         fig.colorbar(surf, shrink=0.5, aspect=5)
         out_fname = base_name + '_3dsurface.png'
         fig.savefig(out_fname, dpi=300,

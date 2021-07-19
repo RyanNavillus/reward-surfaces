@@ -30,9 +30,7 @@ def main():
     checkpoint_path = base_source_path / checkpoint_fname
     info_fname = "info.json"
     params_fname = "parameters.th"
-
     info = json.load(open(base_source_path / info_fname))
-
     agent, steps = make_agent(info['agent_name'], info['env'], info['device'], args.job_dir, info['hyperparameters'])
     agent.load_weights(checkpoint_path)
 
@@ -53,7 +51,6 @@ def main():
         # agent_weights += [off * args.offset2 / (info['grid_size']//2) for off in offset2_data.values()]
         for a_weight, off in zip(agent_weights, offset2_data.values()):
             a_weight += off * offset2_scalar
-
     agent.set_weights(agent_weights)
 
     job_name = f"{args.offset1:03},{args.offset2:03}"

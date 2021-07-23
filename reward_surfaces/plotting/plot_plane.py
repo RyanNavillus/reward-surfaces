@@ -62,16 +62,31 @@ def plot_2d_contour(x_coords, y_coords, z_values, base_name, vmin=0.1, vmax=10, 
     if plot_type == 'all' or plot_type == 'mesh':
         fig = plt.figure()
         ax = Axes3D(fig)
-        Z = np.clip(Z, np.max(Z)-10, np.max(Z))
+
+        def reject_outliers(data, m=2.):
+            d = np.abs(data - np.median(data))
+            mdev = np.median(d)
+            s = d/mdev if mdev else 0.
+            return data[s < m]
+
+        non_outliers = reject_outliers(Z, m=2.0)
+        print(np.max(Z))
+        print(np.min(Z))
+        print(np.min(non_outliers))
+        #Z = np.clip(Z, np.min(non_outliers), np.max(Z))
+        #Z = np.clip(Z, np.max(Z) - 10000, np.max(Z))
 
         # Plot surface
         surf = ax.plot_surface(X, Y, Z, cmap=cm.coolwarm, linewidth=0, antialiased=False, zorder=5)
 
         # Plot min/max markers
-        ax.plot([0.], [0.], [np.max(Z)], markerfacecolor='k', markeredgecolor='k', marker="_", markersize=5, alpha=1.0,
-                zorder=6)
-        ax.plot([0.], [0.], [np.min(Z)], markerfacecolor='k', markeredgecolor='k', marker="_", markersize=5, alpha=1.0,
-                zorder=1)
+        #ax.plot([0.], [0.], [np.max(Z)], markerfacecolor='k', markeredgecolor='k', marker="_", markersize=5, alpha=1.0,
+        #        zorder=6)
+        #ax.plot([0.], [0.], [np.min(Z)], markerfacecolor='k', markeredgecolor='k', marker="_", markersize=5, alpha=1.0,
+        #        zorder=1)
+
+        # Add max text
+        ax.text(0.05, 0.05, np.max(Z), f"{np.max(Z):.2f}", color='black')
 
         # Plot center line above surface
         Z_range = abs(np.max(Z) - np.min(Z))

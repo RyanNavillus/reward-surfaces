@@ -218,7 +218,7 @@ Ant-v2:
                        )"
 
 # Tuned
-Walker2DBulletEnv-v0:
+Walker2DPyBulletEnv-v0:
   <<: *pybullet-defaults
   learning_rate: !!float 3e-5
   clip_range: lin_0.4

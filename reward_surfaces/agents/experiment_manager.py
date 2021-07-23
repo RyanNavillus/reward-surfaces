@@ -424,8 +424,9 @@ class ExperimentManager:
         :return:
         """
         # Pretrained model, load normalization
-        path_ = os.path.join(os.path.dirname(self.trained_agent), self.env_id)
+        path_ = f"{self.log_folder}".replace("eig_vecs_plane", "checkpoints")
         path_ = os.path.join(path_, "vecnormalize.pkl")
+        print(path_)
 
         if os.path.exists(path_):
             print("Loading saved VecNormalize stats")

@@ -71,7 +71,6 @@ def make_agent(agent_name, env_name, device, save_dir, hyperparams):
         algo_name = hyperparams.pop('ALGO')
         manager = ExperimentManager(algo_name.lower(), env_name, save_dir, hyperparams=hyperparams, verbose=1)
         model, _, steps = manager.setup_experiment()
-        print(model.policy.log_std_init, model.policy.ortho_init, model.policy.net_arch, model.policy.activation_fn)
         env_fn = make_vec_env_fn(env_name, manager)
         eval_env_fn = make_vec_env_fn(env_name, manager, is_eval=True)
         return SB3OnPolicyTrainer(env_fn, model, manager.n_envs, env_name, eval_env_fn=eval_env_fn), steps

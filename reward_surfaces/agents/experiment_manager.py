@@ -427,6 +427,7 @@ class ExperimentManager:
         path_ = f"{self.log_folder}".replace("eig_vecs_plane", "checkpoints")
         path_ = os.path.join(path_, "vecnormalize.pkl")
         print(path_)
+        print(self.normalize)
 
         if os.path.exists(path_):
             print("Loading saved VecNormalize stats")
@@ -441,7 +442,6 @@ class ExperimentManager:
             local_normalize_kwargs = self.normalize_kwargs.copy()
             # Do not normalize reward for env used for evaluation
             if eval_env:
-                print("Eval normalize")
                 if len(local_normalize_kwargs) > 0:
                     local_normalize_kwargs["norm_reward"] = False
                 else:

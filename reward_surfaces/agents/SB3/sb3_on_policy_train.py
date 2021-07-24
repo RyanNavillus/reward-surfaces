@@ -10,6 +10,7 @@ import torch
 from collections import OrderedDict
 from stable_baselines3.common.vec_env.obs_dict_wrapper import ObsDictWrapper
 import os
+import time
 
 # Circular import here? Fix this
 #from reward_surfaces.algorithms.evaluate_est_hesh import calculate_est_hesh_eigenvalues
@@ -249,7 +250,9 @@ class OnPolicyEvaluator:
 
         action = action.detach().cpu().numpy()
         self.state, rew, done, info = self.env.step(action)
-        return rew[0], done[0], value, old_state, action
+        #self.env.render()
+        #time.sleep(0.01)
+        return rew[0], done[0], value, old_state, action, info[0]
 
 
 class SB3OnPolicyTrainer:

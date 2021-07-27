@@ -1,14 +1,10 @@
 from stable_baselines3.ddpg import DDPG
 from stable_baselines3.td3 import TD3
 from stable_baselines3.her import HerReplayBuffer
+import gym
 from .SB3 import SB3OnPolicyTrainer, SB3OffPolicyTrainer, SB3HerPolicyTrainer
 from .rainbow.rainbow_trainer import RainbowTrainer
-import gym
 from .SB3.sb3_extended_algos import ExtA2C, ExtPPO, ExtSAC
-from stable_baselines3.common.atari_wrappers import AtariWrapper
-from stable_baselines3.common.vec_env import DummyVecEnv, VecFrameStack, VecNormalize, VecTransposeImage
-from stable_baselines3.common.monitor import Monitor
-from .utils import HyperparameterManager
 from .experiment_manager import ExperimentManager
 
 SB3_ON_ALGOS = {
@@ -43,7 +39,7 @@ def make_vec_env_fn(env_name, manager, simple_obs=True, is_eval=False):
     return env_fn_v
 
 
-def make_agent(agent_name, env_name, device, save_dir, hyperparams):
+def make_agent(agent_name, env_name, device, save_dir, hyperparams, pretraining=None, timesteps=0):
     hyperparams = dict(**hyperparams)
     if 'rainbow' == agent_name:
         return RainbowTrainer(env_name, device=device, **hyperparams)
@@ -69,11 +65,18 @@ def make_agent(agent_name, env_name, device, save_dir, hyperparams):
         # steps = hyperparams.pop('n_timesteps')
         # return SB3OnPolicyTrainer(env_fn, algo(model, env, device=device, **hyperparams), eval_env_fn=eval_env), steps
         algo_name = hyperparams.pop('ALGO')
-        manager = ExperimentManager(algo_name.lower(), env_name, save_dir, hyperparams=hyperparams, verbose=1)
+        manager = ExperimentManager(algo_name.lower(), env_name, save_dir, hyperparams=hyperparams,
+                                    pretraining=pretraining, verbose=1)
         model, _, steps = manager.setup_experiment()
+        if pretraining:
+            best_model = manager.get_best_model()
+            pretraining["best_model"] = best_model
+            model.num_timesteps = pretraining["trained_steps"]
+            steps -= pretraining["trained_steps"]
         env_fn = make_vec_env_fn(env_name, manager)
         eval_env_fn = make_vec_env_fn(env_name, manager, is_eval=True)
-        return SB3OnPolicyTrainer(env_fn, model, manager.n_envs, env_name, eval_env_fn=eval_env_fn), steps
+        return SB3OnPolicyTrainer(env_fn, model, manager.n_envs, env_name, eval_env_fn=eval_env_fn,
+                                  pretraining=pretraining), steps
     elif "SB3_HER" == agent_name:
         env_fn = make_vec_env_fn(env_name, simple_obs=False)
         algo = SB3_OFF_ALGOS[hyperparams.pop('ALGO')]

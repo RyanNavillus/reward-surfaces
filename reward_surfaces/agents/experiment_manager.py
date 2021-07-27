@@ -158,7 +158,6 @@ class ExperimentManager:
         n_timesteps: int = 0,
         hyperparams: Optional[Dict[str, Any]] = None,
         env_kwargs: Optional[Dict[str, Any]] = None,
-        trained_agent: str = "",
         truncate_last_trajectory: bool = False,
         uuid_str: str = "",
         seed: int = None,
@@ -166,6 +165,7 @@ class ExperimentManager:
         save_replay_buffer: bool = False,
         verbose: int = 1,
         vec_env_type: str = "dummy",
+        pretraining = None
     ):
         super(ExperimentManager, self).__init__()
         self.algo = algo
@@ -189,6 +189,13 @@ class ExperimentManager:
         self.n_actions = None  # For DDPG/TD3 action noise objects
         self._hyperparams = {}
 
+        # Resume training
+        trained_agent = ""
+        self.trained_timesteps = 0
+        if pretraining:
+            trained_agent = pretraining["latest"]
+            self.best_checkpoint = pretraining["best"]
+            self.trained_timesteps = pretraining["trained_steps"]
         self.trained_agent = trained_agent
         self.continue_training = trained_agent.endswith(".zip") and os.path.isfile(trained_agent)
         self.truncate_last_trajectory = truncate_last_trajectory
@@ -217,7 +224,9 @@ class ExperimentManager:
         :return: the initialized RL model
         """
         hyperparams, saved_hyperparams = self.read_hyperparameters()
+        print(hyperparams)
         hyperparams, self.env_wrapper = self._preprocess_hyperparams(hyperparams)
+        print(hyperparams)
 
         self.create_log_folder()
 
@@ -225,7 +234,6 @@ class ExperimentManager:
         env = self.create_envs(self.n_envs, no_log=False)
 
         self._hyperparams = self._preprocess_action_noise(hyperparams, saved_hyperparams, env)
-        print(self._hyperparams)
 
         if self.continue_training:
             model = self._load_pretrained_agent(self._hyperparams, env)
@@ -240,7 +248,13 @@ class ExperimentManager:
             )
 
         self._save_config(saved_hyperparams)
+        model.num_timesteps = self.trained_timesteps
         return model, env, self.n_timesteps
+
+    def get_best_model(self):
+        env = self.create_envs(self.n_envs, no_log=False)
+        best_model = self._load_pretrained_agent(self._hyperparams, env)
+        return best_model
 
     def _save_config(self, saved_hyperparams: Dict[str, Any]) -> None:
         """
@@ -506,21 +520,28 @@ class ExperimentManager:
 
         return env
 
-    def _load_pretrained_agent(self, hyperparams: Dict[str, Any], env: VecEnv) -> BaseAlgorithm:
+    def _load_pretrained_agent(self, hyperparams: Dict[str, Any], env: VecEnv, agent_path: str = "") -> BaseAlgorithm:
+        # Override the pretrained agent that will be loaded
+        if agent_path == "":
+            agent = self.trained_agent
+        else:
+            agent = agent_path
+
         # Continue training
         print("Loading pretrained agent")
         # Policy should not be changed
-        del hyperparams["policy"]
+        if "policy" in hyperparams.keys():
+            del hyperparams["policy"]
 
         if "policy_kwargs" in hyperparams.keys():
             del hyperparams["policy_kwargs"]
 
         model = ALGOS[self.algo].load(
-            self.trained_agent,
+            agent,
             env=env,
             seed=self.seed,
             tensorboard_log=self.tensorboard_log,
-            verbose=self.verbose,
+            verbose=0,
             **hyperparams,
         )
 

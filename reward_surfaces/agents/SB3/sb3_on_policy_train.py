@@ -9,8 +9,8 @@ import tempfile
 import torch
 from collections import OrderedDict
 from stable_baselines3.common.vec_env.obs_dict_wrapper import ObsDictWrapper
+from stable_baselines3.common import base_class
 import os
-import time
 
 # Circular import here? Fix this
 #from reward_surfaces.algorithms.evaluate_est_hesh import calculate_est_hesh_eigenvalues
@@ -59,18 +59,27 @@ class CheckpointParamCallback(CheckpointCallback):
     :param verbose:
     """
 
-    def __init__(self, save_freq: int, save_path: str, name_prefix: str = "rl_model", n_envs: int = 1, verbose: int = 0):
+    def __init__(self, save_freq: int, save_path: str, name_prefix: str = "rl_model", n_envs: int = 1,
+                 init_timesteps: int = 0, verbose: int = 0):
         super(CheckpointParamCallback, self).__init__(save_freq, save_path, name_prefix=name_prefix, verbose=verbose)
-        self.old_params = None
         self.save_folders = []
-        self.n_envs=n_envs
+        self.n_envs = n_envs
+
+    # Type hint as string to avoid circular import
+    def init_callback(self, model: "base_class.BaseAlgorithm") -> None:
+        """
+        Initialize the callback by saving references to the
+        RL model and the training environment for convenience.
+        """
+        super(CheckpointParamCallback, self).init_callback(model)
+        self.old_params = [param.clone() for param in self.model.policy.parameters()]
 
     def _on_step(self) -> bool:
         if self.n_calls > 0 and (self.n_calls - 1) % self.save_freq == 0:
             self.old_params = [param.clone() for param in self.model.policy.parameters()]
-        if self.n_calls % self.save_freq == 1:
-            print(f"saved checkpoint {self.n_calls * self.n_envs}")
-            path = os.path.join(self.save_path, f"{self.num_timesteps-1:07}")
+        if self.n_calls % self.save_freq == 0:
+            print(f"saved checkpoint {self.num_timesteps:07}")
+            path = os.path.join(self.save_path, f"{self.num_timesteps:07}")
             os.makedirs(path, exist_ok=True)
             save_path = os.path.join(path, "checkpoint")
             self.save_folders.append(save_path)
@@ -126,6 +135,8 @@ class EvalParamCallback(EvalCallback):
         best_model_save_path: str = None,
         deterministic: bool = True,
         render: bool = False,
+        init_timesteps: int = 0,
+        baselines_agent: "base_class.BaseAlgorithm" = None,
         verbose: int = 0,
         warn: bool = True,
     ):
@@ -134,6 +145,38 @@ class EvalParamCallback(EvalCallback):
         self.old_params = None
         self.save_folders = []
         self.log_path = log_path
+        self.baseline_agent = baselines_agent
+
+    # Type hint as string to avoid circular import
+    def init_callback(self, model: "base_class.BaseAlgorithm") -> None:
+        """
+        Initialize the callback by saving references to the
+        RL model and the training environment for convenience.
+        """
+        super(EvalParamCallback, self).init_callback(model)
+        print(self.model.num_timesteps)
+        self.num_timesteps = self.model.num_timesteps
+        if self.baseline_agent:
+            print("eval baseline")
+            self.old_params = [param.clone() for param in self.model.policy.parameters()]
+            episode_rewards, episode_lengths = evaluate_policy(
+                self.baseline_agent,
+                self.eval_env,
+                n_eval_episodes=self.n_eval_episodes,
+                render=self.render,
+                deterministic=self.deterministic,
+                return_episode_rewards=True,
+                warn=self.warn,
+                callback=self._log_success_callback,
+            )
+            mean_reward, std_reward = np.mean(episode_rewards), np.std(episode_rewards)
+            mean_ep_length, std_ep_length = np.mean(episode_lengths), np.std(episode_lengths)
+            self.last_mean_reward = mean_reward
+            if self.verbose > 0:
+                print(f"Eval num_timesteps={self.num_timesteps}, " f"episode_reward={mean_reward:.2f} +/- {std_reward:.2f}")
+                print(f"Episode length: {mean_ep_length:.2f} +/- {std_ep_length:.2f}")
+            if mean_reward > self.best_mean_reward:
+                self.best_mean_reward = mean_reward
 
     def _on_step(self) -> bool:
         if self.n_calls > 0 and (self.n_calls - 1) % self.eval_freq == 0:
@@ -257,11 +300,12 @@ class OnPolicyEvaluator:
 
 class SB3OnPolicyTrainer:
     def __init__(self, env_fn, sb3_algorithm, n_envs, env_id, deterministic_eval=False, eval_env_fn=None,
-                 eval_freq=10000, n_eval_episodes=25, n_eval_envs=5):
+                 eval_freq=10000, n_eval_episodes=25, n_eval_envs=5, pretraining=None):
         self.env_fn = env_fn
         self.eval_env_fn = eval_env_fn
         self.algorithm = sb3_algorithm
         self.device = sb3_algorithm.device
+        self.pretraining = pretraining
 
         # Callbacks
         self.callbacks = []
@@ -274,6 +318,10 @@ class SB3OnPolicyTrainer:
 
     def create_callbacks(self, save_dir, save_freq=10000, prefix='rl_model'):
         checkpoint_callback = None
+        init_timesteps = 0
+        if self.pretraining:
+            init_timesteps = self.pretraining["trained_steps"]
+
         if save_freq > 0:
             # Account for the number of parallel environments
             save_freq = max(save_freq // self.n_envs, 1)
@@ -281,6 +329,7 @@ class SB3OnPolicyTrainer:
                                                           save_path=save_dir,
                                                           name_prefix=prefix,
                                                           n_envs=self.n_envs,
+                                                          init_timesteps=init_timesteps,
                                                           verbose=0)
             self.callbacks.append(checkpoint_callback)
 
@@ -288,6 +337,9 @@ class SB3OnPolicyTrainer:
         if self.eval_freq > 0:
             # Account for the number of parallel environments
             self.eval_freq = max(self.eval_freq // self.n_envs, 1)
+            baseline_model = None
+            if self.pretraining:
+                baseline_model = self.pretraining["best_model"]
 
             save_vec_normalize = SaveVecNormalizeCallback(save_freq=1, save_path=save_dir)
             eval_env = self.eval_env_fn()
@@ -299,6 +351,8 @@ class SB3OnPolicyTrainer:
                 log_path=save_dir + '/best/',
                 eval_freq=self.eval_freq,
                 deterministic=self.deterministic_eval,
+                baselines_agent=baseline_model,
+                init_timesteps=init_timesteps,
                 verbose=1
             )
 
@@ -309,7 +363,8 @@ class SB3OnPolicyTrainer:
         save_prefix = f'sb3_{type(self.algorithm).__name__}'
         checkpoint_callback = self.create_callbacks(save_dir, save_freq=save_freq, prefix=save_prefix)
 
-        self.algorithm.learn(num_steps, callback=self.callbacks)
+        self.algorithm.env.reset()
+        self.algorithm.learn(num_steps, callback=self.callbacks, reset_num_timesteps=False)
         return checkpoint_callback.save_folders
 
     def get_weights(self):

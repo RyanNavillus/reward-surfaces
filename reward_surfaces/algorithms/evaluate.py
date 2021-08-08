@@ -107,7 +107,7 @@ def calculate_stats(all_datas, gamma):
     print(episode_rewards)
     return {
         "episode_rewards": float(np.mean(episode_rewards)),
-        "episode_std_rewards": float(np.std(episode_rewards/episode_lens)),
+        "episode_std_rewards": float(np.std(episode_rewards)),
         "episode_value_ests": float(np.mean(episode_value_ests/episode_lens)),
         "episode_values": float(np.mean(episode_values/episode_lens)),
         "episode_td_err": float(np.mean(episode_td_err/episode_lens)),
@@ -162,7 +162,7 @@ def calculate_monitor_stats(all_datas, gamma):
     episode_lens = np.array(episode_lens, dtype=np.float64)
     return {
         "episode_rewards": float(np.mean(episode_rewards)),
-        "episode_std_rewards": float(np.std(episode_rewards/episode_lens)),
+        "episode_std_rewards": float(np.std(episode_rewards)),
         "episode_value_ests": float(np.mean(episode_value_ests/episode_lens)),
         "episode_values": float(np.mean(episode_values/episode_lens)),
         "episode_td_err": float(np.mean(episode_td_err/episode_lens)),

@@ -67,13 +67,21 @@ def plot_2d_contour(x_coords, y_coords, z_values, base_name, vmin=0.1, vmax=10, 
             d = np.abs(data - np.median(data))
             mdev = np.median(d)
             s = d/mdev if mdev else 0.
-            return data[s < m]
+            non_outliers = data[s < m]
+            maxi = np.max(non_outliers)
+            mini = np.min(non_outliers)
+            newdata = data.copy()
+            newdata[newdata > maxi] = maxi
+            newdata[newdata < mini] = mini
+            return newdata
 
-        non_outliers = reject_outliers(Z, m=2.0)
+        #Z = reject_outliers(Z, m=2.0)
+
         print(np.max(Z))
         print(np.min(Z))
-        print(np.min(non_outliers))
-        #Z = np.clip(Z, np.min(non_outliers), np.max(Z))
+        Z = np.clip(Z, -1000000, 1000000)
+        X = 3*X
+        Y = 3*Y
         #Z = np.clip(Z, np.max(Z) - 10000, np.max(Z))
 
         # Plot surface

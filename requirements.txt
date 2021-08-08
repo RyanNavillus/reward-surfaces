@@ -2,6 +2,7 @@ plotly
 opencv-python
 atari-py
 stable_baselines3
+sb3_contrib
 torch
 tqdm
 seaborn

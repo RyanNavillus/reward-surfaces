@@ -11,7 +11,7 @@ import pandas
 from scipy import interpolate
 
 
-def plot_2d_contour(x_coords, y_coords, z_values, base_name, vmin=0.1, vmax=10, vlevel=0.5, show=False,
+def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1, vmax=10, vlevel=0.5, show=False,
                     plot_type='mesh', dir1_scale=1., dir2_scale=1., dir1_name="dim1", dir2_name="dim2"):
     """Plot 2D contour map and 3D surface."""
     X = x_coords
@@ -79,10 +79,10 @@ def plot_2d_contour(x_coords, y_coords, z_values, base_name, vmin=0.1, vmax=10, 
 
         print(np.max(Z))
         print(np.min(Z))
-        Z = np.clip(Z, -1000000, 1000000)
-        X = 3*X
-        Y = 3*Y
-        #Z = np.clip(Z, np.max(Z) - 10000, np.max(Z))
+        #Z = np.clip(Z, -1000000, 1000000)
+        X = magnitude*X
+        Y = magnitude*Y
+        Z = np.clip(Z, np.max(Z) - 10000, np.max(Z))
 
         # Plot surface
         surf = ax.plot_surface(X, Y, Z, cmap=cm.coolwarm, linewidth=0, antialiased=False, zorder=5)
@@ -94,7 +94,11 @@ def plot_2d_contour(x_coords, y_coords, z_values, base_name, vmin=0.1, vmax=10, 
         #        zorder=1)
 
         # Add max text
-        ax.text(0.05, 0.05, np.max(Z), f"{np.max(Z):.2f}", color='black')
+        center = len(Z) // 2
+        print(center)
+        print(Z.shape)
+        print(np.argmax(Z) % len(Z), np.argmax(Z) // len(Z))
+        ax.text(0.05, 0.05, np.max(Z), f"{Z[center][center]:.2f}", color='black')
 
         # Plot center line above surface
         Z_range = abs(np.max(Z) - np.min(Z))
@@ -362,6 +366,7 @@ def plot_plane(csv_fname, outname=None, key_name="episode_rewards", plot_type="m
     xvals = (data['dim0'].values)
     yvals = (data['dim1'].values)
     zvals = (data[key_name].values)
+    magnitude = data['magnitude'].values[0]
 
     # Sort x, y, z values according to x + 1000000(dsize^2)(y)
     idxs = np.argsort(xvals + yvals*1000000*len(data['dim0']))
@@ -378,8 +383,9 @@ def plot_plane(csv_fname, outname=None, key_name="episode_rewards", plot_type="m
     outname = outname + key_name
     # TODO: Find a cleaner way to integrate this
     scale = data.iloc[0]['scale']
-    return plot_2d_contour(xvals, yvals, zvals, outname, vmin=vmin, vmax=vmax, vlevel=vlevel, plot_type=plot_type,
-                           show=show, dir1_scale=scale, dir2_scale=scale,
+    magnitude = data.iloc[0]['magnitude']
+    return plot_2d_contour(xvals, yvals, zvals, magnitude, outname, vmin=vmin, vmax=vmax, vlevel=vlevel,
+                           plot_type=plot_type, show=show, dir1_scale=scale, dir2_scale=scale,
                            dir1_name=dir1_name, dir2_name=dir2_name)
     if plot_type == "all" or plot_type == "vtp":
         return generate_vtp(xvals, yvals, zvals, outname+".vtp")

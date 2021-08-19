@@ -13,6 +13,7 @@ def generate_plane_data(checkpoint_dir,
                         output_path,
                         dir1_vec,
                         dir2_vec,
+                        magnitude,
                         info,
                         grid_size=5,
                         num_steps=None,
@@ -27,6 +28,9 @@ def generate_plane_data(checkpoint_dir,
     assert isinstance(dir1_vec, list) and isinstance(dir1_vec[0], np.ndarray), "dir1 and dir2 must be a list of numpy vectors. Use `from surface_utils import readz; readz(fname)` to read a numpy vector into this format"
     assert isinstance(dir2_vec, list) and isinstance(dir2_vec[0], np.ndarray), "dir1 and dir2 must be a list of numpy vectors. Use `from surface_utils import readz; readz(fname)` to read a numpy vector into this format"
     assert grid_size % 2 == 1, "grid-size must be odd"
+    assert magnitude > 0, "magnitude must be positive"
+    if magnitude > 2:
+        print("Warning: Large magnitude plots may cause agents to produce NaN actions for continuous action spaces. This could lead to simulation failues in Mujoco. Large magnitudes may also lead to extremely large, negative rewards.")
     assert num_steps is not None or num_episodes is not None, "one of num_steps or num_episodes must be specified"
     if num_steps is None:
         num_steps = 10000000000000
@@ -52,6 +56,7 @@ def generate_plane_data(checkpoint_dir,
     info['experiment_type'] = "plane"
     info['checkpoint_dir'] = str(checkpoint_dir)
     info['grid_size'] = grid_size
+    info['magnitude'] = magnitude
     info['num_episodes'] = num_episodes
     info['num_steps'] = num_steps
     info['device'] = device

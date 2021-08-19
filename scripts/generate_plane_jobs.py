@@ -80,7 +80,7 @@ def main():
 
     info['directions'] = args.directions if args.copy_directions is None else "copy"
 
-    generate_plane_data(args.checkpoint_dir, args.output_path, dir1_vec, dir2_vec, info,
+    generate_plane_data(args.checkpoint_dir, args.output_path, dir1_vec, dir2_vec, args.magnitude, info,
                         grid_size=args.grid_size,
                         num_steps=args.num_steps,
                         num_episodes=args.num_episodes,

@@ -126,9 +126,10 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
             # Manually set colorbar and z axis tick text
             zticks = []
             ztick_labels = []
+            bounds = cbar.ax.get_ybound()
             for index, label in enumerate(continuous_labels):
-                x = 2.0
-                y = ((24 * index + 1) / 8) - 23
+                x = 6.0
+                y = bounds[0] + (bounds[1] - bounds[0]) * index / 8
 
                 # Format label
                 zticks.append(label)

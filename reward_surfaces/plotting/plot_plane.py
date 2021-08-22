@@ -3,6 +3,7 @@ import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import pyplot as plt
 from matplotlib import cm
+from matplotlib.ticker import LinearLocator
 import re
 import seaborn as sns
 
@@ -12,7 +13,7 @@ from scipy import interpolate
 
 
 def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1, vmax=10, vlevel=0.5, show=False,
-                    plot_type='mesh', dir1_scale=1., dir2_scale=1., dir1_name="dim1", dir2_name="dim2"):
+                    plot_type='mesh', dir1_scale=1., dir2_scale=1., dir1_name="dim1", dir2_name="dim2", logscale=False):
     """Plot 2D contour map and 3D surface."""
     X = x_coords
     Y = y_coords
@@ -63,42 +64,30 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
         fig = plt.figure()
         ax = Axes3D(fig)
 
-        def reject_outliers(data, m=2.):
-            d = np.abs(data - np.median(data))
-            mdev = np.median(d)
-            s = d/mdev if mdev else 0.
-            non_outliers = data[s < m]
-            maxi = np.max(non_outliers)
-            mini = np.min(non_outliers)
-            newdata = data.copy()
-            newdata[newdata > maxi] = maxi
-            newdata[newdata < mini] = mini
-            return newdata
+        if np.min(Z) < -1e9 and not logscale:
+            print("Warning: Data includes extremely large negative rewards ({:3E}). Consider setting logscale=True".format(np.min(Z)))
 
-        #Z = reject_outliers(Z, m=2.0)
+        # Scale X and Y values by the step size magnitude
+        X = magnitude * X
+        Y = magnitude * Y
 
-        print(np.max(Z))
-        print(np.min(Z))
-        #Z = np.clip(Z, -1000000, 1000000)
-        X = magnitude*X
-        Y = magnitude*Y
-        Z = np.clip(Z, np.max(Z) - 10000, np.max(Z))
+        real_Z = Z.copy()
+        # Take numerically stable log of data
+        if logscale:
+            Z_neg = Z[Z < 0]
+            Z_pos = Z[Z >= 0]
+            Z_neg = -np.log10(1-Z_neg)
+            Z_pos = np.log10(1+Z_pos)
+            Z[Z < 0] = Z_neg
+            Z[Z >= 0] = Z_pos
+            Z_pos = Z_pos / (np.max(Z) - np.min(Z))
 
         # Plot surface
         surf = ax.plot_surface(X, Y, Z, cmap=cm.coolwarm, linewidth=0, antialiased=False, zorder=5)
 
-        # Plot min/max markers
-        #ax.plot([0.], [0.], [np.max(Z)], markerfacecolor='k', markeredgecolor='k', marker="_", markersize=5, alpha=1.0,
-        #        zorder=6)
-        #ax.plot([0.], [0.], [np.min(Z)], markerfacecolor='k', markeredgecolor='k', marker="_", markersize=5, alpha=1.0,
-        #        zorder=1)
-
         # Add max text
         center = len(Z) // 2
-        print(center)
-        print(Z.shape)
-        print(np.argmax(Z) % len(Z), np.argmax(Z) // len(Z))
-        ax.text(0.05, 0.05, np.max(Z), f"{Z[center][center]:.2f}", color='black')
+        ax.text(0.05, 0.05, np.max(Z), f"{real_Z[center][center]:.2f}", color='black')
 
         # Plot center line above surface
         Z_range = abs(np.max(Z) - np.min(Z))
@@ -113,25 +102,48 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
         yline_below = 0 * zline_below
         ax.plot3D(xline_below, yline_below, zline_below, 'black', zorder=0)
 
-        def get_axes(tick_count, scale):
-            ticks = []
-            tick_labels = []
-            tick_rate = float(1) / (tick_count // 2)
-            label_rate = float(scale) / (tick_count // 2)
-            current_tick = float(-1)
-            current_label = float(-scale)
-            for i in range(tick_count):
-                if current_label < 0.000001 and current_label > -0.000001:
-                    ticks.append(0)
-                    tick_labels.append(0)
-                else:
-                    ticks.append(current_tick)
-                    tick_labels.append(current_label)
-                current_tick += tick_rate
-                current_label += label_rate
-            return ticks, tick_labels
+        # Fix colorbar labeling for log scale
+        if logscale:
+            # Find the highest order of magnitude
+            max_Z = np.max(real_Z)
+            if max_Z < 0:
+                max_magnitude = -math.floor(math.log10(-max_Z))
+            else:
+                max_magnitude = math.floor(math.log10(max_Z))
 
-        fig.colorbar(surf, shrink=0.5, aspect=5)
+            # Find the lowest order of magnitude
+            min_Z = np.min(real_Z)
+            if min_Z < 0:
+                min_magnitude = -math.floor(math.log10(-min_Z))
+            else:
+                min_magnitude = math.floor(math.log10(min_Z))
+
+            # Create colorbar
+            continuous_labels = np.round(np.linspace(min_magnitude, max_magnitude, 8, endpoint=True))
+            cbar = fig.colorbar(surf, shrink=0.5, aspect=5, ticks=continuous_labels, pad=0.1)
+            cbar.set_ticks(list())
+
+            # Manually set colorbar and z axis tick text
+            zticks = []
+            ztick_labels = []
+            for index, label in enumerate(continuous_labels):
+                x = 2.0
+                y = ((24 * index + 1) / 8) - 23
+
+                # Format label
+                zticks.append(label)
+                if label > 5 or label < -5:
+                    label = "-1e{}".format(-label) if label < 0 else "1e{}".format(label)
+                else:
+                    label = "{}".format(-10.0**(-label)) if label < 0 else "{}".format(10.0**label)
+                cbar.ax.text(x, y, label)
+                ztick_labels.append("    " + label)
+            ax.set_zticks(zticks)
+            ax.set_zticklabels(ztick_labels)
+        else:
+            fig.colorbar(surf, shrink=0.5, aspect=5, pad=0.05)
+
+        # Save plot
         out_fname = base_name + '_3dsurface.png'
         fig.savefig(out_fname, dpi=300,
                     bbox_inches='tight', format='png')
@@ -351,7 +363,7 @@ def isqrt(n):
 
 
 def plot_plane(csv_fname, outname=None, key_name="episode_rewards", plot_type="mesh", show=False,
-               dir1_scale=1, dir2_scale=1., dir1_name="dim1", dir2_name="dim2", vmin=None, vmax=None):
+               dir1_scale=1, dir2_scale=1., dir1_name="dim1", dir2_name="dim2", vmin=None, vmax=None, logscale=False):
     default_outname = "vis/" + "".join([c for c in csv_fname if re.match(r'\w', c)]) + key_name + "_" + plot_type
     outname = outname if outname is not None else default_outname
     datafname = csv_fname
@@ -366,7 +378,6 @@ def plot_plane(csv_fname, outname=None, key_name="episode_rewards", plot_type="m
     xvals = (data['dim0'].values)
     yvals = (data['dim1'].values)
     zvals = (data[key_name].values)
-    magnitude = data['magnitude'].values[0]
 
     # Sort x, y, z values according to x + 1000000(dsize^2)(y)
     idxs = np.argsort(xvals + yvals*1000000*len(data['dim0']))
@@ -383,9 +394,9 @@ def plot_plane(csv_fname, outname=None, key_name="episode_rewards", plot_type="m
     outname = outname + key_name
     # TODO: Find a cleaner way to integrate this
     scale = data.iloc[0]['scale']
-    magnitude = data.iloc[0]['magnitude']
+    magnitude = data.iloc[0]['magnitude'] if 'magnitude' in data else 1
     return plot_2d_contour(xvals, yvals, zvals, magnitude, outname, vmin=vmin, vmax=vmax, vlevel=vlevel,
                            plot_type=plot_type, show=show, dir1_scale=scale, dir2_scale=scale,
-                           dir1_name=dir1_name, dir2_name=dir2_name)
+                           dir1_name=dir1_name, dir2_name=dir2_name, logscale=logscale)
     if plot_type == "all" or plot_type == "vtp":
         return generate_vtp(xvals, yvals, zvals, outname+".vtp")

@@ -9,7 +9,8 @@ if __name__ == "__main__":
     parser.add_argument('--key', type=str, default="episode_rewards", help="key in csv file to plot")
     parser.add_argument('--type', type=str, default="mesh", help="plot type. Possible types are: [all, mesh, vtp, heat, contour, contourf]")
     parser.add_argument('--show', action='store_true', help="If true, shows plot instead of saving it (does not work for vtp output)")
+    parser.add_argument('--logscale', action='store_true', help="If true, plot in log scale rather than the default linear scale")
 
     args = parser.parse_args()
 
-    plot_plane(args.datafname, args.outname, args.key, args.type, args.show)
+    plot_plane(args.datafname, args.outname, args.key, args.type, args.show, logscale=args.logscale)

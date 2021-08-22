@@ -129,7 +129,7 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
             bounds = cbar.ax.get_ybound()
             for index, label in enumerate(continuous_labels):
                 x = 6.0
-                y = bounds[0] + (bounds[1] - bounds[0]) * index / 8
+                y = bounds[0] + (bounds[1] - bounds[0]+1) * index / 8
 
                 # Format label
                 zticks.append(label)

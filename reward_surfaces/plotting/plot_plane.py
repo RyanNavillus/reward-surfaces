@@ -127,13 +127,14 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
             zticks = []
             ztick_labels = []
             bounds = cbar.ax.get_ybound()
+            print(bounds)
             for index, label in enumerate(continuous_labels):
                 x = 6.0
-                y = bounds[0] + (bounds[1] - bounds[0]+1) * index / 8
+                y = bounds[0] + (bounds[1] - bounds[0]) * index / 8
 
                 # Format label
                 zticks.append(label)
-                if label > 5 or label < -5:
+                if label > 4 or label < -4:
                     label = "-1e{}".format(-label) if label < 0 else "1e{}".format(label)
                 else:
                     label = "{}".format(-10.0**(-label)) if label < 0 else "{}".format(10.0**label)

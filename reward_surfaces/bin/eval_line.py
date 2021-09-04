@@ -29,9 +29,9 @@ def main():
     checkpoint = os.path.basename(args.outputfile)
 
     device = args.device
-    agent = make_agent(info['agent_name'], info['env'], device, info['hyperparameters'])
+    agent, steps = make_agent(info['agent_name'], info['env'], device, PurePath(args.params).parent.parent, info['hyperparameters'])
 
-    params = [v.cpu().detach().numpy() for v in torch.load(args.params,map_location=torch.device('cpu')).values()]
+    params = [v.cpu().detach().numpy() for v in torch.load(args.params, map_location=torch.device('cpu')).values()]
     if info['random_dir_seed'] is not None:
         seed = info['random_dir_seed']
         np.random.seed(seed+hash(args.outputfile)%(1<<30))

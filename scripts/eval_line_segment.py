@@ -35,7 +35,9 @@ def main():
     os.mkdir(out_path)
     os.mkdir(out_path/"results")
 
-    checkpoints = sorted([checkpoint for checkpoint in os.listdir(train_path) if os.path.isdir(train_path/checkpoint)])
+    checkpoints = sorted([checkpoint for checkpoint in os.listdir(train_path) if (os.path.isdir(train_path/checkpoint)
+                                                                                  and checkpoint.isdigit())])
+    print(checkpoints)
     commands = []
     for checkpoint in checkpoints:
         params = train_path/checkpoint/"parameters.th"

@@ -29,7 +29,7 @@ def gen_advantage_est_episode(rews, vals, decay, gae_lambda=1.):
 
 
 def gen_advantage_est(rewards, values, decay, gae_lambda=1.):
-    return [gen_advantage_est_episode(rew,val,decay,gae_lambda) for rew,val in zip(rewards,values)]
+    return [gen_advantage_est_episode(rew, val, decay, gae_lambda) for rew, val in zip(rewards, values)]
 
 
 # def split_data(datas):
@@ -76,7 +76,7 @@ def gather_policy_hess_data(evaluator, num_episodes, num_steps, gamma, returns_m
     start_t = time.time()
     done = False
     while not done or (len(episode_rewards) < num_episodes and tot_steps < num_steps):
-        rew, done, value, state, act = evaluator._next_state_act() #, deterministic=True)
+        rew, done, value, state, act, info = evaluator._next_state_act() #, deterministic=True)
         ep_states.append(state)
         ep_actions.append(act)
         ep_rews.append(rew)
@@ -165,6 +165,10 @@ def compute_grad_mags(evaluator, params, all_states, all_returns, all_actions):
             batch_actions = torch.tensor(eps_act[idx:idx + eps_batch_size], device=device).reshape(eps_batch_size, -1)
             batch_returns = torch.tensor(eps_returns[idx:idx + eps_batch_size], device=device).float()
 
+            print(batch_states.shape)
+            print(batch_actions.shape)
+            print(batch_returns.shape)
+            print(evaluator.eval_log_prob(batch_states, batch_actions).shape)
             logprob = torch.dot(evaluator.eval_log_prob(batch_states, batch_actions), batch_returns)
 
             grad = torch.autograd.grad(outputs=logprob, inputs=tuple(params))

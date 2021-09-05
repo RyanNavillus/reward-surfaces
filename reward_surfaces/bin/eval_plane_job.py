@@ -29,7 +29,6 @@ def main():
     checkpoint_fname = next(fname for fname in os.listdir(args.job_dir) if "checkpoint" in fname)
     checkpoint_path = base_source_path / checkpoint_fname
     info_fname = "info.json"
-    params_fname = "parameters.th"
     info = json.load(open(base_source_path / info_fname))
     agent, steps = make_agent(info['agent_name'], info['env'], info['device'], args.job_dir, info['hyperparameters'])
     agent.load_weights(checkpoint_path)

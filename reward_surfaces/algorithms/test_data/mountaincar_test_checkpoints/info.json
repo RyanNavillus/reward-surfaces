@@ -1,0 +1,7 @@
+{
+    "agent_name": "SB3_ON",
+    "env": "MountainCar-v0",
+    "hyperparameters": {
+        "ALGO": "PPO"
+    }
+}

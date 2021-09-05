@@ -293,14 +293,19 @@ class OnPolicyEvaluator:
 
         action = action.detach().cpu().numpy()
         self.state, rew, done, info = self.env.step(action)
-        #self.env.render()
         #time.sleep(0.01)
-        return rew[0], done[0], value, old_state, action, info[0]
+        original_rew = 0
+        if hasattr(self.env, "n_stack"):
+            original_rew = sum(self.env.envs[0].rewards[-self.env.n_stack:])
+        else:
+            if len(self.env.envs[0].rewards) > 0:
+                original_rew = self.env.envs[0].rewards[-1]
+        return rew[0], original_rew, done[0], value, old_state, action, info[0]
 
 
 class SB3OnPolicyTrainer:
     def __init__(self, env_fn, sb3_algorithm, n_envs, env_id, deterministic_eval=False, eval_env_fn=None,
-                 eval_freq=10000, n_eval_episodes=25, n_eval_envs=5, pretraining=None):
+                 eval_freq=100000, n_eval_episodes=25, n_eval_envs=5, pretraining=None):
         self.env_fn = env_fn
         self.eval_env_fn = eval_env_fn
         self.algorithm = sb3_algorithm
@@ -316,7 +321,7 @@ class SB3OnPolicyTrainer:
         self.env_id = env_id
         self.deterministic_eval = deterministic_eval
 
-    def create_callbacks(self, save_dir, save_freq=10000, prefix='rl_model'):
+    def create_callbacks(self, save_dir, save_freq=100000, prefix='rl_model'):
         checkpoint_callback = None
         init_timesteps = 0
         if self.pretraining:

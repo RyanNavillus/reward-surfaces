@@ -1,0 +1,7 @@
+{
+    "agent_name": "SB3_ON",
+    "env": "MsPacmanNoFrameskip-v0",
+    "hyperparameters": {
+        "ALGO": "PPO"
+    }
+}

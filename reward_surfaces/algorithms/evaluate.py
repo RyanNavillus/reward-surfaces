@@ -18,7 +18,8 @@ def generate_data(evaluator, num_episodes, num_steps):
     while not done or (tot_eps < num_episodes and tot_steps < num_steps):
         with torch.no_grad():
             # Next state can be evaluated determinsitically for testing
-            rew, done, value, _, _, info = evaluator._next_state_act()
+            rew, original_rew, done, value, _, _, info = evaluator._next_state_act()
+        print(rew, original_reward)
         all_datas.append((rew, done, value))
         tot_steps += 1
         tot_rew += rew
@@ -41,7 +42,8 @@ def generate_monitor_data(evaluator, num_episodes, num_steps):
     while not done or (tot_eps < num_episodes and tot_steps < num_steps):
         with torch.no_grad():
             # Next state can be evaluated determinsitically for testing
-            rew, done, value, _, _, info = evaluator._next_state_act()
+            rew, original_reward, done, value, _, _, info = evaluator._next_state_act()
+            print(rew, original_reward)
             tot_steps += 1
         if "episode" in info.keys():
             episode_reward = info["episode"]["r"]

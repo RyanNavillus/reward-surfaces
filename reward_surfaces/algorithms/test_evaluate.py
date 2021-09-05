@@ -13,9 +13,9 @@ torch.set_num_threads(1)
 
 def main():
     base_source_path = pathlib.Path("./reward_surfaces/algorithms/test_data/")
-    checkpoint_fname = "mountaincar_test_checkpoints/best/checkpoint"
+    checkpoint_fname = "mspacman_test_checkpoints/best/checkpoint"
     checkpoint_path = base_source_path / checkpoint_fname
-    info_fname = "mountaincar_test_eig_vecs/info.json"
+    info_fname = "mspacman_test_eig_vecs_plane/info.json"
     info = json.load(open(base_source_path / info_fname))
     agent, _ = make_agent(info['agent_name'], info['env'], "cpu", "./test_data", info['hyperparameters'])
     agent.load_weights(checkpoint_path)

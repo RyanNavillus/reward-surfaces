@@ -76,10 +76,10 @@ def gather_policy_hess_data(evaluator, num_episodes, num_steps, gamma, returns_m
     start_t = time.time()
     done = False
     while not done or (len(episode_rewards) < num_episodes and tot_steps < num_steps):
-        rew, original_rew, done, value, state, act, info = evaluator._next_state_act() #, deterministic=True)
+        _, original_rew, done, value, state, act, info = evaluator._next_state_act() #, deterministic=True)
         ep_states.append(state)
         ep_actions.append(act)
-        ep_rews.append(rew)
+        ep_rews.append(original_rew)
         ep_values.append(value)
         tot_steps += 1
         if done:
@@ -164,12 +164,9 @@ def compute_grad_mags(evaluator, params, all_states, all_returns, all_actions):
             batch_states = torch.squeeze(torch.tensor(eps_states[idx:idx + eps_batch_size], device=device), dim=1)
             batch_actions = torch.tensor(eps_act[idx:idx + eps_batch_size], device=device).reshape(eps_batch_size, -1)
             batch_returns = torch.tensor(eps_returns[idx:idx + eps_batch_size], device=device).float()
+            batch_returns = batch_returns.repeat(batch_returns.shape[0], 1)
 
-            print(batch_states.shape)
-            print(batch_actions.shape)
-            print(batch_returns.shape)
-            print(evaluator.eval_log_prob(batch_states, batch_actions).shape)
-            logprob = torch.dot(evaluator.eval_log_prob(batch_states, batch_actions), batch_returns)
+            logprob = torch.sum(torch.mul(evaluator.eval_log_prob(batch_states, batch_actions), batch_returns))
 
             grad = torch.autograd.grad(outputs=logprob, inputs=tuple(params))
             for g, ma, ga in zip(grad, mag_accum, grad_accum):

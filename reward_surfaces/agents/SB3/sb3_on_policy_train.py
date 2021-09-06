@@ -294,6 +294,8 @@ class OnPolicyEvaluator:
         action = action.detach().cpu().numpy()
         self.state, rew, done, info = self.env.step(action)
         #time.sleep(0.01)
+
+        # Access the rewards created by the SB3 Monitor wrapper
         original_rew = 0
         if hasattr(self.env, "n_stack"):
             original_rew = sum(self.env.envs[0].rewards[-self.env.n_stack:])

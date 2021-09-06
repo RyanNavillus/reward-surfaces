@@ -43,8 +43,14 @@ def save_results(agent, info, out_dir, results, job_name):
                                                  all_returns,
                                                  all_actions,
                                                  action_evalutor.device)
-        np.savez(vec_folder / "grad.npz", *policy_grad)
-        np.savez(vec_folder / "grad_mag.npz", *policy_grad)
+        cpu_policy_grad = []
+        for p in policy_grad:
+            if isinstance(p, np.ndarray):
+                cpu_policy_grad.append(p)
+            else:
+                cpu_policy_grad.append(p.cpu())
+        np.savez(vec_folder / "grad.npz", *cpu_policy_grad)
+        np.savez(vec_folder / "grad_mag.npz", *cpu_policy_grad)
 
     if info['calc_hesh']:
         print("estimating hesh")

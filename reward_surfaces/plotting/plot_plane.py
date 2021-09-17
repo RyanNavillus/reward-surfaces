@@ -80,7 +80,12 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
             Z_pos = np.log10(1+Z_pos)
             Z[Z < 0] = Z_neg
             Z[Z >= 0] = Z_pos
-            Z_pos = Z_pos / (np.max(Z) - np.min(Z))
+
+        # Print flatness metric (stddev)
+        flat_data = real_Z.copy()
+        flat_data = flat_data / np.ptp(flat_data)
+        flat_data = flat_data + abs(np.min(flat_data))
+        print("Flatness [0,1]: ", np.std(flat_data) * 2)
 
         # Plot surface
         surf = ax.plot_surface(X, Y, Z, cmap=cm.coolwarm, linewidth=0, antialiased=False, zorder=5)
@@ -393,8 +398,7 @@ def plot_plane(csv_fname, outname=None, key_name="episode_rewards", plot_type="m
         vmax = np.max(zvals)
 
     vlevel = (vmax-vmin)/15
-    outname = outname + key_name
-    # TODO: Find a cleaner way to integrate this
+    outname = outname + "_" + key_name.replace('_', '')
     scale = data.iloc[0]['scale']
     magnitude = data.iloc[0]['magnitude'] if 'magnitude' in data else 1
     return plot_2d_contour(xvals, yvals, zvals, magnitude, outname, vmin=vmin, vmax=vmax, vlevel=vlevel,

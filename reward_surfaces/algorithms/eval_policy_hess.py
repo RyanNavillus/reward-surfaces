@@ -164,9 +164,11 @@ def compute_grad_mags(evaluator, params, all_states, all_returns, all_actions):
             batch_states = torch.squeeze(torch.tensor(eps_states[idx:idx + eps_batch_size], device=device), dim=1)
             batch_actions = torch.tensor(eps_act[idx:idx + eps_batch_size], device=device).reshape(eps_batch_size, -1)
             batch_returns = torch.tensor(eps_returns[idx:idx + eps_batch_size], device=device).float()
-            batch_returns = batch_returns.repeat(batch_returns.shape[0], 1)
-
-            logprob = torch.sum(torch.mul(evaluator.eval_log_prob(batch_states, batch_actions), batch_returns))
+            print(len(batch_states))
+            print(len(batch_actions))
+            print(evaluator.eval_log_prob(batch_states, batch_actions))
+            logprob = torch.diagonal(evaluator.eval_log_prob(batch_states, batch_actions))
+            logprob = torch.dot(logprob, batch_returns)
 
             grad = torch.autograd.grad(outputs=logprob, inputs=tuple(params))
             for g, ma, ga in zip(grad, mag_accum, grad_accum):

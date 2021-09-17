@@ -1,13 +1,7 @@
 import argparse
 import json
 import os
-import torch
-from reward_surfaces.utils.surface_utils import readz
 from pathlib import Path, PurePosixPath
-from reward_surfaces.algorithms import search
-from reward_surfaces.runners.run_jobs_multiproc import run_job_list_list
-from reward_surfaces.utils.job_results_to_csv import job_results_to_csv
-
 
 bigint = 1000000000000
 
@@ -56,7 +50,7 @@ def main():
     info['scale_dir'] = args.scale_dir
     info['random_dir_seed'] = args.random_dir_seed
 
-    json.dump(info, open(out_path/"info.json",'w'))
+    json.dump(info, open(out_path/"info.json", 'w'))
 
     with open(out_path/"jobs.sh", 'w') as file:
         file.write("\n".join(commands))

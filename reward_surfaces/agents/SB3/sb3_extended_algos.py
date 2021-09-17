@@ -29,7 +29,7 @@ class HeshCalcOnlineMixin:
         returns action, logprob
         logprob should be differentialble to allow for backprop
         '''
-        #print(self.policy)
+        print(obs.shape, act.shape)
         val, log_prob, entropy = self.policy.evaluate_actions(obs, act)
         return log_prob
 
@@ -39,18 +39,17 @@ class HeshCalcOnlineMixin:
         tot_size = 0
         tot_grad = [torch.zeros_like(p) for p in self.parameters()]
         for rollout_data in self.generate_samples(batch_size=max_batch_size, max_samples=num_samples):
-            #batch_size = min(num_samples-start, max_batch_size)
+            # batch_size = min(num_samples-start, max_batch_size)
             batch_loss, batch_grad = self.calulate_grad_from_buffer(rollout_data)
             tot_loss += batch_loss.item()
             for t, g in zip(tot_grad, batch_grad):
                 t.data += g.detach()
             tot_size += len(rollout_data.observations)
-        print("tot eval size:",tot_size)
+        print("tot eval size:", tot_size)
         tot_loss /= tot_size
         for g in tot_grad:
             g.data /= tot_size
         return tot_loss, tot_grad
-
 
     def calculate_hesh_vec_prod(self, vec, num_samples):
         '''
@@ -60,12 +59,12 @@ class HeshCalcOnlineMixin:
         max_batch_size = 2048
         # start = 0
         for rollout_data in self.generate_samples(batch_size=max_batch_size, max_samples=num_samples):
-            #batch_size = min(num_samples-start, max_batch_size)
+            # batch_size = min(num_samples-start, max_batch_size)
             _, grad = self.calulate_grad_from_buffer(rollout_data)
             loss = 0
             for g, p in zip(grad, vec):
                 loss += (g*p).sum()
-            #accumulates grad inside sb3_algo.parameters().grad
+            # accumulates grad inside sb3_algo.parameters().grad
             loss.backward()
 
     def generate_samples(self, batch_size, max_samples):

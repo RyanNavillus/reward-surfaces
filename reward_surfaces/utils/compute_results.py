@@ -34,9 +34,6 @@ def save_results(agent, info, out_dir, results, job_name):
                                                                        action_evalutor.gamma,
                                                                        "UNUSED",
                                                                        gae_lambda=1.0)
-        print(len(all_states), len(all_states[0]), all_states[0][0].shape)
-        print(len(all_returns), len(all_returns[0]), all_returns[0][0].shape)
-        print(len(all_actions), len(all_actions[0]), all_actions[0][0].shape)
 
         vec_folder = out_dir/f"results/{job_name}"
         os.makedirs(vec_folder, exist_ok=True)

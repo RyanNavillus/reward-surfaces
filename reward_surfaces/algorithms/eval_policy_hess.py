@@ -164,10 +164,7 @@ def compute_grad_mags(evaluator, params, all_states, all_returns, all_actions):
             batch_states = torch.squeeze(torch.tensor(eps_states[idx:idx + eps_batch_size], device=device), dim=1)
             batch_actions = torch.tensor(eps_act[idx:idx + eps_batch_size], device=device).reshape(eps_batch_size, -1)
             batch_returns = torch.tensor(eps_returns[idx:idx + eps_batch_size], device=device).float()
-            print(len(batch_states))
-            print(len(batch_actions))
-            print(evaluator.eval_log_prob(batch_states, batch_actions))
-            logprob = torch.diagonal(evaluator.eval_log_prob(batch_states, batch_actions))
+            logprob = evaluator.eval_log_prob(batch_states, batch_actions)
             logprob = torch.dot(logprob, batch_returns)
 
             grad = torch.autograd.grad(outputs=logprob, inputs=tuple(params))
@@ -184,7 +181,8 @@ def compute_grad_mags(evaluator, params, all_states, all_returns, all_actions):
 
 def compute_policy_gradient(evaluator, all_states, all_returns, all_actions, device):
     device = evaluator.parameters()[0].device
-    params = get_used_params(evaluator, torch.tensor(all_states[0][0:2], device=device),
+    # torch.squeeze is used to fix atari observation shape
+    params = get_used_params(evaluator, torch.squeeze(torch.tensor(all_states[0][0:2], device=device), dim=1),
                              torch.tensor(all_actions[0][0:2], device=device))
 
     grad_mag, grad_dir = compute_grad_mags(evaluator, params, all_states, all_returns, all_actions)

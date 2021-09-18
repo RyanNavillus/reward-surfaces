@@ -10,6 +10,8 @@ import gym
 import numpy as np
 import yaml
 import pybulletgym
+import stable_baselines3
+print(stable_baselines3.__file__)
 
 # For using HER with GoalEnv
 from stable_baselines3.common.base_class import BaseAlgorithm
@@ -418,7 +420,7 @@ class ExperimentManager:
 
     @staticmethod
     def is_atari(env_id: str) -> bool:
-        return "ALGymEnv" in gym.envs.registry.env_specs[env_id].entry_point
+        return "AtariEnv" in gym.envs.registry.env_specs[env_id].entry_point
 
     @staticmethod
     def is_bullet(env_id: str) -> bool:

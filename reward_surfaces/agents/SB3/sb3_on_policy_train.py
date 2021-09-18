@@ -8,7 +8,6 @@ from .extract_params import ParamLoader
 import tempfile
 import torch
 from collections import OrderedDict
-from stable_baselines3.common.vec_env.obs_dict_wrapper import ObsDictWrapper
 from stable_baselines3.common import base_class
 import os
 
@@ -437,7 +436,7 @@ class HERPolicyEvaluator(OnPolicyEvaluator):
         eval_policy = policy_policy if self.eval_trainer is None else self.eval_trainer.algorithm.policy
 
         old_state = self.state
-        obs = torch.as_tensor(ObsDictWrapper.convert_dict(self.state), device=self.algo.device)
+        obs = torch.as_tensor(self.state, device=self.algo.device)
         action = policy_policy.forward(obs)#, deterministic=True)
         value = eval_policy.critic.forward(obs, action)
 

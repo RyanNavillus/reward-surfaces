@@ -153,7 +153,6 @@ class EvalParamCallback(EvalCallback):
         RL model and the training environment for convenience.
         """
         super(EvalParamCallback, self).init_callback(model)
-        print(self.model.num_timesteps)
         self.num_timesteps = self.model.num_timesteps
         if self.baseline_agent:
             print("eval baseline")
@@ -238,7 +237,7 @@ class EvalParamCallback(EvalCallback):
             self.logger.record("time/total timesteps", self.num_timesteps, exclude="tensorboard")
             self.logger.dump(self.num_timesteps)
 
-            if mean_reward > self.best_mean_reward:
+            if mean_reward >= self.best_mean_reward:
                 if self.verbose > 0:
                     print("New best mean reward!")
                 if self.best_model_save_path is not None:

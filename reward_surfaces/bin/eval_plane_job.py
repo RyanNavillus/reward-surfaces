@@ -57,7 +57,9 @@ def main():
         "dim0": offset1_scalar,
         "dim1": offset2_scalar,
         "scale": info['grid_size'] // 2,
-        "magnitude": info["magnitude"]
+        "magnitude": info["magnitude"],
+        "dir1_scale": info["dir1_scale"],
+        "dir2_scale": info["dir2_scale"],
     }
     save_results(agent, info, base_source_path, cur_results, job_name)
 

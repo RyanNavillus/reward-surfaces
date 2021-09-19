@@ -63,6 +63,7 @@ def decayed_baselined_values(rewards, decay):
 
 
 def gather_policy_hess_data(evaluator, num_episodes, num_steps, gamma, returns_method='baselined_vals', gae_lambda=1.0):
+    print("Gathering data")
     episode_states = []
     episode_actions = []
     episode_rewards = []
@@ -148,6 +149,7 @@ def accumulate(accumulator, data):
 
 
 def compute_grad_mags(evaluator, params, all_states, all_returns, all_actions):
+    print("computing grad mag")
     device = params[0].device
     batch_size = 8
     num_grad_steps = 0

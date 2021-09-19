@@ -12,6 +12,8 @@ def generate_plane_data(checkpoint_dir,
                         dir2_vec,
                         magnitude,
                         info,
+                        dir1_scale=1.0,
+                        dir2_scale=1.0,
                         grid_size=5,
                         num_steps=None,
                         num_episodes=None,
@@ -54,6 +56,8 @@ def generate_plane_data(checkpoint_dir,
     info['checkpoint_dir'] = str(checkpoint_dir)
     info['grid_size'] = grid_size
     info['magnitude'] = magnitude
+    info['dir1_scale'] = dir1_scale
+    info['dir2_scale'] = dir2_scale
     info['num_episodes'] = num_episodes
     info['num_steps'] = num_steps
     info['device'] = device

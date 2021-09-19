@@ -46,6 +46,7 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
     # --------------------------------------------------------------------
     if plot_type == 'all' or plot_type == 'heat':
         size = len(X[0])
+        print(dir1_scale, dir2_scale)
 
         labels_d1 = [f"{x:0.2f}" for x in (np.arange(size)-size//2)/(size/2)*dir1_scale]
         labels_d2 = [f"{x:0.2f}" for x in (np.arange(size)-size//2)/(size/2)*dir2_scale]
@@ -401,8 +402,10 @@ def plot_plane(csv_fname, outname=None, key_name="episode_rewards", plot_type="m
     outname = outname + "_" + key_name.replace('_', '')
     scale = data.iloc[0]['scale']
     magnitude = data.iloc[0]['magnitude'] if 'magnitude' in data else 1
+    dir1_scale = data.iloc[0]['dir1_scale'] if 'dir1_scale' in data else dir1_scale
+    dir2_scale = data.iloc[0]['dir2_scale'] if 'dir2_scale' in data else dir2_scale
     return plot_2d_contour(xvals, yvals, zvals, magnitude, outname, vmin=vmin, vmax=vmax, vlevel=vlevel,
-                           plot_type=plot_type, show=show, dir1_scale=scale, dir2_scale=scale,
+                           plot_type=plot_type, show=show, dir1_scale=dir1_scale, dir2_scale=dir2_scale,
                            dir1_name=dir1_name, dir2_name=dir2_name, logscale=logscale)
     if plot_type == "all" or plot_type == "vtp":
         return generate_vtp(xvals, yvals, zvals, outname+".vtp")

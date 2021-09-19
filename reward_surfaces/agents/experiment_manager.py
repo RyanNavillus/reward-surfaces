@@ -1,4 +1,3 @@
-import argparse
 import os
 import glob
 import importlib
@@ -442,11 +441,8 @@ class ExperimentManager:
         # Pretrained model, load normalization
         path_ = f"{self.log_folder}".replace("eig_vecs_plane", "checkpoints")
         path_ = os.path.join(path_, "vecnormalize.pkl")
-        print(path_)
-        print(self.normalize)
 
         if os.path.exists(path_):
-            print("Loading saved VecNormalize stats")
             env = VecNormalize.load(path_, env)
             # Deactivate training and reward normalization
             if eval_env:

@@ -1,5 +1,6 @@
 import json
 import os
+import numpy as np
 from pathlib import Path
 
 
@@ -36,8 +37,19 @@ def generate_eval_jobs(train_dir, out_dir,
 
     json.dump(info, open((out_dir / info_fname), 'w'), indent=4)
 
-    checkpoints = [folder for folder in os.listdir(train_dir) if os.path.isdir(train_dir / folder) and
-                   (folder.isdigit() or folder == "best")]
+    checkpoints = [folder for folder in os.listdir(train_dir) if os.path.isdir(train_dir / folder) and folder.isdigit()]
+    checkpoints = sorted(checkpoints)
+
+    # Limit to 30 checkpoints for line plots
+    if len(checkpoints) > 30:
+        print(f"Selecting 30 checkpoints out of {len(checkpoints)}")
+        idx = list(np.round(np.linspace(0, len(checkpoints) - 1, 30)).astype(int))
+        checkpoints = [checkpoints[i] for i in idx]
+
+    # Always eval best checkpoint
+    if "best" in os.listdir(train_dir) and os.path.isdir(train_dir / "best"):
+        checkpoints.append("best")
+
     all_jobs = []
     if checkpoint:
         job = f"python3 -m reward_surfaces.bin.eval_tradj {train_dir} {checkpoint} {out_dir} --device={device}"

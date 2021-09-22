@@ -31,7 +31,7 @@ def main():
             subdirs[i] = ""
             for part in parts:
                 if part.isdigit():
-                    subdirs[i] = part
+                    subdirs[i] = int(part)
         subdirs = sorted(list(filter(lambda a: a != "", subdirs)))
         latest_checkpoint = subdirs.pop()
         timesteps = int(latest_checkpoint)

@@ -24,6 +24,35 @@ def save_results(agent, info, out_dir, results, job_name):
         np.savez(vec_folder / "est_grad.npz", *grad)
         results['est_loss'] = loss
 
+    if info['fast_grad']:
+        print(f"computing rollout with {info['num_steps']} steps, {info['num_episodes']} episodes")
+        vec_folder = out_dir/f"results/{job_name}"
+        os.makedirs(vec_folder, exist_ok=True)
+
+        evaluator = agent.evaluator()
+        action_evalutor = agent.action_evalutor()
+        all_states, all_returns, all_actions = gather_policy_hess_data(evaluator,
+                                                                       info['num_episodes'],
+                                                                       info['num_steps'],
+                                                                       action_evalutor.gamma,
+                                                                       "UNUSED",
+                                                                       gae_lambda=1.0)
+
+        policy_grad, _ = compute_policy_gradient(action_evalutor,
+                                                 all_states,
+                                                 all_returns,
+                                                 all_actions,
+                                                 action_evalutor.device)
+        # Dumb fix, try to remove
+        cpu_policy_grad = []
+        for p in policy_grad:
+            if isinstance(p, np.ndarray):
+                cpu_policy_grad.append(p)
+            else:
+                cpu_policy_grad.append(p.cpu())
+        np.savez(vec_folder / "grad.npz", *cpu_policy_grad)
+        np.savez(vec_folder / "grad_mag.npz", *cpu_policy_grad)
+
     if info['calc_hesh'] or info['calc_grad']:
         print(f"computing rollout with {info['num_steps']} steps, {info['num_episodes']} episodes")
         evaluator = agent.evaluator()

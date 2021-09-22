@@ -40,10 +40,10 @@ def generate_eval_jobs(train_dir, out_dir,
     checkpoints = [folder for folder in os.listdir(train_dir) if os.path.isdir(train_dir / folder) and folder.isdigit()]
     checkpoints = sorted(checkpoints)
 
-    # Limit to 30 checkpoints for line plots
-    if len(checkpoints) > 30:
-        print(f"Selecting 30 checkpoints out of {len(checkpoints)}")
-        idx = list(np.round(np.linspace(0, len(checkpoints) - 1, 30)).astype(int))
+    # Limit to 33 checkpoints for line plots
+    if len(checkpoints) > 33:
+        print(f"Selecting 33 checkpoints out of {len(checkpoints)}")
+        idx = list(np.round(np.linspace(0, len(checkpoints) - 1, 33)).astype(int))
         checkpoints = [checkpoints[i] for i in idx]
 
     # Always eval best checkpoint

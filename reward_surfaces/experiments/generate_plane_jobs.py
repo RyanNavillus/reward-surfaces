@@ -22,7 +22,8 @@ def generate_plane_data(checkpoint_dir,
                         est_hesh=False,
                         est_grad=False,
                         calc_hesh=False,
-                        calc_grad=False):
+                        calc_grad=False,
+                        fast_grad=False):
 
     assert isinstance(dir1_vec, list) and isinstance(dir1_vec[0], np.ndarray), "dir1 and dir2 must be a list of numpy vectors. Use `from surface_utils import readz; readz(fname)` to read a numpy vector into this format"
     assert isinstance(dir2_vec, list) and isinstance(dir2_vec[0], np.ndarray), "dir1 and dir2 must be a list of numpy vectors. Use `from surface_utils import readz; readz(fname)` to read a numpy vector into this format"
@@ -65,6 +66,7 @@ def generate_plane_data(checkpoint_dir,
     info['est_hesh'] = est_hesh
     info['est_grad'] = est_grad
     info['calc_grad'] = calc_grad
+    info['fast_grad'] = fast_grad
 
     json.dump(info, open((output_path / info_fname), 'w'), indent=4)
 

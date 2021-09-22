@@ -155,17 +155,78 @@ def compute_grad_mags(evaluator, params, all_states, all_returns, all_actions):
     num_grad_steps = 0
     mag_accum = [p.detach()*0 for p in params]
     grad_accum = [p.detach()*0 for p in params]
+    # Iterate through every epsiode in dataset
     for eps in range(len(all_states)):
+        # Access episode data
         eps_states = all_states[eps]
         eps_returns = all_returns[eps]
         eps_act = all_actions[eps]
         assert len(eps_act) == len(eps_states)
         assert len(eps_act) == len(eps_returns)
+        # Iterate through each episode in batches:
         for idx in range(0, len(eps_act), batch_size):
+            # Make sure batch doesn't extend past end of episode
             eps_batch_size = min(batch_size, len(eps_act) - idx)
             batch_states = torch.squeeze(torch.tensor(eps_states[idx:idx + eps_batch_size], device=device), dim=1)
             batch_actions = torch.tensor(eps_act[idx:idx + eps_batch_size], device=device).reshape(eps_batch_size, -1)
             batch_returns = torch.tensor(eps_returns[idx:idx + eps_batch_size], device=device).float()
+            # Calculate log probabilities of each state-action pair
+            logprob = evaluator.eval_log_prob(batch_states, batch_actions)
+            # Calculate expected return over batch?
+            logprob = torch.dot(logprob, batch_returns)
+
+            # Add batch grad mags to accumulator
+            grad = torch.autograd.grad(outputs=logprob, inputs=tuple(params))
+            for g, ma, ga in zip(grad, mag_accum, grad_accum):
+                ma.data += torch.square(g)
+                ga.data += g
+
+            num_grad_steps += 1
+
+    # Scale final grad mags by number of gradients steps
+    mag_accum = [m/num_grad_steps for m in mag_accum]
+    grad_accum = [m/num_grad_steps for m in grad_accum]
+    return mag_accum, grad_accum
+
+def compute_grad_mags_fast(evaluator, params, evaluator, num_episodes, num_steps, gamma, returns_method='baselined_vals', gae_lambda=1.0):
+    print("computing grad mag")
+    device = params[0].device
+    batch_size = 8
+    num_grad_steps = 0
+    mag_accum = [p.detach()*0 for p in params]
+    grad_accum = [p.detach()*0 for p in params]
+    step_count = 0
+    episode_count = 0
+    all_episode_rewards = []
+    while episode_count < num_episodes and step_count < num_steps:
+        # Collect episode data
+        episode_rewards = []
+        episode_values = []
+        episode_states = []
+        episode_actions = []
+        done = False
+        while not done:
+            _, original_reward, done, value, state, act, info = evaluator._next_state_act() #, deterministic=True)
+            episode_states.append(state)
+            episode_actions.append(act)
+            episode_rewards.append(original_reward)
+            episode_values.append(value)
+            step_count += 1
+            if done:
+                all_episode_rewards.append(episode_rewards)
+        # TODO: Apply baseline correctly
+        returns = mean_baseline_est(episode_rewards)
+        episode_count += 1
+
+        # Compute grads from episode data
+        assert len(episode_actions) == len(episode_states)
+        assert len(episode_actions) == len(episode_returns)
+        for idx in range(0, len(episode_actions), batch_size):
+            clipped_batch_size = min(batch_size, len(eps_act) - idx)
+            batch_states = torch.tensor(episode_states[idx:idx + clipped_batch_size], device=device)
+            batch_states = torch.squeeze(batch_states, dim=1)
+            batch_actions = torch.tensor(episode_actions[idx:idx + clipped_batch_size], device=device).reshape(clipped_batch_size, -1)
+            batch_returns = torch.tensor(episode_returns[idx:idx + clipped_batch_size], device=device).float()
             logprob = evaluator.eval_log_prob(batch_states, batch_actions)
             logprob = torch.dot(logprob, batch_returns)
 

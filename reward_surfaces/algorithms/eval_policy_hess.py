@@ -44,7 +44,9 @@ def gen_advantage_est(rewards, values, decay, gae_lambda=1.):
 
 
 def mean_baseline_est(rewards):
+    # Calculate average episode reward
     baseline = mean([sum(rew) for rew in rewards])
+    # Create np array, with same length as episode, for each episode, where each element has the value of episode reward minus baseline
     return [np.ones_like(rew) * (sum(rew)-baseline) for rew in rewards]
 
 
@@ -215,7 +217,9 @@ def compute_grad_mags_fast(evaluator, params, evaluator, num_episodes, num_steps
             if done:
                 all_episode_rewards.append(episode_rewards)
         # TODO: Apply baseline correctly
-        returns = mean_baseline_est(episode_rewards)
+        baseline = mean([sum(rewards) for rewards in all_episode_rewards])
+        episode_returns = np.ones_like(episode_rewards) * (sum(episode_rewards) - baseline)
+        #returns = mean_baseline_est(episode_rewards)
         episode_count += 1
 
         # Compute grads from episode data

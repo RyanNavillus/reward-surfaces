@@ -11,6 +11,7 @@ def generate_eval_jobs(train_dir, out_dir,
                        est_grad=False,
                        calc_hesh=False,
                        calc_grad=False,
+                       fast_grad=False,
                        device="cpu",
                        checkpoint=None):
     assert not (est_hesh and calc_hesh), "calculating and estimating hessian cannot happen at the same time"
@@ -34,16 +35,17 @@ def generate_eval_jobs(train_dir, out_dir,
     info['est_grad'] = est_grad
     info['calc_hesh'] = calc_hesh
     info['calc_grad'] = calc_grad
+    info['fast_grad'] = fast_grad
 
     json.dump(info, open((out_dir / info_fname), 'w'), indent=4)
 
     checkpoints = [folder for folder in os.listdir(train_dir) if os.path.isdir(train_dir / folder) and folder.isdigit()]
     checkpoints = sorted(checkpoints)
 
-    # Limit to 30 checkpoints for line plots
-    if len(checkpoints) > 30:
-        print(f"Selecting 30 checkpoints out of {len(checkpoints)}")
-        idx = list(np.round(np.linspace(0, len(checkpoints) - 1, 30)).astype(int))
+    # Limit to 33 checkpoints for line plots
+    if len(checkpoints) > 33:
+        print(f"Selecting 33 checkpoints out of {len(checkpoints)}")
+        idx = list(np.round(np.linspace(0, len(checkpoints) - 1, 33)).astype(int))
         checkpoints = [checkpoints[i] for i in idx]
 
     # Always eval best checkpoint

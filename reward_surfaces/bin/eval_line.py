@@ -3,7 +3,7 @@ import json
 import os
 import torch
 from reward_surfaces.utils.surface_utils import readz
-from pathlib import Path, PurePath
+from pathlib import PurePath
 from reward_surfaces.algorithms import evaluate
 from reward_surfaces.agents import make_agent
 import numpy as np
@@ -12,6 +12,8 @@ torch.set_num_threads(1)
 
 
 bigint = 1000000000000
+
+
 def main():
     parser = argparse.ArgumentParser(description='run a particular evaluation job')
     parser.add_argument('params', type=str)
@@ -34,7 +36,7 @@ def main():
     params = [v.cpu().detach().numpy() for v in torch.load(args.params, map_location=torch.device('cpu')).values()]
     if info['random_dir_seed'] is not None:
         seed = info['random_dir_seed']
-        np.random.seed(seed+hash(args.outputfile)%(1<<30))
+        np.random.seed(seed+hash(args.outputfile) % (1 << 30))
         dir = [filter_normalize(p) for p in params]
     else:
         dir = readz(args.dir)
@@ -45,8 +47,7 @@ def main():
 
     for i in range(args.length):
         mm = args.max_magnitude
-        l = args.length
-        weights = [p+d*i*mm/l for p,d in zip(params, dir)]
+        weights = [p + d*i*mm/args.length for p, d in zip(params, dir)]
         agent.set_weights(weights)
         evaluator = agent.evaluator()
         eval_results = evaluate(evaluator, args.num_episodes, args.num_steps)
@@ -56,6 +57,7 @@ def main():
 
         with open(out_fname, 'w') as file:
             file.write(json.dumps(eval_results))
+
 
 if __name__ == "__main__":
     main()

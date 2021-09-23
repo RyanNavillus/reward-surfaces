@@ -47,6 +47,7 @@ def mean_baseline_est(rewards):
     # Calculate average episode reward
     baseline = mean([sum(rew) for rew in rewards])
     # Create np array, with same length as episode, for each episode, where each element has the value of episode reward minus baseline
+    baseline = mean([sum(rew) for rew in rewards])
     return [np.ones_like(rew) * (sum(rew)-baseline) for rew in rewards]
 
 
@@ -99,6 +100,7 @@ def gather_policy_hess_data(evaluator, num_episodes, num_steps, gamma, returns_m
             #print("done!", (end_t - start_t)/len(episode_rewards))
 
     returns = mean_baseline_est(episode_rewards)
+    #print(returns)
     # if returns_method == 'baselined_vals':
     #returns = decayed_baselined_values(episode_rewards, gamma)
     # elif returns_method == 'gen_advantage':
@@ -157,6 +159,7 @@ def compute_grad_mags(evaluator, params, all_states, all_returns, all_actions):
     num_grad_steps = 0
     mag_accum = [p.detach()*0 for p in params]
     grad_accum = [p.detach()*0 for p in params]
+
     # Iterate through every epsiode in dataset
     for eps in range(len(all_states)):
         # Access episode data
@@ -165,6 +168,7 @@ def compute_grad_mags(evaluator, params, all_states, all_returns, all_actions):
         eps_act = all_actions[eps]
         assert len(eps_act) == len(eps_states)
         assert len(eps_act) == len(eps_returns)
+
         # Iterate through each episode in batches:
         for idx in range(0, len(eps_act), batch_size):
             # Make sure batch doesn't extend past end of episode
@@ -190,7 +194,8 @@ def compute_grad_mags(evaluator, params, all_states, all_returns, all_actions):
     grad_accum = [m/num_grad_steps for m in grad_accum]
     return mag_accum, grad_accum
 
-def compute_grad_mags_fast(evaluator, params, evaluator, num_episodes, num_steps, gamma, returns_method='baselined_vals', gae_lambda=1.0):
+
+def compute_grad_mags_fast(evaluator, params, action_evaluator, num_episodes, num_steps, gamma, returns_method='baselined_vals', gae_lambda=1.0):
     print("computing grad mag")
     device = params[0].device
     batch_size = 8
@@ -216,21 +221,23 @@ def compute_grad_mags_fast(evaluator, params, evaluator, num_episodes, num_steps
             step_count += 1
             if done:
                 all_episode_rewards.append(episode_rewards)
-        # TODO: Apply baseline correctly
         baseline = mean([sum(rewards) for rewards in all_episode_rewards])
         episode_returns = np.ones_like(episode_rewards) * (sum(episode_rewards) - baseline)
-        #returns = mean_baseline_est(episode_rewards)
         episode_count += 1
 
         # Compute grads from episode data
         assert len(episode_actions) == len(episode_states)
         assert len(episode_actions) == len(episode_returns)
         for idx in range(0, len(episode_actions), batch_size):
-            clipped_batch_size = min(batch_size, len(eps_act) - idx)
+            clipped_batch_size = min(batch_size, len(episode_actions) - idx)
+            # Access batch
             batch_states = torch.tensor(episode_states[idx:idx + clipped_batch_size], device=device)
+            batch_actions = torch.tensor(episode_actions[idx:idx + clipped_batch_size], device=device)
+            batch_returns = torch.tensor(episode_returns[idx:idx + clipped_batch_size], device=device)
+            # Fix batch dimensions
             batch_states = torch.squeeze(batch_states, dim=1)
-            batch_actions = torch.tensor(episode_actions[idx:idx + clipped_batch_size], device=device).reshape(clipped_batch_size, -1)
-            batch_returns = torch.tensor(episode_returns[idx:idx + clipped_batch_size], device=device).float()
+            batch_actions = batch_actions.reshape(clipped_batch_size, -1)
+            batch_returns = batch_returns.float()
             logprob = evaluator.eval_log_prob(batch_states, batch_actions)
             logprob = torch.dot(logprob, batch_returns)
 

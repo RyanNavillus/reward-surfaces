@@ -45,15 +45,20 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
     # Plot 2D heatmaps
     # --------------------------------------------------------------------
     if plot_type == 'all' or plot_type == 'heat':
+        dir1_name = "Grad Direction"
+        dir2_name = "Random Direction"
         size = len(X[0])
         print(dir1_scale, dir2_scale)
+        dir1_magnitude = math.floor(math.log10(abs(dir1_scale)))
+        dir2_magnitude = math.floor(math.log10(abs(dir2_scale)))
+        print(dir1_magnitude, dir2_magnitude)
 
-        labels_d1 = [f"{x:0.2f}" for x in (np.arange(size)-size//2)/(size/2)*dir1_scale]
-        labels_d2 = [f"{x:0.2f}" for x in (np.arange(size)-size//2)/(size/2)*dir2_scale]
+        labels_d1 = [f"{x:0.2f}" for x in (np.arange(size)-size//2)/(size/2)*dir1_scale*(10**-dir1_magnitude)]
+        labels_d2 = [f"{x:0.2f}" for x in (np.arange(size)-size//2)/(size/2)*dir2_scale*(10**-dir2_magnitude)]
         sns_plot = sns.heatmap(Z, cmap='viridis', cbar=True, vmin=vmin, vmax=vmax,
                                xticklabels=labels_d1, yticklabels=labels_d2)
         sns_plot.invert_yaxis()
-        sns_plot.set(xlabel=dir1_name, ylabel=dir2_name)
+        sns_plot.set(xlabel=dir1_name + f" (e{dir1_magnitude})", ylabel=dir2_name + f" (e{dir2_magnitude})")
         out_fname = base_name + '_2dheat.png'
         sns_plot.get_figure().savefig(out_fname,
                                       dpi=300, bbox_inches='tight', format='png')

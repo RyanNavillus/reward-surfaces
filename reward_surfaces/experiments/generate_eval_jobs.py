@@ -11,7 +11,7 @@ def generate_eval_jobs(train_dir, out_dir,
                        est_grad=False,
                        calc_hesh=False,
                        calc_grad=False,
-                       fast_grad=False,
+                       batch_grad=False,
                        device="cpu",
                        checkpoint=None):
     assert not (est_hesh and calc_hesh), "calculating and estimating hessian cannot happen at the same time"
@@ -35,7 +35,7 @@ def generate_eval_jobs(train_dir, out_dir,
     info['est_grad'] = est_grad
     info['calc_hesh'] = calc_hesh
     info['calc_grad'] = calc_grad
-    info['fast_grad'] = fast_grad
+    info['batch_grad'] = batch_grad
 
     json.dump(info, open((out_dir / info_fname), 'w'), indent=4)
 

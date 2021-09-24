@@ -36,7 +36,6 @@ def main():
     parser.add_argument('--est-grad', action='store_true')
     parser.add_argument('--calc-hesh', action='store_true')
     parser.add_argument('--calc-grad', action='store_true')
-    parser.add_argument('--fast-grad', action='store_true')
 
     args = parser.parse_args()
 
@@ -90,9 +89,7 @@ def main():
                         est_hesh=args.est_hesh,
                         est_grad=args.est_grad,
                         calc_hesh=args.calc_hesh,
-                        calc_grad=args.calc_grad,
-                        fast_grad=args.fast_grid)
-
+                        calc_grad=args.calc_grad)
 
 if __name__ == "__main__":
     main()

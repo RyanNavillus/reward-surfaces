@@ -195,8 +195,8 @@ def compute_grad_mags(evaluator, params, all_states, all_returns, all_actions):
     return mag_accum, grad_accum
 
 
-def compute_grad_mags_fast(evaluator, params, action_evaluator, num_episodes, num_steps, gamma, returns_method='baselined_vals', gae_lambda=1.0):
-    print("computing grad mag")
+def compute_grad_mags_batch(evaluator, params, action_evaluator, num_episodes, num_steps):
+    print("computing batch grad mag")
     device = params[0].device
     batch_size = 8
     num_grad_steps = 0
@@ -238,7 +238,7 @@ def compute_grad_mags_fast(evaluator, params, action_evaluator, num_episodes, nu
             batch_states = torch.squeeze(batch_states, dim=1)
             batch_actions = batch_actions.reshape(clipped_batch_size, -1)
             batch_returns = batch_returns.float()
-            logprob = evaluator.eval_log_prob(batch_states, batch_actions)
+            logprob = action_evaluator.eval_log_prob(batch_states, batch_actions)
             logprob = torch.dot(logprob, batch_returns)
 
             grad = torch.autograd.grad(outputs=logprob, inputs=tuple(params))
@@ -263,6 +263,28 @@ def compute_policy_gradient(evaluator, all_states, all_returns, all_actions, dev
 
     grad_dir = zero_unused_params(evaluator.parameters(), params, grad_dir)
     grad_mag = zero_unused_params(evaluator.parameters(), params, grad_mag)
+
+    return grad_dir, grad_mag
+
+
+def compute_policy_gradient_batch(evaluator, action_evaluator, num_episodes, num_steps):
+    device = action_evaluator.parameters()[0].device
+    # torch.squeeze is used to fix atari observation shape
+    test_states, test_returns, test_actions = gather_policy_hess_data(evaluator,
+                                                                      2,
+                                                                      num_steps,
+                                                                      action_evaluator.gamma,
+                                                                      "UNUSED",
+                                                                      gae_lambda=1.0)
+
+    params = get_used_params(action_evaluator,
+                             torch.squeeze(torch.tensor(test_states[0][0:2], device=device), dim=1),
+                             torch.tensor(test_actions[0][0:2], device=action_evaluator.device))
+
+    grad_mag, grad_dir = compute_grad_mags_batch(evaluator, params, action_evaluator, num_episodes, num_steps)
+
+    grad_dir = zero_unused_params(action_evaluator.parameters(), params, grad_dir)
+    grad_mag = zero_unused_params(action_evaluator.parameters(), params, grad_mag)
 
     return grad_dir, grad_mag
 

@@ -5,6 +5,7 @@ from reward_surfaces.algorithms import (evaluate,
                                         gather_policy_hess_data,
                                         calculate_true_hesh_eigenvalues,
                                         compute_policy_gradient,
+                                        compute_policy_gradient_batch,
                                         calculate_policy_ests)
 
 
@@ -24,25 +25,17 @@ def save_results(agent, info, out_dir, results, job_name):
         np.savez(vec_folder / "est_grad.npz", *grad)
         results['est_loss'] = loss
 
-    if info['fast_grad']:
+    if info['batch_grad']:
         print(f"computing rollout with {info['num_steps']} steps, {info['num_episodes']} episodes")
         vec_folder = out_dir/f"results/{job_name}"
         os.makedirs(vec_folder, exist_ok=True)
 
         evaluator = agent.evaluator()
-        action_evalutor = agent.action_evalutor()
-        all_states, all_returns, all_actions = gather_policy_hess_data(evaluator,
-                                                                       info['num_episodes'],
-                                                                       info['num_steps'],
-                                                                       action_evalutor.gamma,
-                                                                       "UNUSED",
-                                                                       gae_lambda=1.0)
+        action_evaluator = agent.action_evalutor()
 
-        policy_grad, _ = compute_policy_gradient(action_evalutor,
-                                                 all_states,
-                                                 all_returns,
-                                                 all_actions,
-                                                 action_evalutor.device)
+        policy_grad, _ = compute_policy_gradient_batch(evaluator, action_evaluator,
+                                                       info["num_episodes"], info["num_steps"])
+
         # Dumb fix, try to remove
         cpu_policy_grad = []
         for p in policy_grad:

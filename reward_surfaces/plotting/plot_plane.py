@@ -60,7 +60,9 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
         sns_plot = sns.heatmap(Z, cmap='viridis', cbar=True, vmin=vmin, vmax=vmax,
                                xticklabels=labels_d1, yticklabels=labels_d2)
         sns_plot.invert_yaxis()
-        sns_plot.set(xlabel=dir1_name + f" (10^{dir1_magnitude})", ylabel=dir2_name + f" (10^{dir2_magnitude})")
+        xlabel = dir1_name + r" ($10^{{{}}}$)".format(dir1_magnitude) if dir1_magnitude != 0 else dir1_name
+        ylabel = dir2_name + r" ($10^{{{}}}$)".format(dir2_magnitude) if dir2_name != 0 else dir2_name
+        sns_plot.set(xlabel=xlabel, ylabel=ylabel)
         out_fname = base_name + '_2dheat.png'
         sns_plot.get_figure().savefig(out_fname, dpi=300, bbox_inches='tight', format='png')
 

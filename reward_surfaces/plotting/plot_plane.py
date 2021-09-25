@@ -19,7 +19,7 @@ import pandas
 from scipy import interpolate
 import sys
 
-def plot_2d_contour(x_coords,y_coords,z_values, base_name, vmin=0.1, vmax=10, vlevel=0.5, show=False, type='mesh', dir1_scale=1., dir2_scale=1., dir1_name="dim1", dir2_name="dim2"):
+def plot_2d_contour(x_coords, y_coords, z_values, base_name, vmin=0.1, vmax=10, vlevel=0.5, show=False, type='mesh', dir1_scale=1., dir2_scale=1., dir1_name="dim1", dir2_name="dim2", points=None):
     """Plot 2D contour map and 3D surface."""
     surf_file = "bob"
     #f = h5py.File(surf_file, 'r')
@@ -42,6 +42,10 @@ def plot_2d_contour(x_coords,y_coords,z_values, base_name, vmin=0.1, vmax=10, vl
     if type == 'all' or type == 'contour':
         fig = plt.figure()
         CS = plt.contour(X, Y, Z, cmap='summer', levels=np.arange(vmin, vmax, vlevel))
+        X, Y = np.transpose(points)
+        X /= dir1_scale
+        Y /= dir2_scale
+        plt.plot(X, Y, 'o-')
         plt.clabel(CS, inline=1, fontsize=8)
         out_fname = base_name + '_2dcontour.png'
         fig.savefig(out_fname, dpi=300,
@@ -309,7 +313,7 @@ def isqrt(n):
     return x
 
 
-def plot_plane(csv_fname, outname=None, key_name="episode_rewards", type="mesh", show=False, dir1_scale=1., dir2_scale=1., dir1_name="dim1", dir2_name="dim2", vmin=None, vmax=None):
+def plot_plane(csv_fname, outname=None, key_name="episode_rewards", type="mesh", show=False, dir1_scale=1., dir2_scale=1., dir1_name="dim1", dir2_name="dim2", vmin=None, vmax=None, points=None):
     default_outname = "vis/" + "".join([c for c in csv_fname if re.match(r'\w', c)]) + key_name + "_" + type
     outname = outname if outname is not None else default_outname
     datafname = csv_fname
@@ -337,6 +341,6 @@ def plot_plane(csv_fname, outname=None, key_name="episode_rewards", type="mesh",
 
     vlevel = (vmax-vmin)/15
     outname = outname + key_name
-    return plot_2d_contour(xvals,yvals,zvals,outname,vmin=vmin,vmax=vmax,vlevel=vlevel,type=type,show=show, dir1_scale=dir1_scale, dir2_scale=dir2_scale, dir1_name=dir1_name, dir2_name=dir2_name)
+    return plot_2d_contour(xvals,yvals,zvals,outname,vmin=vmin,vmax=vmax,vlevel=vlevel,type=type,show=show, dir1_scale=dir1_scale, dir2_scale=dir2_scale, dir1_name=dir1_name, dir2_name=dir2_name, points=points)
     if type == "all" or type == "vtp":
         return generate_vtp(xvals,yvals,zvals, outname+".vtp")

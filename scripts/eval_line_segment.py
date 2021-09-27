@@ -31,11 +31,12 @@ def main():
 
     checkpoints = sorted([checkpoint for checkpoint in os.listdir(train_path) if (os.path.isdir(train_path/checkpoint)
                                                                                   and checkpoint.isdigit())])
-    print(checkpoints)
     commands = []
     for checkpoint in checkpoints:
         params = train_path/checkpoint/"parameters.th"
         grad = grad_path/checkpoint/"grad.npz"
+        if not os.path.isfile(grad):
+            continue
         out_fname = str(out_path/"results"/checkpoint)
         command = f"python3 -m reward_surfaces.bin.eval_line {params} {grad} {out_fname} --num-steps={args.num_steps} --num-episodes={args.num_episodes} --device {args.device} --length {args.length} --max-magnitude {args.max_magnitude}"
         commands.append(command)

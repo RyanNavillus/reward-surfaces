@@ -51,8 +51,8 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
         dir2_name = "Random Direction"
         size = len(X[0])
         print(dir1_scale, dir2_scale)
-        dir1_magnitude = math.floor(math.log10(abs(dir1_scale)))
-        dir2_magnitude = math.floor(math.log10(abs(dir2_scale)))
+        dir1_magnitude = math.floor(math.log10(abs(dir1_scale))) - 1
+        dir2_magnitude = math.floor(math.log10(abs(dir2_scale))) - 1
         print(dir1_magnitude, dir2_magnitude)
 
         labels_d1 = [f"{x:0.1f}" for x in (np.arange(size)-size//2)/(size/2)*dir1_scale*(10**-dir1_magnitude)]

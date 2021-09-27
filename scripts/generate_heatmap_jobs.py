@@ -1,6 +1,7 @@
 import argparse
 import json
 import torch
+import numpy as np
 from pathlib import Path
 from reward_surfaces.experiments import generate_plane_data
 from reward_surfaces.utils.surface_utils import readz, filter_normalize
@@ -32,7 +33,11 @@ if __name__ == "__main__":
     rand_dir = [filter_normalize(v.cpu().detach().numpy()) for v in param_values]
 
     train_info = json.load(open(trained_checkpoint.parent / "info.json"))
-    dir1 = [d * args.grad_magnitude for d in grad_dir]
+    # TODO: Make option for grad normalization
+    flat_grad = [d.flatten() for d in grad_dir]
+    grad_cat = np.concatenate(flat_grad, axis=0)
+    grad_magnitude = np.linalg.norm(grad_cat)
+    dir1 = [d / grad_magnitude for d in grad_dir]
     dir2 = [d * args.rand_magnitude for d in rand_dir]
 
     train_info['dir1_mag'] = args.grad_magnitude

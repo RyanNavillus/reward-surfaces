@@ -45,6 +45,20 @@ def main():
         dir_sum = sum(np.sum(x) for x in dir)
         dir = [d/dir_sum for d in dir]
 
+    # High resolution in first segment
+    for i in range(10):
+        mm = args.max_magnitude
+        weights = [p + d*i*mm / (10*args.length) for p, d in zip(params, dir)]
+        agent.set_weights(weights)
+        evaluator = agent.evaluator()
+        eval_results = evaluate(evaluator, args.num_episodes, args.num_steps)
+        eval_results['checkpoint'] = checkpoint
+        out_fname = f"{args.outputfile},1.{i}.json"
+        eval_results["offset"] = i*mm/(10*args.length)
+
+        with open(out_fname, 'w') as file:
+            file.write(json.dumps(eval_results))
+
     for i in range(args.length):
         mm = args.max_magnitude
         weights = [p + d*i*mm/args.length for p, d in zip(params, dir)]

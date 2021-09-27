@@ -60,7 +60,6 @@ def calculate_stats(all_datas, gamma):
     episode_values = np.array(episode_values)
     episode_td_err = np.array(episode_td_err)
     episode_lens = np.array(episode_lens, dtype=np.float64)
-    print(episode_rewards)
     return {
         "episode_rewards": float(np.mean(episode_rewards)),
         "episode_std_rewards": float(np.std(episode_rewards)),

@@ -21,6 +21,19 @@ def plot_grad_search(csv_fname, outname=None, key_name="episode_rewards"):
     yvals = (data['offset'].values)
     zvals = (data[key_name].values)#.reshape(dsize,dsize)
 
+    Z = zvals
+    real_Z = zvals.copy()
+    # Take numerically stable log of data
+    logscale = False
+    if logscale:
+        Z_neg = Z[Z < 0]
+        Z_pos = Z[Z >= 0]
+        Z_neg = -np.log10(1-Z_neg)
+        Z_pos = np.log10(1+Z_pos)
+        Z[Z < 0] = Z_neg
+        Z[Z >= 0] = Z_pos
+    zvals = Z
+
     x_size = len(np.unique(xvals))
     y_size = len(np.unique(yvals))
 

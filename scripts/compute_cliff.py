@@ -58,7 +58,7 @@ def print_cliff_values(csv_fname, outname=None, key_name="episode_rewards", clif
         # First 10 points are in 1 high-res step
         if sorted_z[9] <= cliff_ratio * sorted_z[0]:
             is_cliff = True
-        second_last_val = sorted_z[8]
+        second_last_val = sorted_z[0]
         last_val = sorted_z[9]
         for z in sorted_z[10:]:
             if z <= cliff_ratio * last_val or z <= cliff_ratio * second_last_val:

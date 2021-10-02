@@ -43,7 +43,8 @@ def main():
 
     if info['scale_dir']:
         dir_sum = sum(np.sum(x) for x in dir)
-        dir = [d/dir_sum for d in dir]
+        if dir_sum != 0:
+            dir = [d/dir_sum for d in dir]
 
     # High resolution in first segment
     for i in range(1, 10):

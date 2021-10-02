@@ -25,7 +25,8 @@ def choose_color(is_cliff, index):
         return standard_colors[index % 5]
 
 
-def print_cliff_values(csv_fname, outname=None, key_name="episode_rewards", title=None, cliff_ratio=0.1):
+def print_cliff_values(csv_fname, outname=None, key_name="episode_rewards", title=None, cliff_ratio=0.5,
+                       global_ratio=0.25):
     default_outname = "vis/" + "".join([c for c in csv_fname if re.match(r'\w', c)]) + key_name
     outname = outname if outname is not None else default_outname
     outname = outname + "_cliff"
@@ -55,20 +56,34 @@ def print_cliff_values(csv_fname, outname=None, key_name="episode_rewards", titl
         indexes = np.argsort(yvals[boolmask])
         sorted_z = zvals[boolmask][indexes]
 
-        # Compute metric
+        # Compute metric local percentage with global threshold
         is_cliff = False
         # First 10 points are in 1 high-res step
-        if (sorted_z[0] - sorted_z[9]) / global_range > cliff_ratio:
+        if sorted_z[9] <= cliff_ratio * sorted_z[0] and (sorted_z[0] - sorted_z[9]) / global_range > global_ratio:
             is_cliff = True
-        second_last_val = sorted_z[8]
+        second_last_val = sorted_z[0]
         last_val = sorted_z[9]
         for z in sorted_z[10:]:
-            short_drop = last_val - z
-            long_drop = second_last_val - z
-            if short_drop / global_range > cliff_ratio or long_drop / global_range > cliff_ratio:
+            if ((z <= cliff_ratio * last_val and (last_val - z) / global_range > global_ratio)
+               or (z <= cliff_ratio * second_last_val and (second_last_val - z) / global_range > global_ratio)):
                 is_cliff = True
             second_last_val = last_val
             last_val = z
+
+        # Compute global percentage metric
+        #is_cliff = False
+        ## First 10 points are in 1 high-res step
+        #if (sorted_z[0] - sorted_z[9]) / global_range > cliff_ratio:
+        #    is_cliff = True
+        #second_last_val = sorted_z[8]
+        #last_val = sorted_z[9]
+        #for z in sorted_z[10:]:
+        #    short_drop = last_val - z
+        #    long_drop = second_last_val - z
+        #    if short_drop / global_range > cliff_ratio or long_drop / global_range > cliff_ratio:
+        #        is_cliff = True
+        #    second_last_val = last_val
+        #    last_val = z
 
         #max_cliff = 1
         ## First 10 points are in 1 high-res step
@@ -90,8 +105,7 @@ def print_cliff_values(csv_fname, outname=None, key_name="episode_rewards", titl
 
 
         #print(sorted_z)
-        if not is_cliff:
-            print("\t", x_dims[i], is_cliff)
+        print("\t", x_dims[i], is_cliff)
         color = choose_color(is_cliff, i)
         ax.plot(xvals[boolmask][indexes], yvals[boolmask][indexes], zvals[boolmask][indexes], color=color)#, rstride=1, cstride=1)
 
@@ -107,7 +121,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Generate flatness metrics for existing plots')
     parser.add_argument('folder', type=str, help="Folder containing results csv files from plot_plane script.")
     parser.add_argument('--key', type=str, default="episode_rewards", help="key in csv file to plot")
-    parser.add_argument('--ratio', type=float, default=0.1, help="Percent drop in reward that identifies a cliff")
+    parser.add_argument('--ratio', type=float, default=0.5, help="Percent drop in reward that identifies a cliff")
+    parser.add_argument('--globalratio', type=float, default=0.25, help="Percent drop in global reward that identifies a cliff")
     args = parser.parse_args()
 
     files = glob.glob(args.folder + "**/*results.csv", recursive=True)
@@ -117,7 +132,8 @@ if __name__ == "__main__":
         name = csv_file.split("/")[-2]
         print(name)
         path = "/".join(csv_file.split("/")[:-2])
-        print_cliff_values(csv_file, outname=path + "/" + name + "_lines", title=name, cliff_ratio=args.ratio)
+        print_cliff_values(csv_file, outname=path + "/" + name + "_lines", title=name,
+                           cliff_ratio=args.ratio, global_ratio=args.globalratio)
         print()
 
 

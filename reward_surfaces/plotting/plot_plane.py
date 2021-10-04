@@ -63,7 +63,7 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
     X = x_coords
     Y = y_coords
     Z = z_values
-    envname = base_name.split("/")[-1].split("_")[0]
+    envname = base_name.split("/")[-1].split("_")[0].split("@")[0]
     title = ENVNAME[envname] + " | " + f"Max Reward: {np.max(Z):.02f}"
     if envname in REWARDCLASS:
         title += " | " + REWARDCLASS[envname]

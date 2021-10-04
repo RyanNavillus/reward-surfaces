@@ -11,6 +11,51 @@ import math
 import pandas
 from scipy import interpolate
 
+ENVNAME = {
+    "breakout": "Breakout-v0",
+    "pong": "Pong-v0",
+    "spaceinvaders": "SpaceInvaders-v0",
+    "mspacman": "MsPacman-v0",
+    "qbert": "Qbert-v0",
+    "bankheist": "BankHeist-v0",
+    "montezuma": "MontezumaRevenge-v0",
+    "pitfall": "Pitfall-v0",
+    "venture": "Venture-v0",
+    "freeway": "Freeway-v0",
+    "privateeye": "PrivateEye-v0",
+    "solaris": "Solaris-v0",
+    "acrobot": "Acrobot-v1",
+    "cartpole": "Cartpole-v1",
+    "mountaincar": "MountainCar-v0",
+    "mountaincarcontinuous": "MountainCarContinuous-v0",
+    "pendulum": "Pendulum-v0",
+    "ant": "Ant-v2",
+    "halfcheetah": "HalfCheetah-v2",
+    "hopper": "Hopper-v2",
+    "humanoid": "Humanoid-v2",
+    "humanoidstandup": "HumanoidStandup-v2",
+    "inverteddoublependulum": "InvertedDoublePendulum-v2",
+    "invertedpendulum": "InvertedPendulum-v2",
+    "reacher": "Reacher-v2",
+    "swimmer": "Swimmer-v2",
+    "walker2d": "Walker2d-v2",
+}
+
+REWARDCLASS = {
+    "breakout": "Human Optimal",
+    "pong": "Human Optimal",
+    "spaceinvaders": "Human Optimal",
+    "mspacman": "Dense",
+    "qbert": "Dense",
+    "bankheist": "Dense",
+    "montezuma": "Sparse",
+    "pitfall": "Sparse",
+    "venture": "Sparse",
+    "freeway": "Sparse",
+    "privateeye": "Sparse",
+    "solaris": "Sparse",
+}
+
 
 def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1, vmax=10, vlevel=0.5, show=False,
                     plot_type='mesh', dir1_scale=1., dir2_scale=1., dir1_name="dim1", dir2_name="dim2", logscale=False):
@@ -18,7 +63,10 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
     X = x_coords
     Y = y_coords
     Z = z_values
-    tnrfont = {'fontname':'Times New Roman'}
+    envname = base_name.split("/")[-1].split("_")[0]
+    title = ENVNAME[envname] + " | " + f"Max Reward: {np.max(Z):.02f}"
+    if envname in REWARDCLASS:
+        title += " | " + REWARDCLASS[envname]
     # if (len(x) <= 1 or len(y) <= 1):
     #     print('The length of coordinates is not enough for plotting contours')
     #     return
@@ -57,6 +105,7 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
 
         labels_d1 = [f"{x:0.1f}" for x in (np.arange(size)-size//2)/(size/2)*dir1_scale*(10**-dir1_magnitude)]
         labels_d2 = [f"{x:0.1f}" for x in (np.arange(size)-size//2)/(size/2)*dir2_scale*(10**-dir2_magnitude)]
+        ax = plt.axes()
         sns_plot = sns.heatmap(Z, cmap='viridis', cbar=True, vmin=vmin, vmax=vmax,
                                xticklabels=labels_d1, yticklabels=labels_d2)
         sns_plot.invert_yaxis()
@@ -64,6 +113,7 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
         ylabel = dir2_name + r" ($10^{{{}}}$)".format(dir2_magnitude) if dir2_magnitude != 0 else dir2_name
         sns_plot.set(xlabel=xlabel, ylabel=ylabel)
         out_fname = base_name + '_2dheat.png'
+        ax.set_title(title)
         sns_plot.get_figure().savefig(out_fname, dpi=300, bbox_inches='tight', format='png')
 
     # --------------------------------------------------------------------
@@ -71,7 +121,9 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
     # --------------------------------------------------------------------
     if plot_type == 'all' or plot_type == 'mesh':
         fig = plt.figure()
+        tnrfont = {'fontname': 'Serif'}
         ax = Axes3D(fig)
+        fig.suptitle(title, **tnrfont)
 
         if np.min(Z) < -1e9 and not logscale:
             print("Warning: Data includes extremely large negative rewards ({:3E}). Consider setting logscale=True".format(np.min(Z)))
@@ -101,7 +153,7 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
 
         # Add max text
         center = len(Z) // 2
-        ax.text(0.05, 0.05, np.max(Z), f"{real_Z[center][center]:.2f}", color='black')
+        #ax.text(0.05, 0.05, np.max(Z), f"{real_Z[center][center]:.2f}", color='black')
 
         # Plot center line above surface
         Z_range = abs(np.max(Z) - np.min(Z))
@@ -147,16 +199,16 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
 
                 # Format label
                 zticks.append(label)
-                if label > 4 or label < -4:
+                if label > 2 or label < -2:
                     label = "$-10^{" + str(int(-label)) + "}$" if label < 0 else "$10^{" + str(int(label)) + "}$"
                 else:
-                    label = "{}".format(-10.0**(-label)) if label < 0 else "{}".format(10.0**label)
+                    label = "${}$".format(-10.0**(-label)) if label < 0 else "${}$".format(10.0**label)
                 cbar.ax.text(x, y, label)
                 ztick_labels.append("    " + label)
             ax.set_zticks(zticks)
-            ax.set_zticklabels(ztick_labels)
+            ax.set_zticklabels(ztick_labels, **tnrfont)
         else:
-            fig.colorbar(surf, shrink=0.5, aspect=5, pad=0.05)
+            fig.colorbar(surf, shrink=0.5, aspect=5, pad=0.05, **tnrfont)
 
         # Save plot
         out_fname = base_name + '_3dsurface.png'

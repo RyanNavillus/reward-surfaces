@@ -70,8 +70,8 @@ def plot_grad_search(csv_fname, outname=None, key_name="episode_rewards", logsca
         for label in continuous_labels:
             # Format label
             zticks.append(label)
-            if label > 4 or label < -4:
-                label = "-1e{}".format(-label) if label < 0 else "1e{}".format(label)
+            if label > 2 or label < -2:
+                label = "$-10^{" + str(int(-label)) + "}$" if label < 0 else "$10^{" + str(int(label)) + "}$"
             else:
                 label = "{}".format(-10.0**(-label)) if label < 0 else "{}".format(10.0**label)
             ztick_labels.append("    " + label)

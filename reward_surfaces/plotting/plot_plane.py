@@ -51,8 +51,8 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
         dir2_name = "Random Direction"
         size = len(X[0])
         print(dir1_scale, dir2_scale)
-        dir1_magnitude = math.floor(math.log10(abs(dir1_scale))) - 1
-        dir2_magnitude = math.floor(math.log10(abs(dir2_scale))) - 1
+        dir1_magnitude = math.floor(math.log10(abs(dir1_scale)))
+        dir2_magnitude = math.floor(math.log10(abs(dir2_scale)))
         print(dir1_magnitude, dir2_magnitude)
 
         labels_d1 = [f"{x:0.1f}" for x in (np.arange(size)-size//2)/(size/2)*dir1_scale*(10**-dir1_magnitude)]
@@ -61,7 +61,7 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
                                xticklabels=labels_d1, yticklabels=labels_d2)
         sns_plot.invert_yaxis()
         xlabel = dir1_name + r" ($10^{{{}}}$)".format(dir1_magnitude) if dir1_magnitude != 0 else dir1_name
-        ylabel = dir2_name + r" ($10^{{{}}}$)".format(dir2_magnitude) if dir2_name != 0 else dir2_name
+        ylabel = dir2_name + r" ($10^{{{}}}$)".format(dir2_magnitude) if dir2_magnitude != 0 else dir2_name
         sns_plot.set(xlabel=xlabel, ylabel=ylabel)
         out_fname = base_name + '_2dheat.png'
         sns_plot.get_figure().savefig(out_fname, dpi=300, bbox_inches='tight', format='png')
@@ -141,7 +141,6 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
             zticks = []
             ztick_labels = []
             bounds = cbar.ax.get_ybound()
-            print(bounds)
             for index, label in enumerate(continuous_labels):
                 x = 6.0
                 y = bounds[0] + (bounds[1] - bounds[0]) * index / 8
@@ -149,7 +148,7 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
                 # Format label
                 zticks.append(label)
                 if label > 4 or label < -4:
-                    label = "-1e{}".format(-label) if label < 0 else "1e{}".format(label)
+                    label = "$-10^{" + str(int(-label)) + "}$" if label < 0 else "$10^{" + str(int(label)) + "}$"
                 else:
                     label = "{}".format(-10.0**(-label)) if label < 0 else "{}".format(10.0**label)
                 cbar.ax.text(x, y, label)

@@ -208,7 +208,7 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
             ax.set_zticks(zticks)
             ax.set_zticklabels(ztick_labels, **tnrfont)
         else:
-            fig.colorbar(surf, shrink=0.5, aspect=5, pad=0.05, **tnrfont)
+            fig.colorbar(surf, shrink=0.5, aspect=5, pad=0.05)
 
         # Save plot
         out_fname = base_name + '_3dsurface.png'

@@ -1,9 +1,10 @@
 import argparse
-from reward_surfaces.agents.make_agent import make_agent
 import torch
 import json
 import os
 from glob import glob
+from reward_surfaces.agents.make_agent import make_agent
+from stable_baselines3.common.torch_layers import CustomCNN
 
 
 def main():
@@ -46,8 +47,17 @@ def main():
 
     # trainer = SB3HerPolicyTrainer(robo_env_fn,HER("MlpPolicy",robo_env_fn(),model_class=TD3,device="cpu",max_episode_length=100))
     print(args.resume)
-    agent, steps = make_agent(args.agent_name, args.env, args.device, args.save_dir, json.loads(args.hyperparameters),
-                              pretraining=pretraining)
+
+    # TODO: Remove/ Find a way to support custom forks of SB3
+    hyperparams = json.loads(args.hyperparameters)
+    if "policy_kwargs" in hyperparams:
+        policy_kwargs = hyperparams["policy_kwargs"]
+        if "features_extractor_class" in policy_kwargs:
+            policy_kwargs["features_extractor_class"] = eval(policy_kwargs["features_extractor_class"])
+        if "features_extractor_kwargs" in policy_kwargs:
+            policy_kwargs["features_extractor_kwargs"]["skip_connect"] = eval(policy_kwargs["features_extractor_kwargs"]["skip_connect"])
+
+    agent, steps = make_agent(args.agent_name, args.env, args.device, args.save_dir, hyperparams, pretraining=pretraining)
 
     os.makedirs(args.save_dir, exist_ok=True)
 

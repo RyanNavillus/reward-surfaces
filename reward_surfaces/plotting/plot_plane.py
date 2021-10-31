@@ -3,14 +3,12 @@ import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import pyplot as plt
 from matplotlib import cm
-from matplotlib.ticker import LinearLocator
 import re
 import seaborn as sns
 
 import math
 import pandas
 import warnings
-from matplotlib import font_manager
 from scipy import interpolate
 from reward_surfaces.utils import REWARDCLASSES, ENVCLASSES
 
@@ -31,30 +29,23 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
     env_name = env_name.replace("-v4", "")
     env_name = env_name.replace("-v5", "")
     env_name = env_name.replace("Deterministic", "")
-    print(env_name)
 
     # Construct Title
     if env_name in ENVCLASSES:
         title += " | " + ENVCLASSES[env_name]
     else:
-        warnings.warn("Environment is not listed in reward_surfaces/utils/plot_utils.py, plots titles may be missing information.")
+        warnings.warn("Environment is not listed in reward_surfaces/utils/plot_utils.py,\
+                      plots titles may be missing information.")
     if env_name in REWARDCLASSES:
         title += " | " + REWARDCLASSES[env_name]
 
     # Label max value
-    print(key_name)
     if key_name == "episode_rewards":
         title += " | " + f"Max Reward: {np.max(Z):.02f}"
     elif key_name == "episode_std_rewards":
         title += " | " + f"Max Standard Deviation: {np.max(Z):.02f}"
     else:
         title += " | " + f"Max Value: {np.max(Z):.02f}"
-
-    # TODO: Add autologscale flag
-
-    # if (len(x) <= 1 or len(y) <= 1):
-    #     print('The length of coordinates is not enough for plotting contours')
-    #     return
 
     # Automatically choose logscale
     if not logscale and autologscale:
@@ -89,10 +80,8 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
         dir1_name = "Grad Direction"
         dir2_name = "Random Direction"
         size = len(X[0])
-        print(dir1_scale, dir2_scale)
         dir1_magnitude = math.floor(math.log10(abs(dir1_scale)))
         dir2_magnitude = math.floor(math.log10(abs(dir2_scale)))
-        print(dir1_magnitude, dir2_magnitude)
 
         labels_d1 = [f"{x:0.1f}" for x in (np.arange(size)-size//2)/(size/2)*dir1_scale*(10**-dir1_magnitude)]
         labels_d2 = [f"{x:0.1f}" for x in (np.arange(size)-size//2)/(size/2)*dir2_scale*(10**-dir2_magnitude)]
@@ -120,7 +109,8 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
             fig.suptitle(title, **tnrfont)
 
         if np.min(Z) < -1e9 and not logscale:
-            print("Warning: Data includes extremely large negative rewards ({:3E}). Consider setting logscale=True".format(np.min(Z)))
+            print("Warning: Data includes extremely large negative rewards ({:3E}).\
+                  Consider setting logscale=True".format(np.min(Z)))
 
         # Scale X and Y values by the step size magnitude
         X = magnitude * X
@@ -136,18 +126,12 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
             Z[Z < 0] = Z_neg
             Z[Z >= 0] = Z_pos
 
-        # Print flatness metric (stddev)
-        flat_data = real_Z.copy()
-        flat_data = flat_data / np.ptp(flat_data)
-        flat_data = flat_data + abs(np.min(flat_data))
-        print("Flatness [0,1]: ", np.std(flat_data) * 2)
-
         # Plot surface
         surf = ax.plot_surface(X, Y, Z, cmap=cm.coolwarm, linewidth=0, antialiased=False, zorder=5)
 
         # Add max text
-        center = len(Z) // 2
-        #ax.text(0.05, 0.05, np.max(Z), f"{real_Z[center][center]:.2f}", color='black')
+        # center = len(Z) // 2
+        # ax.text(0.05, 0.05, np.max(Z), f"{real_Z[center][center]:.2f}", color='black')
 
         # Plot center line above surface
         Z_range = abs(np.max(Z) - np.min(Z))
@@ -436,8 +420,7 @@ def plot_plane(csv_fname, outname=None, envname=None, key_name="episode_rewards"
     data = pandas.read_csv(datafname)
     dsize = isqrt(len(data['dim0']))
     if dsize <= 1 or dsize**2 != len(data['dim0']):
-        print(csv_fname, "is not complete!")
-        print("exiting")
+        print(csv_fname, "is not complete! Exiting")
         return None
     xvals = (data['dim0'].values)
     yvals = (data['dim1'].values)

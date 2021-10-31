@@ -15,7 +15,7 @@ from reward_surfaces.utils import REWARDCLASSES, ENVCLASSES
 
 
 def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1, vmax=10, vlevel=0.5, show=False,
-                    plot_type='mesh', dir1_scale=1., dir2_scale=1., dir1_name="dim1", dir2_name="dim2",
+                    plot_type='mesh', file_type="png", dir1_scale=1., dir2_scale=1., dir1_name="dim1", dir2_name="dim2",
                     env_name=None, key_name=None, logscale=False, autologscale=True):
     """Plot 2D contour map and 3D surface."""
     X = x_coords
@@ -67,17 +67,17 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
         fig = plt.figure()
         CS = plt.contour(X, Y, Z, cmap='summer', levels=np.arange(vmin, vmax, vlevel))
         plt.clabel(CS, inline=1, fontsize=8)
-        out_fname = base_name + '_2dcontour.png'
+        out_fname = base_name + '_2dcontour.' + file_type
         fig.savefig(out_fname, dpi=300,
-                    bbox_inches='tight', format='png')
+                    bbox_inches='tight', format=file_type)
 
     if plot_type == 'all' or plot_type == 'contourf':
         fig = plt.figure()
         print(base_name + '_2dcontourf' + '.png')
         CS = plt.contourf(X, Y, Z, cmap='summer', levels=np.arange(vmin, vmax, vlevel))
-        out_fname = base_name + '_2dcontourf.png'
+        out_fname = base_name + '_2dcontourf.' + file_type
         fig.savefig(out_fname, dpi=300,
-                    bbox_inches='tight', format='png')
+                    bbox_inches='tight', format=file_type)
 
     # --------------------------------------------------------------------
     # Plot 2D heatmaps
@@ -101,9 +101,9 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
         xlabel = dir1_name + r" ($10^{{{}}}$)".format(dir1_magnitude) if dir1_magnitude != 0 else dir1_name
         ylabel = dir2_name + r" ($10^{{{}}}$)".format(dir2_magnitude) if dir2_magnitude != 0 else dir2_name
         sns_plot.set(xlabel=xlabel, ylabel=ylabel)
-        out_fname = base_name + '_2dheat.png'
+        out_fname = base_name + '_2dheat.' + file_type
         ax.set_title(title)
-        sns_plot.get_figure().savefig(out_fname, dpi=300, bbox_inches='tight', format='png')
+        sns_plot.get_figure().savefig(out_fname, dpi=300, bbox_inches='tight', format=file_type)
 
     # --------------------------------------------------------------------
     # Plot 3D surface
@@ -200,9 +200,9 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
             fig.colorbar(surf, shrink=0.5, aspect=5, pad=0.05)
 
         # Save plot
-        out_fname = base_name + '_3dsurface.png'
+        out_fname = base_name + '_3dsurface.' + file_type
         fig.savefig(out_fname, dpi=300,
-                    bbox_inches='tight', format='png')
+                    bbox_inches='tight', format=file_type)
 
     if show:
         plt.show()
@@ -418,8 +418,9 @@ def isqrt(n):
     return x
 
 
-def plot_plane(csv_fname, outname=None, envname=None, key_name="episode_rewards", plot_type="mesh", show=False,
-               dir1_scale=1, dir2_scale=1., dir1_name="dim1", dir2_name="dim2", vmin=None, vmax=None, logscale=False):
+def plot_plane(csv_fname, outname=None, envname=None, key_name="episode_rewards", plot_type="mesh", file_type="png",
+               show=False, dir1_scale=1, dir2_scale=1., dir1_name="dim1", dir2_name="dim2", vmin=None, vmax=None,
+               logscale=False):
     default_outname = "vis/" + "".join([c for c in csv_fname if re.match(r'\w', c)]) + key_name + "_" + plot_type
     outname = outname if outname is not None else default_outname
     datafname = csv_fname
@@ -448,13 +449,10 @@ def plot_plane(csv_fname, outname=None, envname=None, key_name="episode_rewards"
 
     vlevel = (vmax-vmin)/15
     outname = outname + "_" + key_name.replace('_', '')
-    scale = data.iloc[0]['scale']
     magnitude = data.iloc[0]['magnitude'] if 'magnitude' in data else 1
     dir1_scale = data.iloc[0]['dir1_scale'] if 'dir1_scale' in data else dir1_scale
     dir2_scale = data.iloc[0]['dir2_scale'] if 'dir2_scale' in data else dir2_scale
     return plot_2d_contour(xvals, yvals, zvals, magnitude, outname, vmin=vmin, vmax=vmax, vlevel=vlevel,
-                           plot_type=plot_type, show=show, dir1_scale=dir1_scale, dir2_scale=dir2_scale,
-                           dir1_name=dir1_name, dir2_name=dir2_name, env_name=envname, key_name=key_name,
-                           logscale=logscale)
-    if plot_type == "all" or plot_type == "vtp":
-        return generate_vtp(xvals, yvals, zvals, outname+".vtp")
+                           plot_type=plot_type, file_type=file_type, show=show, dir1_scale=dir1_scale,
+                           dir2_scale=dir2_scale, dir1_name=dir1_name, dir2_name=dir2_name, env_name=envname,
+                           key_name=key_name, logscale=logscale)

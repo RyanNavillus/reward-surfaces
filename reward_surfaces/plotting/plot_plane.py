@@ -26,6 +26,9 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
     # Remove Atari name options
     env_name = env_name.replace("NoFrameskip", "")
     env_name = env_name.replace("-v0", "")
+    env_name = env_name.replace("-v1", "")
+    env_name = env_name.replace("-v2", "")
+    env_name = env_name.replace("-v3", "")
     env_name = env_name.replace("-v4", "")
     env_name = env_name.replace("-v5", "")
     env_name = env_name.replace("Deterministic", "")
@@ -34,8 +37,7 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
     if env_name in ENVCLASSES:
         title += " | " + ENVCLASSES[env_name]
     else:
-        warnings.warn("Environment is not listed in reward_surfaces/utils/plot_utils.py,\
-                      plots titles may be missing information.")
+        warnings.warn("Environment is not listed in reward_surfaces/utils/plot_utils.py, plots titles may be missing information.")
     if env_name in REWARDCLASSES:
         title += " | " + REWARDCLASSES[env_name]
 
@@ -409,6 +411,24 @@ def isqrt(n):
     return x
 
 
+def generate_missing_jobs(csv_path):
+    data = pandas.read_csv(csv_path)
+    parent_path = "/".join(csv_path.split("/")[:-1])
+    data['dim0'] = round(data['dim0'] * data['scale'])
+    data['dim1'] = round(data['dim1'] * data['scale'])
+    scale = int(data['scale'][0])
+    jobs = []
+    for d1 in range(-scale, scale + 1):
+        for d2 in range(-scale, scale + 1):
+            if data.loc[(data['dim0'] == d1) & (data['dim1'] == d2)].empty:
+                jobs.append(f"python3 -m reward_surfaces.bin.eval_plane_job {parent_path} --offset1={d1} --offset2={d2}")
+    with open(parent_path + "/remaining_jobs.sh", "w") as remaining_jobs:
+        for job in jobs:
+            remaining_jobs.write(job + "\n")
+    print(f"Wrote incomplete jobs to {parent_path + '/remaining_jobs.sh'}")
+
+
+
 def plot_plane(csv_fname, outname=None, envname=None, key_name="episode_rewards", plot_type="mesh", file_type="png",
                show=False, dir1_scale=1, dir2_scale=1., dir1_name="dim1", dir2_name="dim2", vmin=None, vmax=None,
                logscale=False):
@@ -421,6 +441,7 @@ def plot_plane(csv_fname, outname=None, envname=None, key_name="episode_rewards"
     dsize = isqrt(len(data['dim0']))
     if dsize <= 1 or dsize**2 != len(data['dim0']):
         print(csv_fname, "is not complete! Exiting")
+        generate_missing_jobs(datafname)
         return None
     xvals = (data['dim0'].values)
     yvals = (data['dim1'].values)

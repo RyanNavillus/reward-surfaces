@@ -16,3 +16,5 @@ eval.sh
 plot.sh
 *.th
 *.zip
+*.png
+*.pgf

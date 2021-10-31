@@ -9,7 +9,9 @@ import seaborn as sns
 
 import math
 import pandas
+import warnings
 from scipy import interpolate
+<<<<<<< Updated upstream
 
 ENVNAME = {
     "breakout": "Breakout-v0",
@@ -55,21 +57,63 @@ REWARDCLASS = {
     "privateeye": "Sparse",
     "solaris": "Sparse",
 }
+=======
+from reward_surfaces.utils import REWARDCLASSES, ENVCLASSES
+>>>>>>> Stashed changes
 
 
 def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1, vmax=10, vlevel=0.5, show=False,
-                    plot_type='mesh', dir1_scale=1., dir2_scale=1., dir1_name="dim1", dir2_name="dim2", logscale=False):
+                    plot_type='mesh', dir1_scale=1., dir2_scale=1., dir1_name="dim1", dir2_name="dim2",
+                    env_name=None, key_name=None, logscale=False, autologscale=True):
     """Plot 2D contour map and 3D surface."""
     X = x_coords
     Y = y_coords
     Z = z_values
+<<<<<<< Updated upstream
     envname = base_name.split("/")[-1].split("_")[0].split("@")[0]
     title = ENVNAME[envname] + " | " + f"Max Reward: {np.max(Z):.02f}"
     if envname in REWARDCLASS:
         title += " | " + REWARDCLASS[envname]
+=======
+
+    title = env_name
+
+    # Remove Atari name options
+    env_name = env_name.replace("NoFrameskip", "")
+    env_name = env_name.replace("-v0", "")
+    env_name = env_name.replace("-v4", "")
+    env_name = env_name.replace("-v5", "")
+    env_name = env_name.replace("Deterministic", "")
+    print(env_name)
+
+    # Construct Title
+    if env_name in ENVCLASSES:
+        title += " | " + ENVCLASSES[env_name]
+    else:
+        warnings.warn("Environment is not listed in reward_surfaces/utils/plot_utils.py, plots titles may be missing information.")
+    if env_name in REWARDCLASSES:
+        title += " | " + REWARDCLASSES[env_name]
+
+    # Label max value
+    print(key_name)
+    if key_name == "episode_rewards":
+        title += " | " + f"Max Reward: {np.max(Z):.02f}"
+    elif key_name == "episode_std_rewards":
+        title += " | " + f"Max Standard Deviation: {np.max(Z):.02f}"
+    else:
+        title += " | " + f"Max Value: {np.max(Z):.02f}"
+
+    # TODO: Add autologscale flag
+
+>>>>>>> Stashed changes
     # if (len(x) <= 1 or len(y) <= 1):
     #     print('The length of coordinates is not enough for plotting contours')
     #     return
+
+    # Automatically choose logscale
+    if not logscale and autologscale:
+        if np.max(Z) - np.min(Z) > 10000:
+            logscale = True
 
     # --------------------------------------------------------------------
     # Plot 2D contours
@@ -429,7 +473,7 @@ def isqrt(n):
     return x
 
 
-def plot_plane(csv_fname, outname=None, key_name="episode_rewards", plot_type="mesh", show=False,
+def plot_plane(csv_fname, outname=None, envname=None, key_name="episode_rewards", plot_type="mesh", show=False,
                dir1_scale=1, dir2_scale=1., dir1_name="dim1", dir2_name="dim2", vmin=None, vmax=None, logscale=False):
     default_outname = "vis/" + "".join([c for c in csv_fname if re.match(r'\w', c)]) + key_name + "_" + plot_type
     outname = outname if outname is not None else default_outname
@@ -465,6 +509,7 @@ def plot_plane(csv_fname, outname=None, key_name="episode_rewards", plot_type="m
     dir2_scale = data.iloc[0]['dir2_scale'] if 'dir2_scale' in data else dir2_scale
     return plot_2d_contour(xvals, yvals, zvals, magnitude, outname, vmin=vmin, vmax=vmax, vlevel=vlevel,
                            plot_type=plot_type, show=show, dir1_scale=dir1_scale, dir2_scale=dir2_scale,
-                           dir1_name=dir1_name, dir2_name=dir2_name, logscale=logscale)
+                           dir1_name=dir1_name, dir2_name=dir2_name, env_name=envname, key_name=key_name,
+                           logscale=logscale)
     if plot_type == "all" or plot_type == "vtp":
         return generate_vtp(xvals, yvals, zvals, outname+".vtp")

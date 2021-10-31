@@ -6,12 +6,12 @@ from reward_surfaces.plotting import plot_plane
 
 
 def replot(csv_fname, outname=None, envname=None, key_name="episode_rewards", title=None, plot_type="mesh",
-           logscale=False):
+           file_type="png", logscale=False):
     default_outname = "vis/" + "".join([c for c in csv_fname if re.match(r'\w', c)]) + key_name
     outname = outname if outname is not None else default_outname
     datafname = csv_fname
     print(env_name)
-    plot_plane(datafname, outname, key_name=args.key, plot_type=plot_type, envname=envname)
+    plot_plane(datafname, outname, key_name=args.key, plot_type=plot_type, file_type=file_type, envname=envname)
 
 
 if __name__ == "__main__":

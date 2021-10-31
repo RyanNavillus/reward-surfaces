@@ -10,6 +10,7 @@ import seaborn as sns
 import math
 import pandas
 import warnings
+from matplotlib import font_manager
 from scipy import interpolate
 from reward_surfaces.utils import REWARDCLASSES, ENVCLASSES
 
@@ -83,7 +84,8 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
     # Plot 2D heatmaps
     # --------------------------------------------------------------------
     if plot_type == 'all' or plot_type == 'heat':
-        sns.set_theme(font="Serif")
+        if file_type != "pgf":
+            sns.set_theme(font="Serif")
         dir1_name = "Grad Direction"
         dir2_name = "Random Direction"
         size = len(X[0])
@@ -110,9 +112,12 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
     # --------------------------------------------------------------------
     if plot_type == 'all' or plot_type == 'mesh':
         fig = plt.figure()
-        tnrfont = {'fontname': 'Serif'}
+        tnrfont = {'fontname': 'Sans'}
         ax = Axes3D(fig)
-        fig.suptitle(title, **tnrfont)
+
+        fig.suptitle(title)
+        if file_type != "pgf":
+            fig.suptitle(title, **tnrfont)
 
         if np.min(Z) < -1e9 and not logscale:
             print("Warning: Data includes extremely large negative rewards ({:3E}). Consider setting logscale=True".format(np.min(Z)))
@@ -195,7 +200,9 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
                 cbar.ax.text(x, y, label)
                 ztick_labels.append("    " + label)
             ax.set_zticks(zticks)
-            ax.set_zticklabels(ztick_labels, **tnrfont)
+            ax.set_zticklabels(ztick_labels)
+            if file_type != "pgf":
+                ax.set_zticklabels(ztick_labels, **tnrfont)
         else:
             fig.colorbar(surf, shrink=0.5, aspect=5, pad=0.05)
 

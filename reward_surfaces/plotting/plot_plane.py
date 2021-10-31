@@ -11,55 +11,8 @@ import math
 import pandas
 import warnings
 from scipy import interpolate
-<<<<<<< Updated upstream
 
-ENVNAME = {
-    "breakout": "Breakout-v0",
-    "pong": "Pong-v0",
-    "spaceinvaders": "SpaceInvaders-v0",
-    "mspacman": "MsPacman-v0",
-    "qbert": "Qbert-v0",
-    "bankheist": "BankHeist-v0",
-    "montezuma": "MontezumaRevenge-v0",
-    "pitfall": "Pitfall-v0",
-    "venture": "Venture-v0",
-    "freeway": "Freeway-v0",
-    "privateeye": "PrivateEye-v0",
-    "solaris": "Solaris-v0",
-    "acrobot": "Acrobot-v1",
-    "cartpole": "Cartpole-v1",
-    "mountaincar": "MountainCar-v0",
-    "mountaincarcontinuous": "MountainCarContinuous-v0",
-    "pendulum": "Pendulum-v0",
-    "ant": "Ant-v2",
-    "halfcheetah": "HalfCheetah-v2",
-    "hopper": "Hopper-v2",
-    "humanoid": "Humanoid-v2",
-    "humanoidstandup": "HumanoidStandup-v2",
-    "inverteddoublependulum": "InvertedDoublePendulum-v2",
-    "invertedpendulum": "InvertedPendulum-v2",
-    "reacher": "Reacher-v2",
-    "swimmer": "Swimmer-v2",
-    "walker2d": "Walker2d-v2",
-}
-
-REWARDCLASS = {
-    "breakout": "Human Optimal",
-    "pong": "Human Optimal",
-    "spaceinvaders": "Human Optimal",
-    "mspacman": "Dense",
-    "qbert": "Dense",
-    "bankheist": "Dense",
-    "montezuma": "Sparse",
-    "pitfall": "Sparse",
-    "venture": "Sparse",
-    "freeway": "Sparse",
-    "privateeye": "Sparse",
-    "solaris": "Sparse",
-}
-=======
 from reward_surfaces.utils import REWARDCLASSES, ENVCLASSES
->>>>>>> Stashed changes
 
 
 def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1, vmax=10, vlevel=0.5, show=False,
@@ -69,12 +22,6 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
     X = x_coords
     Y = y_coords
     Z = z_values
-<<<<<<< Updated upstream
-    envname = base_name.split("/")[-1].split("_")[0].split("@")[0]
-    title = ENVNAME[envname] + " | " + f"Max Reward: {np.max(Z):.02f}"
-    if envname in REWARDCLASS:
-        title += " | " + REWARDCLASS[envname]
-=======
 
     title = env_name
 
@@ -105,7 +52,6 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
 
     # TODO: Add autologscale flag
 
->>>>>>> Stashed changes
     # if (len(x) <= 1 or len(y) <= 1):
     #     print('The length of coordinates is not enough for plotting contours')
     #     return

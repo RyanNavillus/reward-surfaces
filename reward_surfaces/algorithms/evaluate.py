@@ -1,36 +1,39 @@
-import time
 import torch
 import numpy as np
 
-def generate_data(evaluator, num_episodes, num_steps):
-    gamma = evaluator.gamma
 
+def generate_data(evaluator, num_episodes, num_steps):
     all_datas = []
     tot_steps = 0
     tot_eps = 0
     tot_rew = 0
-    start_t = time.time()
     done = False
+
     while not done or (tot_eps < num_episodes and tot_steps < num_steps):
         with torch.no_grad():
-            rew, done, value = evaluator._next_state()#, deterministic=True)
-        all_datas.append((rew, done, value))
+            # Next state can be evaluated determinsitically for testing
+            rew, original_rew, done, value, _, _, info = evaluator._next_state_act()
+        all_datas.append((original_rew, done, value))
         tot_steps += 1
-        tot_rew += rew
+        tot_rew += original_rew
         if done:
             tot_eps += 1
-            end_t = time.time()
-            # if tot_eps % 25 == 0:
-            #     print("done!", (end_t - start_t)/tot_steps, (end_t - start_t)/tot_eps,tot_rew/tot_eps)
     return all_datas
 
 
 def evaluate(evaluator, num_episodes, num_steps):
     all_datas = generate_data(evaluator, num_episodes, num_steps)
-    return calculate_stats(all_datas,evaluator.gamma)
+    return calculate_stats(all_datas, evaluator.gamma)
 
 
 def calculate_stats(all_datas, gamma):
+    """
+    Calculates statistics for the given episodic data
+
+    Calculates episode rewards (mean and std), episode values, episode value estimates, episode td error,
+    episode length (mean and std), average rewards per step, value per step, average value estimates per step, and
+    average td error per step.
+    """
     ep_rews = []
     ep_vals = []
     episode_rewards = []
@@ -46,20 +49,20 @@ def calculate_stats(all_datas, gamma):
             episode_rewards.append(sum(ep_rews))
             episode_value_ests.append(sum(ep_vals))
             episode_values.append(calc_sum_value(ep_rews, gamma))
-            episode_td_err.append(calc_sum_td(ep_vals, ep_rews, gamma))#TODO make this real
+            # TODO: Make this real
+            episode_td_err.append(calc_sum_td(ep_vals, ep_rews, gamma))
             episode_lens.append(len(ep_rews))
-
             ep_rews = []
             ep_vals = []
 
-    episode_rewards = np.array(episode_rewards,dtype=np.float64)
+    episode_rewards = np.array(episode_rewards, dtype=np.float64)
     episode_value_ests = np.array(episode_value_ests)
     episode_values = np.array(episode_values)
     episode_td_err = np.array(episode_td_err)
-    episode_lens = np.array(episode_lens,dtype=np.float64)
+    episode_lens = np.array(episode_lens, dtype=np.float64)
     return {
         "episode_rewards": float(np.mean(episode_rewards)),
-        "episode_std_rewards": float(np.std(episode_rewards/episode_lens)),
+        "episode_std_rewards": float(np.std(episode_rewards)),
         "episode_value_ests": float(np.mean(episode_value_ests/episode_lens)),
         "episode_values": float(np.mean(episode_values/episode_lens)),
         "episode_td_err": float(np.mean(episode_td_err/episode_lens)),
@@ -79,7 +82,7 @@ def mean(vals):
 def calc_sum_value(rews, gamma):
     decayed_rew = 0
     tot_value = 0
-    for i in range(len(rews)-1,-1,-1):
+    for i in range(len(rews)-1, -1, -1):
         decayed_rew += rews[i]
         tot_value += decayed_rew
         decayed_rew *= gamma

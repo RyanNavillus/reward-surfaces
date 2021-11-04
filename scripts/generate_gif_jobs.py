@@ -73,7 +73,7 @@ def generate_gif_jobs(train_dir, out_dir, num_steps=None, num_episodes=None, dev
 
     # concatenate all jobs
     all_job_paths = "".join([open(dir/"jobs.sh").read() for dir in all_gen_dirs])
-    multiproc_job_paths = "\n".join([f"python scripts/run_jobs_multiproc.py {dir/'jobs.sh'}" for dir in all_gen_dirs])
+    multiproc_job_paths = "\n".join([f"python3 scripts/run_jobs_multiproc.py {dir/'jobs.sh'}" for dir in all_gen_dirs])
     open(out_dir/"all_jobs.sh",'w').write(all_job_paths)
     open(out_dir/"multiproc_jobs.sh",'w').write(multiproc_job_paths)
 

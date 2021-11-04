@@ -1,14 +1,11 @@
 from stable_baselines3.a2c import A2C
 from stable_baselines3.ppo import PPO
-from stable_baselines3.ddpg import DDPG
-from stable_baselines3.td3 import TD3
 from stable_baselines3.sac import SAC
 import numpy as np
 import torch
 import torch as th
 from torch.nn import functional as F
 from gym import spaces
-from scipy.sparse.linalg import LinearOperator, eigsh
 from stable_baselines3.common.buffers import RolloutBuffer, ReplayBuffer
 from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common.type_aliases import TrainFreq, TrainFrequencyUnit
@@ -19,6 +16,7 @@ class DoNothingCallback(BaseCallback):
     def __init__(self, model):
         super().__init__()
         self.init_callback(model)
+
     def _on_step(self):
         return True
 
@@ -29,6 +27,7 @@ class HeshCalcOnlineMixin:
         returns action, logprob
         logprob should be differentialble to allow for backprop
         '''
+        act = torch.squeeze(act, dim=-1)
         val, log_prob, entropy = self.policy.evaluate_actions(obs, act)
         return log_prob
 
@@ -38,18 +37,17 @@ class HeshCalcOnlineMixin:
         tot_size = 0
         tot_grad = [torch.zeros_like(p) for p in self.parameters()]
         for rollout_data in self.generate_samples(batch_size=max_batch_size, max_samples=num_samples):
-            #batch_size = min(num_samples-start, max_batch_size)
+            # batch_size = min(num_samples-start, max_batch_size)
             batch_loss, batch_grad = self.calulate_grad_from_buffer(rollout_data)
             tot_loss += batch_loss.item()
             for t, g in zip(tot_grad, batch_grad):
                 t.data += g.detach()
             tot_size += len(rollout_data.observations)
-        print("tot eval size:",tot_size)
+        print("tot eval size:", tot_size)
         tot_loss /= tot_size
         for g in tot_grad:
             g.data /= tot_size
         return tot_loss, tot_grad
-
 
     def calculate_hesh_vec_prod(self, vec, num_samples):
         '''
@@ -59,12 +57,12 @@ class HeshCalcOnlineMixin:
         max_batch_size = 2048
         # start = 0
         for rollout_data in self.generate_samples(batch_size=max_batch_size, max_samples=num_samples):
-            #batch_size = min(num_samples-start, max_batch_size)
+            # batch_size = min(num_samples-start, max_batch_size)
             _, grad = self.calulate_grad_from_buffer(rollout_data)
             loss = 0
             for g, p in zip(grad, vec):
                 loss += (g*p).sum()
-            #accumulates grad inside sb3_algo.parameters().grad
+            # accumulates grad inside sb3_algo.parameters().grad
             loss.backward()
 
     def generate_samples(self, batch_size, max_samples):
@@ -85,7 +83,7 @@ class HeshCalcOnlineMixin:
         self.env.reset()
         cb = DoNothingCallback(self)
         self.collect_rollouts(self.env, cb, self.rollout_buffer, n_rollout_steps=rollout_steps)
-        evaluation_data = list(zip(self.rollout_buffer.rewards, self.rollout_buffer.dones, self.rollout_buffer.values))
+        # evaluation_data = list(zip(self.rollout_buffer.rewards, self.rollout_buffer.dones, self.rollout_buffer.values))
 
     def cleanup_buffer(self):
         self.rollout_buffer = self._old_buffer
@@ -123,7 +121,8 @@ class HeshCalcOfflineMixin(HeshCalcOnlineMixin):
             replay_buffer=self.replay_buffer,
             log_interval=10,
         )
-        evaluation_data = list(zip(self.replay_buffer.rewards, self.replay_buffer.dones, np.zeros_like(self.replay_buffer.rewards)))
+        # evaluation_data = list(zip(self.replay_buffer.rewards, self.replay_buffer.dones, np.zeros_like(self.replay_buffer.rewards)))
+
 
 class ExtA2C(A2C, HeshCalcOnlineMixin):
     def parameters(self):
@@ -297,4 +296,4 @@ class ExtSAC(SAC, HeshCalcOfflineMixin):
         grad_f = torch.autograd.grad(loss, inputs=params, create_graph=True)
         # Optimization step
 
-        return loss,grad_f
+        return loss, grad_f

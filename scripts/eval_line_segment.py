@@ -1,15 +1,11 @@
 import argparse
 import json
 import os
-import torch
-from reward_surfaces.utils.surface_utils import readz
 from pathlib import Path, PurePosixPath
-from reward_surfaces.algorithms import search
-from reward_surfaces.runners.run_jobs_multiproc import run_job_list_list
-from reward_surfaces.utils.job_results_to_csv import job_results_to_csv
-
 
 bigint = 1000000000000
+
+
 def main():
     parser = argparse.ArgumentParser(description='run a particular evaluation job')
     parser.add_argument('train_dir', type=str)
@@ -33,13 +29,16 @@ def main():
     os.mkdir(out_path)
     os.mkdir(out_path/"results")
 
-    checkpoints = sorted([checkpoint for checkpoint in os.listdir(train_path) if os.path.isdir(train_path/checkpoint)])
+    checkpoints = sorted([checkpoint for checkpoint in os.listdir(train_path) if (os.path.isdir(train_path/checkpoint)
+                                                                                  and checkpoint.isdigit())])
     commands = []
     for checkpoint in checkpoints:
         params = train_path/checkpoint/"parameters.th"
         grad = grad_path/checkpoint/"grad.npz"
+        if not os.path.isfile(grad):
+            continue
         out_fname = str(out_path/"results"/checkpoint)
-        command = f"python -m reward_surfaces.bin.eval_line {params} {grad} {out_fname} --num-steps={args.num_steps} --num-episodes={args.num_episodes} --device {args.device} --length {args.length} --max-magnitude {args.max_magnitude}"
+        command = f"python3 -m reward_surfaces.bin.eval_line {params} {grad} {out_fname} --num-steps={args.num_steps} --num-episodes={args.num_episodes} --device {args.device} --length {args.length} --max-magnitude {args.max_magnitude}"
         commands.append(command)
 
     info = json.load(open(train_path/"info.json"))
@@ -52,7 +51,7 @@ def main():
     info['scale_dir'] = args.scale_dir
     info['random_dir_seed'] = args.random_dir_seed
 
-    json.dump(info, open(out_path/"info.json",'w'))
+    json.dump(info, open(out_path/"info.json", 'w'))
 
     with open(out_path/"jobs.sh", 'w') as file:
         file.write("\n".join(commands))

@@ -35,7 +35,7 @@ def main():
         params = train_path/checkpoint/"parameters.th"
         grad = grad_path/checkpoint/"grad.npz"
         out_fname = str(out_path/"results"/checkpoint)+".json"
-        command = f"python -m reward_surfaces.bin.search_equiv {params} {grad} {out_fname} --num-steps={args.num_steps} --num-episodes={args.num_episodes} --device {args.device} --key {args.key} --tolerance {args.tolerance}"
+        command = f"python3 -m reward_surfaces.bin.search_equiv {params} {grad} {out_fname} --num-steps={args.num_steps} --num-episodes={args.num_episodes} --device {args.device} --key {args.key} --tolerance {args.tolerance}"
         commands.append(command)
 
     info = json.load(open(train_path/"info.json"))

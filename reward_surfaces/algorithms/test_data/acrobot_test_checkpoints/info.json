@@ -1,0 +1,7 @@
+{
+    "agent_name": "SB3_ON",
+    "env": "Acrobot-v1",
+    "hyperparameters": {
+        "ALGO": "PPO"
+    }
+}

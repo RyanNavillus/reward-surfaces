@@ -1,0 +1,13 @@
+{
+    "agent_name": "SB3_ON",
+    "env": "MountainCar-v0",
+    "hyperparameters": {
+        "ALGO": "PPO"
+    },
+    "num_episodes": 10000000000000,
+    "num_steps": 10000,
+    "est_hesh": false,
+    "est_grad": false,
+    "calc_hesh": false,
+    "calc_grad": true
+}

@@ -10,6 +10,11 @@ trained_agents/
 .git/
 .pytype/
 generated_dirs
-hyperparams
+runs
+train.sh
+eval.sh
+plot.sh
 *.th
 *.zip
+*.png
+*.pgf

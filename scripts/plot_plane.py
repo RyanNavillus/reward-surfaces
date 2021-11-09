@@ -8,6 +8,7 @@ if __name__ == "__main__":
     parser.add_argument('--outname',
                         type=str,
                         help="if specified, outputs file with this name (extension added onto name)")
+    parser.add_argument('--env_name', type=str, help="Name of environment in plot")
     parser.add_argument('--key', type=str, default="episode_rewards", help="key in csv file to plot")
     parser.add_argument('--type',
                         type=str,
@@ -26,7 +27,10 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    plot_plane(args.datafname, args.outname, args.key, args.type,
+    plot_plane(args.datafname, args.outname,
+               env_name=args.env_name,
+               key_name=args.key,
+               plot_type=args.type,
                dir1_name=args.dir1_name,
                dir2_name=args.dir2_name,
                dir1_scale=args.dir1_scale,

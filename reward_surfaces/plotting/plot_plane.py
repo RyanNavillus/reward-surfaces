@@ -428,20 +428,19 @@ def generate_missing_jobs(csv_path):
     print(f"Wrote incomplete jobs to {parent_path + '/remaining_jobs.sh'}")
 
 
-
-def plot_plane(csv_fname, outname=None, envname=None, key_name="episode_rewards", plot_type="mesh", file_type="png",
+def plot_plane(csv_fname, out_name=None, env_name=None, key_name="episode_rewards", plot_type="mesh", file_type="png",
                show=False, dir1_scale=1, dir2_scale=1., dir1_name="dim1", dir2_name="dim2", vmin=None, vmax=None,
                logscale=False):
     default_outname = "vis/" + "".join([c for c in csv_fname if re.match(r'\w', c)]) + key_name + "_" + plot_type
-    outname = outname if outname is not None else default_outname
-    datafname = csv_fname
+    out_name = out_name if out_name is not None else default_outname
+    data_fname = csv_fname
 
     # Check that data is complete and extract x,y values
-    data = pandas.read_csv(datafname)
+    data = pandas.read_csv(data_fname)
     dsize = isqrt(len(data['dim0']))
     if dsize <= 1 or dsize**2 != len(data['dim0']):
         print(csv_fname, "is not complete! Exiting")
-        generate_missing_jobs(datafname)
+        generate_missing_jobs(data_fname)
         return None
     xvals = (data['dim0'].values)
     yvals = (data['dim1'].values)
@@ -459,11 +458,11 @@ def plot_plane(csv_fname, outname=None, envname=None, key_name="episode_rewards"
         vmax = np.max(zvals)
 
     vlevel = (vmax-vmin)/15
-    outname = outname + "_" + key_name.replace('_', '')
+    out_name = out_name + "_" + key_name.replace('_', '')
     magnitude = data.iloc[0]['magnitude'] if 'magnitude' in data else 1
     dir1_scale = data.iloc[0]['dir1_scale'] if 'dir1_scale' in data else dir1_scale
     dir2_scale = data.iloc[0]['dir2_scale'] if 'dir2_scale' in data else dir2_scale
-    return plot_2d_contour(xvals, yvals, zvals, magnitude, outname, vmin=vmin, vmax=vmax, vlevel=vlevel,
+    return plot_2d_contour(xvals, yvals, zvals, magnitude, out_name, vmin=vmin, vmax=vmax, vlevel=vlevel,
                            plot_type=plot_type, file_type=file_type, show=show, dir1_scale=dir1_scale,
-                           dir2_scale=dir2_scale, dir1_name=dir1_name, dir2_name=dir2_name, env_name=envname,
+                           dir2_scale=dir2_scale, dir1_name=dir1_name, dir2_name=dir2_name, env_name=env_name,
                            key_name=key_name, logscale=logscale)

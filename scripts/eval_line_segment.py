@@ -7,17 +7,17 @@ bigint = 1000000000000
 
 
 def main():
-    parser = argparse.ArgumentParser(description='run a particular evaluation job')
-    parser.add_argument('train_dir', type=str)
-    parser.add_argument('grads_dir', type=str, help="direction to search for threshold")
-    parser.add_argument('output_dir', type=str)
-    parser.add_argument('--num-steps', type=int, default=bigint)
-    parser.add_argument('--num-episodes', type=int, default=bigint)
-    parser.add_argument('--device', type=str, default="cpu")
-    parser.add_argument('--length', type=int, default=5)
-    parser.add_argument('--max-magnitude', type=float, default=0.1)
-    parser.add_argument('--scale-dir', action="store_true")
-    parser.add_argument('--random-dir-seed', type=int, help="if set, specified the seed for the random direction")
+    parser = argparse.ArgumentParser(description='Run evaluation jobs for line search')
+    parser.add_argument('train_dir', type=str, help="Directory containing training checkpoints")
+    parser.add_argument('grads_dir', type=str, help="Directory containing gradient directions")
+    parser.add_argument('output_dir', type=str, help="Directory to output line search")
+    parser.add_argument('--num-steps', type=int, default=bigint, help="Number of steps to evaluate each point on")
+    parser.add_argument('--num-episodes', type=int, default=bigint, help="Number of episodes to evaluate each point on")
+    parser.add_argument('--device', type=str, default="cpu", help="Device used for training ('cpu' or 'cuda')")
+    parser.add_argument('--length', type=int, default=5, help="Number of points along gradient direction to evaluate")
+    parser.add_argument('--max-magnitude', type=float, default=0.1, help="Maximum step size in gradient direction")
+    parser.add_argument('--scale-dir', action="store_true", help="Normalize gradient direction")
+    parser.add_argument('--random-dir-seed', type=int, help="Specify the seed for the random direction")
 
     args = parser.parse_args()
 

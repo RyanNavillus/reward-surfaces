@@ -4,26 +4,26 @@ from reward_surfaces.plotting import plot_plane
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='generate jobs for plane')
-    parser.add_argument('datafname', type=str)
+    parser.add_argument('datafname', type=str, "Path to results csv file for reward surface.")
     parser.add_argument('--outname',
                         type=str,
-                        help="if specified, outputs file with this name (extension added onto name)")
+                        help="Outputs file name for reward surface (extension added onto name)")
     parser.add_argument('--env_name', type=str, help="Name of environment in plot")
-    parser.add_argument('--key', type=str, default="episode_rewards", help="key in csv file to plot")
+    parser.add_argument('--key', type=str, default="episode_rewards", help="Key in csv file to plot")
     parser.add_argument('--type',
                         type=str,
                         default="mesh",
-                        help="plot type. Possible types are: [all, mesh, vtp, heat, contour, contourf]")
+                        help="Plot type, must be one of all, mesh, vtp, heat, contour, or contourf")
     parser.add_argument('--dir1_scale', type=float, help="Scale of the x axis in the plot")
     parser.add_argument('--dir2_scale', type=float, help="Scale of the y axis in the plot")
     parser.add_argument('--dir1_name', type=str, help="Name of the x axis in the plot")
     parser.add_argument('--dir2_name', type=str, help="Name of the y axis in the plot")
     parser.add_argument('--show',
                         action='store_true',
-                        help="If true, shows plot instead of saving it (does not work for vtp output)")
+                        help="Shows plot instead of saving it (does not work for vtp output)")
     parser.add_argument('--logscale',
                         action='store_true',
-                        help="If true, plot in log scale rather than the default linear scale")
+                        help="Plot in log scale rather than the default linear scale")
 
     args = parser.parse_args()
 

@@ -7,20 +7,20 @@ from glob import glob
 
 
 def main():
-    parser = argparse.ArgumentParser(description='run a particular evaluation job')
-    parser.add_argument('save_dir', type=str)
-    parser.add_argument('agent_name', type=str)
-    parser.add_argument('env', type=str)
-    parser.add_argument('device', type=str)
-    parser.add_argument('hyperparameters', type=str)
-    parser.add_argument('--save_freq', type=int, default=10000)
-    parser.add_argument('--resume', action='store_true')
+    parser = argparse.ArgumentParser(description='Train an agent and keep track of important information.')
+    parser.add_argument('save_dir', type=str, help="Directory where checkpoints will be saved")
+    parser.add_argument('agent_name', type=str, help="One of 'rainbow', 'SB3_OFF', 'SB3_ON', or 'SB3_HER'")
+    parser.add_argument('env', type=str, help="Environment name")
+    parser.add_argument('device', type=str, help="Device used for training ('cpu' or 'cuda')")
+    parser.add_argument('hyperparameters', type=str, help="Dictionary of hyperparameters for training. Should include the intended training algorithm (E.g. {'ALGO': 'PPO'})")
+    parser.add_argument('--save_freq', type=int, default=10000, help="Training steps between each saved checkpoint.")
+    parser.add_argument('--resume', action='store_true', help="Continue training from last checkpoint")
 
     args = parser.parse_args()
+    assert args.agent_name in ['rainbow', 'SB3_OFF', 'SB3_ON', 'SB3_HER'], "Name must be one of 'rainbow', 'SB3_OFF', 'SB3_ON', or 'SB3_HER'"
 
     torch.set_num_threads(1)
 
-    print(args.save_dir)
     zip_path = ""
     timesteps = 0
     pretraining = None

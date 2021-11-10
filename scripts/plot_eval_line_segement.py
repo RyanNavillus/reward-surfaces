@@ -87,11 +87,11 @@ def plot_grad_search(csv_fname, outname=None, key_name="episode_rewards", logsca
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='generate jobs for plane')
-    parser.add_argument('results', type=str)
-    parser.add_argument('--outname', type=str, help="if specified, outputs file with this name (extension added onto name)")
-    parser.add_argument('--key', type=str, default="episode_rewards", help="key in csv file to plot")
-    parser.add_argument('--logscale', action="store_true", help="key in csv file to plot")
+    parser = argparse.ArgumentParser(description='Plot line search')
+    parser.add_argument('results', type=str, help="Path to line search result csv file")
+    parser.add_argument('--outname', type=str, help="Output name of line search plot (extension added onto name)")
+    parser.add_argument('--key', type=str, default="episode_rewards", help="Key in csv file to plot")
+    parser.add_argument('--logscale', action="store_true", help="Plot in log scale rather than the default linear scale")
 
     args = parser.parse_args()
 

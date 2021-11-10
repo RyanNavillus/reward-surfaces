@@ -10,7 +10,7 @@ import math
 import pandas
 import warnings
 from scipy import interpolate
-from reward_surfaces.utils import REWARDCLASSES, ENVCLASSES
+from reward_surfaces.utils import REWARDCLASSES, ENVCLASSES, KEYNAMES
 
 
 def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1, vmax=10, vlevel=0.5, show=False,
@@ -42,12 +42,12 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
         title += " | " + REWARDCLASSES[env_name]
 
     # Label max value
-    if key_name == "episode_rewards":
-        title += " | " + f"Max Reward: {np.max(Z):.02f}"
-    elif key_name == "episode_std_rewards":
-        title += " | " + f"Max Standard Deviation: {np.max(Z):.02f}"
+    if key_name in KEYNAMES:
+        title += " | " + f"{KEYNAMES[key_name]}"
+        #title += " | " + f"Max {KEYNAMES[key_name]}: {np.max(Z):.02f}"
     else:
-        title += " | " + f"Max Value: {np.max(Z):.02f}"
+        title += " | " + f"Value"
+        #title += " | " + f"Max Value: {np.max(Z):.02f}"
 
     # Automatically choose logscale
     if not logscale and autologscale:

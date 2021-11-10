@@ -43,3 +43,18 @@ ENVCLASSES = {
     "Swimmer": "Mujoco",
     "Walker2d": "Mujoco",
 }
+
+KEYNAMES = {
+    "episode_rewards": "Mean Episodic Reward",
+    "episode_std_rewards": "Episodic Reward Standard Deviation",
+    "episode_stderr_rewards": "Episodic Reward Standard Error",
+    "episode_value_ests": "Mean Episodic Value Estimates",
+    "episode_values": "Mean Episodic Values",
+    "episode_td_err": "Mean Episodic TD Error",
+    "episode_avg_len": "Mean Episode Length",
+    "episode_std_avg_len": "Episode Length Standard Deviation",
+    "step_rewards": "Mean Reward per Step",
+    "step_value_ests": "Mean Value Estimates per Step",
+    "step_values": "Mean Values per Step",
+    "step_td_err": "Mean TD Error per Step",
+}

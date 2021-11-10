@@ -60,14 +60,16 @@ def calculate_stats(all_datas, gamma):
     episode_values = np.array(episode_values)
     episode_td_err = np.array(episode_td_err)
     episode_lens = np.array(episode_lens, dtype=np.float64)
+    print(f"Number of episodes: {len(episode_rewards)}")
     return {
         "episode_rewards": float(np.mean(episode_rewards)),
-        "episode_std_rewards": float(np.std(episode_rewards)),
+        "episode_std_rewards": float(np.std(episode_rewards, ddof=1)),
+        "episode_stderr_rewards": float(np.std(episode_rewards, ddof=1)/len(episode_rewards)**0.5),
         "episode_value_ests": float(np.mean(episode_value_ests/episode_lens)),
         "episode_values": float(np.mean(episode_values/episode_lens)),
         "episode_td_err": float(np.mean(episode_td_err/episode_lens)),
         "episode_avg_len": float(np.mean(episode_lens)),
-        "episode_std_avg_len": float(np.std(episode_lens)),
+        "episode_std_avg_len": float(np.std(episode_lens, ddof=1)),
         "step_rewards": float(np.sum(episode_rewards)/tot_steps),
         "step_value_ests": float(np.sum(episode_value_ests)/tot_steps),
         "step_values": float(np.sum(episode_values)/tot_steps),

@@ -93,6 +93,7 @@ if __name__ == "__main__":
         #print("Max local std is: ", max(local_stds))
 
         # Compute volume
+        print(f"Max of {name}: {np.max(zvals)}")
         zvals = zvals / (env_max - env_min)
         points = tuple(zip(xvals.flatten(), yvals.flatten(), zvals.flatten()))
         hull = ss.ConvexHull(points)

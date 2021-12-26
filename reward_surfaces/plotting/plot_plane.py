@@ -46,7 +46,7 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
         title += " | " + f"{KEYNAMES[key_name]}"
         #title += " | " + f"Max {KEYNAMES[key_name]}: {np.max(Z):.02f}"
     else:
-        title += " | " + f"Value"
+        title += " | " + "Value"
         #title += " | " + f"Max Value: {np.max(Z):.02f}"
 
     # Automatically choose logscale

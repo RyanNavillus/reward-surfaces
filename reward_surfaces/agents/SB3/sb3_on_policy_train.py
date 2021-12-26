@@ -290,6 +290,8 @@ class OnPolicyEvaluator:
             value = value.item()
 
         action = action.detach().cpu().numpy()
+        if isinstance(self.algo.action_space, gym.spaces.Box):
+            action = np.clip(action, self.algo.action_space.low, self.algo.action_space.high)
         self.state, rew, done, info = self.env.step(action)
         #time.sleep(0.01)
 

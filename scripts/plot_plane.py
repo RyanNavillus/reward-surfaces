@@ -4,7 +4,7 @@ from reward_surfaces.plotting import plot_plane
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='generate jobs for plane')
-    parser.add_argument('datafname', type=str, "Path to results csv file for reward surface.")
+    parser.add_argument('datafname', type=str, help="Path to results csv file for reward surface.")
     parser.add_argument('--outname',
                         type=str,
                         help="Outputs file name for reward surface (extension added onto name)")

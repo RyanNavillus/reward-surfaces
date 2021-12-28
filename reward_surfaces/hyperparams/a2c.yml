@@ -159,3 +159,26 @@ HopperBulletEnv-v0:
 ReacherBulletEnv-v0:
   <<: *pybullet-defaults
   learning_rate: lin_0.0008
+
+# Copied
+Hopper-v2: &mujoco-defaults
+  normalize: true
+  n_envs: 4
+  n_timesteps: !!float 2e6
+  policy: 'MlpPolicy'
+  ent_coef: 0.0
+  max_grad_norm: 0.5
+  n_steps: 8
+  gae_lambda: 0.9
+  vf_coef: 0.4
+  gamma: 0.99
+  use_rms_prop: True
+  normalize_advantage: False
+  # Both works
+  learning_rate: lin_0.00096
+  # learning_rate: !!float 3e-4
+  #use_sde: True
+  #policy_kwargs: "dict(log_std_init=-2, ortho_init=False)"
+
+InvertedDoublePendulum-v2:
+  <<: *mujoco-defaults

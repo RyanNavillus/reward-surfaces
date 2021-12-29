@@ -49,8 +49,8 @@ def generate_eval_jobs(train_dir, out_dir,
         checkpoints = [checkpoints[i] for i in idx]
 
     # Always eval best checkpoint
-    if "best" in os.listdir(train_dir) and os.path.isdir(train_dir / "best"):
-        checkpoints.append("best")
+    #if "best" in os.listdir(train_dir) and os.path.isdir(train_dir / "best"):
+    #    checkpoints.append("best")
 
     print(checkpoints)
     all_jobs = []

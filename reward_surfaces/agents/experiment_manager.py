@@ -164,10 +164,10 @@ class ExperimentManager:
         seed: int = None,
         log_interval: int = 0,
         save_replay_buffer: bool = False,
-        device: str = "auto",
+        device: str = "cuda",
         verbose: int = 1,
         vec_env_type: str = "dummy",
-        pretraining = None
+        pretraining: dict = None
     ):
         super(ExperimentManager, self).__init__()
         self.algo = algo
@@ -212,7 +212,7 @@ class ExperimentManager:
         self.verbose = verbose
         self.log_interval = log_interval
         self.save_replay_buffer = save_replay_buffer
-        self.device=device
+        self.device = device
 
         self.log_path = f"{log_folder}/{self.algo}/"
         self.save_path = os.path.join(
@@ -227,9 +227,7 @@ class ExperimentManager:
         :return: the initialized RL model
         """
         hyperparams, saved_hyperparams = self.read_hyperparameters()
-        print(hyperparams)
         hyperparams, self.env_wrapper = self._preprocess_hyperparams(hyperparams)
-        print(hyperparams)
 
         self.create_log_folder()
 
@@ -242,6 +240,7 @@ class ExperimentManager:
             model = self._load_pretrained_agent(self._hyperparams, env)
         else:
             # Train an agent from scratch
+            print(self.device)
             model = ALGOS[self.algo](
                 env=env,
                 tensorboard_log=self.tensorboard_log,

@@ -52,6 +52,7 @@ def generate_eval_jobs(train_dir, out_dir,
     if "best" in os.listdir(train_dir) and os.path.isdir(train_dir / "best"):
         checkpoints.append("best")
 
+    print(checkpoints)
     all_jobs = []
     if checkpoint:
         job = f"python3 -m reward_surfaces.bin.eval_tradj {train_dir} {checkpoint} {out_dir} --device={device}"

@@ -7,7 +7,7 @@ def main():
     parser = argparse.ArgumentParser(description='Generate jobs to evaluate directions/gradients/hessians')
     parser.add_argument('train_dir', type=str, help="Directory containing training checkpoints")
     parser.add_argument('out_dir', type=str, help="Directory to output evaluation info")
-    parser.add_argument('--device', type=str, help="Device used for training ('cpu' or 'cuda')")
+    parser.add_argument('--device', type=str, default='cuda', help="Device used for training ('cpu' or 'cuda')")
     parser.add_argument('--est-hesh', action='store_true', help="Estimate Hessian (Beta Feature)")
     parser.add_argument('--est-grad', action='store_true', help="Estimate Gradient (Beta Feature)")
     parser.add_argument('--calc-hesh', action='store_true', help="Calculate Hessian")

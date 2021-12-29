@@ -1,7 +1,6 @@
 from reward_surfaces.agents.make_agent import make_agent
 from reward_surfaces.algorithms import evaluate
 import multiprocessing
-import numpy as np
 import math
 
 
@@ -15,7 +14,7 @@ def gen_bounds(lower, upper, exp):
 
 
 def calc_result(offset, params, info, dir, device, key, num_steps, num_episodes):
-    agent, steps = make_agent(info['agent_name'], info['env'], device, dir, info['hyperparameters'])
+    agent, steps = make_agent(info['agent_name'], info['env'], dir, info['hyperparameters'], device=device)
 
     weights = [p+g*offset for p,g in zip(params, dir)]
     agent.set_weights(weights)
@@ -25,8 +24,10 @@ def calc_result(offset, params, info, dir, device, key, num_steps, num_episodes)
 
     return eval_results[key]
 
+
 def calc_result_single(args):
     return calc_result(*args)
+
 
 def which_meet_threshold(offsets, thresh, n_cpus, *calc_args):
     if n_cpus is None:

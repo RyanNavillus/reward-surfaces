@@ -50,8 +50,7 @@ def main():
     info_fname = "info.json"
     info = json.load(open((folder_argname / info_fname)))
 
-    device = "cpu"
-    agent, steps = make_agent(info['agent_name'], info['env'], device, output_path, info['hyperparameters'])
+    agent, steps = make_agent(info['agent_name'], info['env'], output_path, info['hyperparameters'], device="cpu")
     agent.load_weights(checkpoint_path)
 
     # Generate directions normally
@@ -92,6 +91,7 @@ def main():
                         calc_hesh=args.calc_hesh,
                         calc_grad=args.calc_grad,
                         batch_grad=args.batch_grad)
+
 
 if __name__ == "__main__":
     main()

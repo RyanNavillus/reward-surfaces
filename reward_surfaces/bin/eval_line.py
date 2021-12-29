@@ -30,8 +30,7 @@ def main():
     info = json.load(open(PurePath(args.outputfile).parent.parent / "info.json"))
     checkpoint = os.path.basename(args.outputfile)
 
-    device = args.device
-    agent, steps = make_agent(info['agent_name'], info['env'], device, PurePath(args.params).parent.parent, info['hyperparameters'])
+    agent, steps = make_agent(info['agent_name'], info['env'], PurePath(args.params).parent.parent, info['hyperparameters'], device=args.device)
 
     params = [v.cpu().detach().numpy() for v in torch.load(args.params, map_location=torch.device('cpu')).values()]
     if info['random_dir_seed'] is not None:

@@ -39,7 +39,7 @@ def make_vec_env_fn(env_name, manager, simple_obs=True, is_eval=False):
     return env_fn_v
 
 
-def make_agent(agent_name, env_name, device, save_dir, hyperparams, pretraining=None, eval_freq=50, n_eval_episodes=50):
+def make_agent(agent_name, env_name, save_dir, hyperparams, device="cuda", pretraining=None, eval_freq=50, n_eval_episodes=50):
     hyperparams = dict(**hyperparams)
     if 'rainbow' == agent_name:
         return RainbowTrainer(env_name, device=device, **hyperparams)
@@ -53,7 +53,7 @@ def make_agent(agent_name, env_name, device, save_dir, hyperparams, pretraining=
     elif "SB3_ON" == agent_name:
         algo_name = hyperparams.pop('ALGO')
         manager = ExperimentManager(algo_name.lower(), env_name, save_dir, hyperparams=hyperparams,
-                                    pretraining=pretraining, verbose=1)
+                                    pretraining=pretraining, verbose=1, device=device)
         model, _, steps = manager.setup_experiment()
         if pretraining:
             best_model = manager.get_best_model()

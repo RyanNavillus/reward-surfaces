@@ -37,7 +37,7 @@ def main():
 
     # Create agent
     device = args.device
-    agent, _ = make_agent(info['agent_name'], info['env'], device, out_dir, info['hyperparameters'])
+    agent, _ = make_agent(info['agent_name'], info['env'], out_dir, info['hyperparameters'], device=device)
     agent.load_weights(checkpoint_path)
 
     # Evaluate

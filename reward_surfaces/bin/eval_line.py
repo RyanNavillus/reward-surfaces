@@ -36,19 +36,19 @@ def main():
     if info['random_dir_seed'] is not None:
         seed = info['random_dir_seed']
         np.random.seed(seed+hash(args.outputfile) % (1 << 30))
-        dir = [filter_normalize(p) for p in params]
+        direction = [filter_normalize(p) for p in params]
     else:
-        dir = readz(args.dir)
+        direction = readz(args.dir)
 
     if info['scale_dir']:
-        dir_sum = sum(np.sum(x) for x in dir)
+        dir_sum = sum(np.sum(x) for x in direction)
         if dir_sum != 0:
-            dir = [d/dir_sum for d in dir]
+            direction = [d/dir_sum for d in direction]
 
     # High resolution in first segment
     for i in range(1, 10):
         mm = args.max_magnitude
-        weights = [p + d*i*mm / (10*args.length) for p, d in zip(params, dir)]
+        weights = [p + d*i*mm / (10*args.length) for p, d in zip(params, direction)]
         agent.set_weights(weights)
         evaluator = agent.evaluator()
         eval_results = evaluate(evaluator, args.num_episodes, args.num_steps)
@@ -61,7 +61,7 @@ def main():
 
     for i in range(args.length):
         mm = args.max_magnitude
-        weights = [p + d*i*mm/args.length for p, d in zip(params, dir)]
+        weights = [p + d*i*mm/args.length for p, d in zip(params, direction)]
         agent.set_weights(weights)
         evaluator = agent.evaluator()
         eval_results = evaluate(evaluator, args.num_episodes, args.num_steps)

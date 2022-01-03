@@ -132,7 +132,7 @@ if __name__ == "__main__":
         name = csv_file.split("/")[-2]
         print(name)
         path = "/".join(csv_file.split("/")[:-2])
-        print_cliff_values(csv_file, outname=path + "/" + name + "_lines", title=name,
+        print_cliff_values(csv_file, outname=path + "/" + name + "_cliffs", title=name,
                            cliff_ratio=args.ratio, global_ratio=args.globalratio)
         print()
 

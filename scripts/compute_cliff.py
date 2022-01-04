@@ -63,12 +63,12 @@ def print_cliff_values(csv_fname, outname=None, key_name="episode_rewards", titl
             is_cliff = True
         second_last_val = sorted_z[0]
         last_val = sorted_z[9]
-        for z in sorted_z[10:]:
-            if ((z <= cliff_ratio * last_val and (last_val - z) / global_range > global_ratio)
-               or (z <= cliff_ratio * second_last_val and (second_last_val - z) / global_range > global_ratio)):
-                is_cliff = True
-            second_last_val = last_val
-            last_val = z
+        #for z in sorted_z[10:]:
+        #    if ((z <= cliff_ratio * last_val and (last_val - z) / global_range > global_ratio)
+        #       or (z <= cliff_ratio * second_last_val and (second_last_val - z) / global_range > global_ratio)):
+        #        is_cliff = True
+        #    second_last_val = last_val
+        #    last_val = z
 
         # Compute global percentage metric
         #is_cliff = False

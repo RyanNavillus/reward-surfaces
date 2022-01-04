@@ -3,6 +3,7 @@ import os
 import argparse
 from stable_baselines3 import PPO
 from reward_surfaces.agents.make_agent import make_agent
+from reward_surfaces.algorithms import evaluate
 
 parser = argparse.ArgumentParser(description='Train an agent and keep track of important information.')
 parser.add_argument('--device', type=str, default="cuda", help="Device used for training ('cpu' or 'cuda')")
@@ -27,10 +28,16 @@ def compare_a2c_ppo(environment, agent_name, checkpoint):
         "best": "./runs/{agent_name}/best/checkpoint.zip",
         "trained_steps": int(f"{checkpoint}"),
     }
-    agent, steps = make_agent("SB3_ON", environment, directory, json.loads('{"ALGO": "A2C", "n_steps": 2048, "n_envs": 8}'), eval_freq=1024, n_eval_episodes=100, pretraining=pretraining, device=args.device)
+
+    agent, steps = make_agent("SB3_ON", environment, directory, json.loads('{"ALGO": "A2C"}'), eval_freq=4096, n_eval_episodes=100, pretraining=pretraining, device=args.device)
     agent.load_weights(f"{directory}/{checkpoint}/checkpoint.zip")
+    #agent.set_weights(weights)
+    evaluator = agent.evaluator()
+    print(evaluate(evaluator, 100, 100000000))
     agent.train(1, f"./runs/vpg/{agent_name}/{checkpoint}", save_freq=10000)
-    agent, steps = make_agent("SB3_ON", environment, directory, json.loads('{"ALGO": "PPO", "n_steps": 2048, "n_envs": 8}'), eval_freq=1024, n_eval_episodes=100, pretraining=pretraining, device=args.device)
+    print(evaluate(evaluator, 100, 100000000))
+
+    agent, steps = make_agent("SB3_ON", environment, directory, json.loads('{"ALGO": "PPO"}'), eval_freq=4096, n_eval_episodes=1, pretraining=pretraining, device=args.device)
     agent.load_weights(f"{directory}/{checkpoint}/checkpoint.zip")
     agent.train(1, f"./runs/vpg/{agent_name}/{checkpoint}", save_freq=10000)
 

@@ -53,8 +53,8 @@ Pendulum-v0:
   use_rms_prop: True
   normalize_advantage: False
   learning_rate: lin_7e-4
-  use_sde: True
-  policy_kwargs: "dict(log_std_init=-2, ortho_init=False)"
+  #use_sde: True
+  #policy_kwargs: "dict(log_std_init=-2, ortho_init=False)"
 
 # Tuned
 LunarLanderContinuous-v2:
@@ -179,6 +179,14 @@ Hopper-v2: &mujoco-defaults
   # learning_rate: !!float 3e-4
   #use_sde: True
   #policy_kwargs: "dict(log_std_init=-2, ortho_init=False)"
+
+# Copied
+HalfCheetah-v2:
+  <<: *mujoco-defaults
+
+# Copied
+Reacher-v2:
+  <<: *mujoco-defaults
 
 InvertedDoublePendulum-v2:
   <<: *mujoco-defaults

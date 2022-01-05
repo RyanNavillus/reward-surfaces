@@ -70,7 +70,7 @@ def generate_plane_data(checkpoint_dir,
 
     json.dump(info, open((output_path / info_fname), 'w'), indent=4)
 
-    job_out_path = os.mkdir((output_path / "results"))
+    os.makedirs(output_path / "results", exist_ok=True)
     seperate_eval_arg = " --use_offset_critic " if use_offset_critic else ""
 
     job_list = []

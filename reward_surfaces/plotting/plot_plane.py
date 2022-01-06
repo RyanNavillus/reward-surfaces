@@ -15,7 +15,7 @@ from reward_surfaces.utils import REWARDCLASSES, ENVCLASSES, KEYNAMES
 
 def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1, vmax=10, vlevel=0.5, show=False,
                     plot_type='mesh', file_type="png", dir1_scale=1., dir2_scale=1., dir1_name="dim1", dir2_name="dim2",
-                    env_name=None, key_name=None, logscale=False, autologscale=True):
+                    env_name=None, key_name=None, logscale="auto"):
     """Plot 2D contour map and 3D surface."""
     X = x_coords
     Y = y_coords
@@ -50,9 +50,13 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
         #title += " | " + f"Max Value: {np.max(Z):.02f}"
 
     # Automatically choose logscale
-    if not logscale and autologscale:
+    if logscale == "auto":
         if np.max(Z) - np.min(Z) > 10000:
             logscale = True
+    elif logscale == "on":
+        logscale = True
+    else:
+        logscale = False
 
     # --------------------------------------------------------------------
     # Plot 2D contours
@@ -162,6 +166,8 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
             if min_Z < 0:
                 min_magnitude = -math.floor(math.log10(-min_Z))
             else:
+                if min_Z == 0:
+                    min_Z += 0.0000001
                 min_magnitude = math.floor(math.log10(min_Z))
 
             # Create colorbar
@@ -430,7 +436,7 @@ def generate_missing_jobs(csv_path):
 
 def plot_plane(csv_fname, out_name=None, env_name=None, key_name="episode_rewards", plot_type="mesh", file_type="png",
                show=False, dir1_scale=1, dir2_scale=1., dir1_name="dim1", dir2_name="dim2", vmin=None, vmax=None,
-               logscale=False):
+               logscale="auto"):
     default_outname = "vis/" + "".join([c for c in csv_fname if re.match(r'\w', c)]) + key_name + "_" + plot_type
     out_name = out_name if out_name is not None else default_outname
     data_fname = csv_fname

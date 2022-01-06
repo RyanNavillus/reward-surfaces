@@ -21,9 +21,8 @@ if __name__ == "__main__":
     parser.add_argument('--show',
                         action='store_true',
                         help="Shows plot instead of saving it (does not work for vtp output)")
-    parser.add_argument('--logscale',
-                        action='store_true',
-                        help="Plot in log scale rather than the default linear scale")
+    parser.add_argument('--logscale', default="auto",
+                        help="Plot in log scale rather than the default linear scale. One of 'auto', 'on', or 'off'")
 
     args = parser.parse_args()
 

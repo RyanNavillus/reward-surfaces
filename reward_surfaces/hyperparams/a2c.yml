@@ -181,11 +181,19 @@ Hopper-v2: &mujoco-defaults
   #policy_kwargs: "dict(log_std_init=-2, ortho_init=False)"
 
 # Copied
+Ant-v2:
+  <<: *mujoco-defaults
+
+# Copied
 HalfCheetah-v2:
   <<: *mujoco-defaults
 
 # Copied
 Reacher-v2:
+  <<: *mujoco-defaults
+
+# Copied
+InvertedPendulum-v2:
   <<: *mujoco-defaults
 
 InvertedDoublePendulum-v2:

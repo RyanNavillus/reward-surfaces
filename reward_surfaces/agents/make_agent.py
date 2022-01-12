@@ -39,7 +39,7 @@ def make_vec_env_fn(env_name, manager, simple_obs=True, is_eval=False):
     return env_fn_v
 
 
-def make_agent(agent_name, env_name, save_dir, hyperparams, device="cuda", pretraining=None, eval_freq=50, n_eval_episodes=50):
+def make_agent(agent_name, env_name, save_dir, hyperparams, device="cuda", pretraining=None, eval_freq=1000, n_eval_episodes=50):
     hyperparams = dict(**hyperparams)
     if 'rainbow' == agent_name:
         return RainbowTrainer(env_name, device=device, **hyperparams)

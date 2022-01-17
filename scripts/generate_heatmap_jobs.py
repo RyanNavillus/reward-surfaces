@@ -16,8 +16,9 @@ if __name__ == "__main__":
                         help="Magnitude of the step size in the gradient direction")
     parser.add_argument('--rand-magnitude', type=float, default=0.3,
                         help="Magnitude of the step size in the random direction")
-    parser.add_argument('--num-episodes', type=int, default=200, help="Number of episodes to evaluate each point")
-    parser.add_argument('--grid-size', type=int, default=11, help="Width and height of the heatmap grid")
+    parser.add_argument('--num-episodes', type=int, default=1000000, help="Number of episodes to evaluate each point")
+    parser.add_argument('--num-steps', type=int, default=200000, help="Number of steps to evaluate each point")
+    parser.add_argument('--grid-size', type=int, default=31, help="Width and height of the heatmap grid")
     args = parser.parse_args()
 
     trained_checkpoint = Path(args.checkpoint)
@@ -47,4 +48,5 @@ if __name__ == "__main__":
                         dir1_scale=args.grad_magnitude,
                         dir2_scale=args.rand_magnitude,
                         grid_size=args.grid_size,
-                        num_episodes=args.num_episodes)
+                        num_episodes=args.num_episodes,
+                        num_steps=args.num_steps)

@@ -16,7 +16,8 @@ if __name__ == "__main__":
                         help="Magnitude of the step size in the gradient direction")
     parser.add_argument('--rand-magnitude', type=float, default=0.3,
                         help="Magnitude of the step size in the random direction")
-    parser.add_argument('--num-episodes', type=int, default=200, help="Number of episodes to evaluate each point")
+    parser.add_argument('--num-episodes', type=int, default=1000000000, help="Number of episodes to evaluate each point")
+    parser.add_argument('--num-steps', type=int, default=1000000000, help="Number of steps to evaluate each point")
     parser.add_argument('--grid-size', type=int, default=11, help="Width and height of the heatmap grid")
     args = parser.parse_args()
 
@@ -29,7 +30,7 @@ if __name__ == "__main__":
 
     # Load random filter normalized direction
     rand_dir_fname = trained_checkpoint / "parameters.th"
-    param_values = torch.load(rand_dir_fname, map_location=torch.device('cpu')).values()
+    param_values = torch.load(str(rand_dir_fname), map_location=torch.device('cpu')).values()
     rand_dir = [filter_normalize(v.cpu().detach().numpy()) for v in param_values]
 
     train_info = json.load(open(trained_checkpoint.parent / "info.json"))
@@ -47,4 +48,5 @@ if __name__ == "__main__":
                         dir1_scale=args.grad_magnitude,
                         dir2_scale=args.rand_magnitude,
                         grid_size=args.grid_size,
-                        num_episodes=args.num_episodes)
+                        num_episodes=args.num_episodes,
+                        num_steps=args.num_steps)

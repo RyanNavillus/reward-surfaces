@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
     # Load random filter normalized direction
     rand_dir_fname = trained_checkpoint / "parameters.th"
-    param_values = torch.load(rand_dir_fname, map_location=torch.device('cpu')).values()
+    param_values = torch.load(str(rand_dir_fname), map_location=torch.device('cpu')).values()
     rand_dir = [filter_normalize(v.cpu().detach().numpy()) for v in param_values]
 
     train_info = json.load(open(trained_checkpoint.parent / "info.json"))

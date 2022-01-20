@@ -162,7 +162,6 @@ ReacherBulletEnv-v0:
 
 # Copied
 Hopper-v2: &mujoco-defaults
-  normalize: true
   n_envs: 4
   n_timesteps: !!float 2e6
   policy: 'MlpPolicy'

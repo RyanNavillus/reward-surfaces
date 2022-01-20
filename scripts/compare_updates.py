@@ -21,14 +21,14 @@ def compare_a2c_ppo(environment, agent_name, checkpoint, episodes, trials, basel
     # One step A2C
     a2c_scores = []
     for _ in range(trials):
-        agent, steps = make_agent("SB3_ON", environment, directory, json.loads('{"ALGO": "A2C"}'),
+        agent, steps = make_agent("SB3_ON", environment, directory, json.loads('{"ALGO": "A2C", "learning_rate": 10, "n_steps": 2048}'),
                                   eval_freq=100000000,
                                   n_eval_episodes=1,
                                   pretraining=pretraining,
                                   device=args.device)
         agent.load_weights(f"{directory}/{checkpoint}/checkpoint.zip")
         evaluator = agent.evaluator()
-        agent.train(1, f"./runs/vpg/{agent_name}/{checkpoint}", save_freq=10000)
+        agent.train(2048, f"./runs/vpg/{agent_name}/{checkpoint}", save_freq=10000)
         a2c = evaluate(evaluator, episodes, 100000000)
         print("A2C: ", a2c["episode_rewards"])
         a2c_scores.append(a2c["episode_rewards"])
@@ -36,25 +36,24 @@ def compare_a2c_ppo(environment, agent_name, checkpoint, episodes, trials, basel
     # One step PPO
     ppo_scores = []
     for _ in range(trials):
-        agent, steps = make_agent("SB3_ON", environment, directory, json.loads('{"ALGO": "PPO"}'),
+        agent, steps = make_agent("SB3_ON", environment, directory, json.loads('{"ALGO": "PPO", "learning_rate": 1, "clip_range": 10}'),
                                   eval_freq=100000000,
                                   n_eval_episodes=1,
                                   pretraining=pretraining,
                                   device=args.device)
         evaluator = agent.evaluator()
         agent.load_weights(f"{directory}/{checkpoint}/checkpoint.zip")
-        agent.train(1, f"./runs/vpg/{agent_name}/{checkpoint}", save_freq=10000)
+        agent.train(2048, f"./runs/vpg/{agent_name}/{checkpoint}", save_freq=10000)
         ppo = evaluate(evaluator, episodes, 100000000)
         print("PPO: ", ppo["episode_rewards"])
         ppo_scores.append(ppo["episode_rewards"])
 
     # Calculate statistics
-    print(a2c_scores)
-    print(ppo_scores)
     a2c_reward = sum(a2c_scores) / len(a2c_scores)
     ppo_reward = sum(ppo_scores) / len(ppo_scores)
     ppo_percent = math.copysign(1, baseline_reward) * ((ppo_reward / baseline_reward) - 1)
     a2c_percent = math.copysign(1, baseline_reward) * ((a2c_reward / baseline_reward) - 1)
+
     return ppo_percent, a2c_percent
 
 
@@ -76,6 +75,12 @@ def test_checkpoints(checkpoint_filename, episodes, trials, baselines):
     print(checkpoints)
     pool = Pool(20)
     ppo_percents, a2c_percents = zip(*pool.map(evaluate_checkpoint, checkpoints))
+    # Store results
+    env_names = [cpt[0] for cpt in checkpoints]
+    outfile.write(f"Env Names: {env_names}\n")
+    outfile.write(f"Baseline: {baselines}\n")
+    outfile.write(f"PPO: {ppo_percents}\n")
+    outfile.write(f"A2C: {a2c_percents}\n")
     return ppo_percents, a2c_percents
 
 
@@ -109,7 +114,7 @@ def compute_baselines(environment, agent_name, checkpoint, episodes, trials):
     # Baseline
     baseline_scores = []
     for _ in range(trials):
-        agent, steps = make_agent("SB3_ON", environment, directory, json.loads('{"ALGO": "PPO"}'),
+        agent, steps = make_agent("SB3_ON", environment, directory, json.loads('{"ALGO": "A2C"}'),
                                   eval_freq=100000000,
                                   n_eval_episodes=1,
                                   pretraining=pretraining,
@@ -120,7 +125,6 @@ def compute_baselines(environment, agent_name, checkpoint, episodes, trials):
         baseline = evaluate(evaluator, episodes, 100000000)
         print("Baseline: ", baseline["episode_rewards"])
         baseline_scores.append(baseline["episode_rewards"])
-    print(baseline_scores)
     return sum(baseline_scores) / len(baseline_scores)
 
 
@@ -132,41 +136,40 @@ parser.add_argument('--num-episodes', type=int, default=100, help="Number of eva
 parser.add_argument('--num-trials', type=int, default=5, help="Number of evaluation trials")
 args = parser.parse_args()
 
+
+outfile = open("vpg_output.txt", "w")
 cliff_baselines = test_baselines(args.cliff_file, args.num_episodes, args.num_trials)
 noncliff_baselines = test_baselines(args.noncliff_file, args.num_episodes, args.num_trials)
+outfile.write("Cliffs:\n")
 cliff_ppo_percents, cliff_a2c_percents = test_checkpoints(args.cliff_file, args.num_episodes, args.num_trials, cliff_baselines)
+outfile.write("Non-Cliffs:\n")
 noncliff_ppo_percents, noncliff_a2c_percents = test_checkpoints(args.noncliff_file, args.num_episodes, args.num_trials, noncliff_baselines)
+outfile.write("\nResults:\n")
 
 
 def calculate_stats(data):
     return np.mean(data), np.std(data, ddof=1), len(data)
 
 
-ppo_diffs = np.array(list(cliff_ppo_percents)) - np.array(list(noncliff_ppo_percents))
-a2c_diffs = np.array(list(cliff_a2c_percents)) - np.array(list(noncliff_a2c_percents))
-ppo_mean, ppo_std, ppo_n = calculate_stats(ppo_diffs)
-a2c_mean, a2c_std, a2c_n = calculate_stats(a2c_diffs)
+cliff_ppo_mean, cliff_ppo_std, cliff_ppo_n = calculate_stats(cliff_ppo_percents)
+noncliff_ppo_mean, noncliff_ppo_std, noncliff_ppo_n = calculate_stats(noncliff_ppo_percents)
+cliff_a2c_mean, cliff_a2c_std, cliff_a2c_n = calculate_stats(cliff_a2c_percents)
+noncliff_a2c_mean, noncliff_a2c_std, noncliff_a2c_n = calculate_stats(noncliff_a2c_percents)
 
 # Perform T-Test
 # Evaluate the probability that the difference between the difference between the percent improvement for cliff vs. noncliff checkpoints for a2c and ppo is due to chance
-t_stat = (ppo_mean - a2c_mean) / math.sqrt(((ppo_std**2) / ppo_n) + ((a2c_std**2) / a2c_n))
-print("T test statistic: ", t_stat)
+ppo_t_stat = (cliff_ppo_mean - noncliff_ppo_mean) / math.sqrt(((cliff_ppo_std**2) / cliff_ppo_n) + ((noncliff_ppo_std**2) / noncliff_ppo_n))
+a2c_t_stat = (cliff_a2c_mean - noncliff_a2c_mean) / math.sqrt(((cliff_a2c_std**2) / cliff_a2c_n) + ((noncliff_a2c_std**2) / noncliff_a2c_n))
+print("PPO T test statistic: ", ppo_t_stat)
+print("A2C T test statistic: ", a2c_t_stat)
 
-print(ttest_ind(ppo_diffs, a2c_diffs, equal_var=False))
-
-
-print("PPO diff:", ppo_mean)
-print("A2C diff:", a2c_mean)
-
-
-# agent, steps = make_agent("SB3_ON", "InvertedDoublePendulum-v2", "./runs/vpg_test", json.loads('{"ALGO": "PPO", "n_timesteps": 100000}'), eval_freq=10000, device="cuda")
-os.makedirs("./runs/vpg_test", exist_ok=True)
-# agent.train(steps, "./runs/vpg_test", save_freq=10000)
-# old_weights = agent.get_weights()
+print(ttest_ind(cliff_ppo_percents, noncliff_ppo_percents, equal_var=False))
+print(ttest_ind(cliff_a2c_percents, noncliff_a2c_percents, equal_var=False))
+outfile.write("PPO: " + str(ttest_ind(cliff_ppo_percents, noncliff_ppo_percents, equal_var=False)) + "\n")
+outfile.write("A2C: " + str(ttest_ind(cliff_a2c_percents, noncliff_a2c_percents, equal_var=False)) + "\n")
 
 
-
-# norms = []
-# for d1, d2 in zip(old_weights, agent.get_weights()):
-#     norms.append(abs(np.linalg.norm(d1) - np.linalg.norm(d2)))
-# print(sum(norms))
+print("PPO diff:", cliff_ppo_mean, noncliff_ppo_mean)
+print("A2C diff:", cliff_a2c_mean, noncliff_a2c_mean)
+outfile.write(f"PPO diff: {cliff_ppo_mean}, {noncliff_ppo_mean} \n")
+outfile.write(f"A2C diff: {cliff_a2c_mean}, {noncliff_a2c_mean}, \n")

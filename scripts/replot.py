@@ -40,7 +40,7 @@ def replot(csv_fname, outname=None, env_name=None, key_name="episode_rewards", t
     default_outname = "vis/" + "".join([c for c in csv_fname if re.match(r'\w', c)]) + key_name
     outname = outname if outname is not None else default_outname
     datafname = csv_fname
-    plot_plane(datafname, outname, key_name=args.key, plot_type=plot_type, file_type=file_type, env_name=env_name)
+    plot_plane(datafname, outname, key_name=args.key, plot_type=plot_type, file_type=file_type, env_name=env_name, logscale=False)
 
 
 if __name__ == "__main__":
@@ -56,7 +56,7 @@ if __name__ == "__main__":
     if args.file:
         files = [args.file]
     else:
-        files = glob.glob(args.folder + "**/*results.csv", recursive=True)
+        files = glob.glob(args.folder + "**/results.csv", recursive=True)
         files = sorted(files)
     print(files)
     for csv_file in files:
@@ -76,10 +76,11 @@ if __name__ == "__main__":
         except FileNotFoundError:
             print(csv_file)
             name = csv_file.split("/")[-1].split("_")[0].split("@")[0]
+            name = csv_file.split("/")[3].split("_")[0].split("@")[0]
             print(name)
             env_name = ENVNAME[name]
             path = csv_file.split("/")[-1].split("@")[0]
             print(path)
 
-        replot(csv_file, outname=path, env_name=env_name, plot_type=args.type, file_type=args.filetype,
-               logscale=args.logscale)
+        replot(csv_file, outname=name, env_name=env_name, plot_type=args.type, file_type=args.filetype,
+               logscale=False)

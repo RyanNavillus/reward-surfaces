@@ -2,12 +2,12 @@ import torch
 import numpy as np
 from reward_surfaces.experiments import generate_plane_data
 import json
-import subprocess
 import argparse
 from reward_surfaces.utils.surface_utils import filter_normalize
 from pathlib import Path
 import random
 import os
+
 
 def main():
     parser = argparse.ArgumentParser(description='generate jobs for plane')
@@ -39,7 +39,7 @@ def generate_gif_jobs(train_dir, out_dir, num_steps=None, num_episodes=None, dev
     out_dir = Path(out_dir)
 
     if seed is None:
-        seed = random.randint(0,2**31)
+        seed = random.randint(0, 2**31)
 
     os.mkdir(out_dir)
 

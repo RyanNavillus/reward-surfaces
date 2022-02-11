@@ -21,7 +21,7 @@ def compare_a2c_ppo(environment, agent_name, checkpoint, episodes, trials, basel
     # One step A2C
     a2c_scores = []
     for _ in range(trials):
-        agent, steps = make_agent("SB3_ON", environment, directory, json.loads('{"ALGO": "A2C", "learning_rate": 10, "n_steps": 2048}'),
+        agent, steps = make_agent("SB3_ON", environment, directory, json.loads('{"ALGO": "A2C", "learning_rate": 0.000001, "n_steps": 128}'),
                                   eval_freq=100000000,
                                   n_eval_episodes=1,
                                   pretraining=pretraining,
@@ -36,7 +36,7 @@ def compare_a2c_ppo(environment, agent_name, checkpoint, episodes, trials, basel
     # One step PPO
     ppo_scores = []
     for _ in range(trials):
-        agent, steps = make_agent("SB3_ON", environment, directory, json.loads('{"ALGO": "PPO", "learning_rate": 1, "clip_range": 10}'),
+        agent, steps = make_agent("SB3_ON", environment, directory, json.loads('{"ALGO": "PPO", "learning_rate": 0.000001, "n_steps": 128}'),
                                   eval_freq=100000000,
                                   n_eval_episodes=1,
                                   pretraining=pretraining,
@@ -73,7 +73,7 @@ def test_checkpoints(checkpoint_filename, episodes, trials, baselines):
             checkpoints.append((env, name, number, episodes, trials, baselines[i]))
 
     print(checkpoints)
-    pool = Pool(20)
+    pool = Pool(22)
     ppo_percents, a2c_percents = zip(*pool.map(evaluate_checkpoint, checkpoints))
     # Store results
     env_names = [cpt[0] for cpt in checkpoints]
@@ -93,7 +93,7 @@ def test_baselines(checkpoint_filename, episodes, trials):
             env, name, number = words[0], words[1], words[2]
             checkpoints.append((env, name, number, episodes, trials))
 
-    pool = Pool(20)
+    pool = Pool(22)
     baselines = pool.map(evaluate_baselines, checkpoints)
     return baselines
 

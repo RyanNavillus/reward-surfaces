@@ -13,6 +13,7 @@ if __name__ == "__main__":
     parser.add_argument('--outname', type=str, help="if specified, outputs file with this name (extension added onto name)")
     parser.add_argument('--key', type=str, default="episode_rewards", help="key in csv file to plot")
     parser.add_argument('--type', type=str, default="mesh", help="plot type. Possible types are: [all, mesh, vtp, heat, contour, contourf]")
+    parser.add_argument('--env_name', type=str, help="Name of environment in plot")
 
     args = parser.parse_args()
 
@@ -38,8 +39,8 @@ if __name__ == "__main__":
     for checkpoint in checkpoints:
         csv_path = gif_data_folder / checkpoint / "results.csv"
         row_dat = pandas.read_csv(csv_path)[args.key]
-        m = max(0.1,np.max(row_dat))
-        mini = min(0,np.min(row_dat))
+        m = max(0.1, np.max(row_dat))
+        mini = min(0, np.min(row_dat))
         print(m)
         if base_mag is None:
             base_mag = m
@@ -47,7 +48,7 @@ if __name__ == "__main__":
             while m > base_mag:
                 base_mag = base_mag * factor
 
-        fname = plot_plane(str(csv_path), str(frames_dir+checkpoint), args.key, args.type, vmin=mini, vmax=base_mag, show=False)
+        fname = plot_plane(str(csv_path), str(frames_dir+checkpoint), env_name=args.env_name, key_name=args.key, plot_type=args.type, vmin=mini, vmax=base_mag, show=False, logscale="off")
         if not fname:
             continue
         os.rename(fname, f"{frames_dir}{frame_idx:05}.png")

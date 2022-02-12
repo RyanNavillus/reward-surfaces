@@ -49,7 +49,7 @@ def generate_gif_jobs(train_dir, out_dir, num_steps=None, num_episodes=None, dev
     train_info['num_steps'] = num_steps
     train_info['num_episodes'] = num_episodes
     train_info['seed'] = seed
-    open(out_dir/"info.json",'w').write(json.dumps(train_info))
+    open(out_dir/"info.json", 'w').write(json.dumps(train_info))
 
     all_gen_dirs = []
     for p_str in sorted(os.listdir(train_dir)):
@@ -63,11 +63,11 @@ def generate_gif_jobs(train_dir, out_dir, num_steps=None, num_episodes=None, dev
             # reseeds so that random generated directions are the same every time
             np.random.seed(seed)
 
-            checkpoint_params = [v.cpu().detach().numpy() for v in torch.load(checkpoint_param_fname,map_location=torch.device('cpu')).values()]
+            checkpoint_params = [v.cpu().detach().numpy() for v in torch.load(checkpoint_param_fname, map_location=torch.device('cpu')).values()]
             dir1 = [filter_normalize(v)*magnitude for v in checkpoint_params]
             dir2 = [filter_normalize(v)*magnitude for v in checkpoint_params]
 
-            generate_plane_data(trained_checkpoint, generated_dir, dir1, dir2, train_info, num_steps=num_steps, num_episodes=num_episodes, device=device,grid_size=grid_size)
+            generate_plane_data(trained_checkpoint, generated_dir, dir1, dir2, magnitude, train_info, num_steps=num_steps, num_episodes=num_episodes, device=device, grid_size=grid_size)
 
             all_gen_dirs.append(generated_dir)
 

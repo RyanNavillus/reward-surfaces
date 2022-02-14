@@ -14,6 +14,7 @@ def main():
     parser.add_argument('device', type=str, help="Device used for training ('cpu' or 'cuda')")
     parser.add_argument('hyperparameters', type=str, help="Dictionary of hyperparameters for training. Should include the intended training algorithm (E.g. {'ALGO': 'PPO'})")
     parser.add_argument('--save_freq', type=int, default=10000, help="Training steps between each saved checkpoint.")
+    parser.add_argument('--eval_freq', type=int, default=10000, help="Training steps between each evaluations.")
     parser.add_argument('--resume', action='store_true', help="Continue training from last checkpoint")
 
     args = parser.parse_args()
@@ -61,7 +62,7 @@ def main():
     with open(run_info_fname, 'w') as file:
         file.write(json.dumps(run_info, indent=4))
 
-    agent.train(steps, args.save_dir, save_freq=args.save_freq)
+    agent.train(steps, args.save_dir, save_freq=args.save_freq, eval_freq=args.eval_freq)
 
 
 if __name__ == "__main__":

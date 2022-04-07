@@ -494,7 +494,7 @@ class ExperimentManager:
             n_envs=n_envs,
             seed=self.seed,
             env_kwargs=self.env_kwargs,
-            monitor_dir=log_dir,
+            monitor_dir=None,                       # Avoid useless monitor file spam from plotting
             wrapper_class=self.env_wrapper,
             vec_env_cls=self.vec_env_class,
             vec_env_kwargs=self.vec_env_kwargs,

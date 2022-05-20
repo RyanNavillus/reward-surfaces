@@ -63,6 +63,9 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
     # --------------------------------------------------------------------
     if plot_type == 'all' or plot_type == 'contour':
         fig = plt.figure()
+        # Scale X and Y values by the step size magnitude
+        X = magnitude * X
+        Y = magnitude * Y
         CS = plt.contour(X, Y, Z, cmap='summer', levels=np.arange(vmin, vmax, vlevel))
         plt.clabel(CS, inline=1, fontsize=8)
         out_fname = base_name + '_2dcontour.' + file_type
@@ -71,6 +74,9 @@ def plot_2d_contour(x_coords, y_coords, z_values, magnitude, base_name, vmin=0.1
 
     if plot_type == 'all' or plot_type == 'contourf':
         fig = plt.figure()
+        # Scale X and Y values by the step size magnitude
+        X = magnitude * X
+        Y = magnitude * Y
         print(base_name + '_2dcontourf' + '.png')
         CS = plt.contourf(X, Y, Z, cmap='summer', levels=np.arange(vmin, vmax, vlevel))
         out_fname = base_name + '_2dcontourf.' + file_type

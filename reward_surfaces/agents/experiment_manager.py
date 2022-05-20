@@ -8,6 +8,7 @@ from typing import Any, Callable, Dict, Optional, Tuple, Union
 import gym
 import numpy as np
 import yaml
+import torch
 #import pybulletgym
 import stable_baselines3
 print(stable_baselines3.__file__)
@@ -236,12 +237,14 @@ class ExperimentManager:
         env = self.create_envs(self.n_envs, no_log=False)
 
         self._hyperparams = self._preprocess_action_noise(hyperparams, saved_hyperparams, env)
+        print(self._hyperparams)
 
         if self.continue_training:
+            print("HYPERS:", self._hyperparams)
             model = self._load_pretrained_agent(self._hyperparams, env)
         else:
             # Train an agent from scratch
-            print(self.device)
+            print("HYPERS:", self._hyperparams)
             model = ALGOS[self.algo](
                 env=env,
                 tensorboard_log=self.tensorboard_log,
@@ -281,7 +284,8 @@ class ExperimentManager:
             elif self._is_atari:
                 hyperparams = hyperparams_dict["atari"]
             else:
-                raise ValueError(f"Hyperparameters not found for {self.algo}-{self.env_id}")
+                hyperparams = {"n_timesteps": self.n_timesteps}
+                #raise ValueError(f"Hyperparameters not found for {self.algo}-{self.env_id}")
 
         if self.custom_hyperparams is not None:
             # Overwrite hyperparams if needed
@@ -302,9 +306,12 @@ class ExperimentManager:
             if key not in hyperparams:
                 continue
             if isinstance(hyperparams[key], str):
-                schedule, initial_value = hyperparams[key].split("_")
-                initial_value = float(initial_value)
-                hyperparams[key] = linear_schedule(initial_value)
+                if hyperparams[key] == "None":
+                    hyperparams[key] = None
+                else:
+                    schedule, initial_value = hyperparams[key].split("_")
+                    initial_value = float(initial_value)
+                    hyperparams[key] = linear_schedule(initial_value)
             elif isinstance(hyperparams[key], (float, int)):
                 # Negative value: ignore (ex: for clipping)
                 if hyperparams[key] < 0:

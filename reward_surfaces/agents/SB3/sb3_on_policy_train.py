@@ -267,6 +267,7 @@ class EvalParamCallback(EvalCallback):
 class OnPolicyEvaluator:
     def __init__(self, vec_env, gamma, algo, eval_trainer):
         env = vec_env
+        env.seed(seed=1) # Testing
         self.state = env.reset()
         self.env = env
         self.gamma = gamma
@@ -281,7 +282,7 @@ class OnPolicyEvaluator:
 
         old_state = self.state
         obs = torch.as_tensor(self.state, device=self.algo.device)
-        action, policy_val, policy_log_prob = policy_policy.forward(obs)#, deterministic=True)
+        action, policy_val, policy_log_prob = policy_policy.forward(obs, deterministic=True)
         if self.eval_trainer is None:
             value = policy_val.item()
         else:

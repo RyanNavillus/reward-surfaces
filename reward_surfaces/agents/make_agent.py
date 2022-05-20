@@ -1,5 +1,8 @@
+import stable_baselines3
+print(stable_baselines3.__file__)
 from stable_baselines3.ddpg import DDPG
 from stable_baselines3.td3 import TD3
+from stable_baselines3.ppo import PPO
 from stable_baselines3.her import HerReplayBuffer
 import gym
 from .SB3 import SB3OnPolicyTrainer, SB3OffPolicyTrainer, SB3HerPolicyTrainer
@@ -9,7 +12,7 @@ from .experiment_manager import ExperimentManager
 
 SB3_ON_ALGOS = {
     "A2C": ExtA2C,
-    "PPO": ExtPPO,
+    "PPO": PPO,
 }
 SB3_OFF_ALGOS = {
     "DDPG": DDPG,
@@ -52,8 +55,11 @@ def make_agent(agent_name, env_name, save_dir, hyperparams, device="cuda", pretr
         return SB3OffPolicyTrainer(env_fn, alg)
     elif "SB3_ON" == agent_name:
         algo_name = hyperparams.pop('ALGO')
+        if 'seed' in hyperparams:
+            seed = hyperparams.pop('seed')
+        print("SEED: ", seed)
         manager = ExperimentManager(algo_name.lower(), env_name, save_dir, hyperparams=hyperparams,
-                                    pretraining=pretraining, verbose=1, device=device)
+                                    pretraining=pretraining, verbose=1, device=device, seed=seed)
         model, _, steps = manager.setup_experiment()
         if pretraining:
             best_model = manager.get_best_model()
